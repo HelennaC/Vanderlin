@@ -6,6 +6,7 @@
 #define GET_PARENT (parent_attached_to || parent)
 
 /**
+<<<<<<< HEAD
 * Movable atom overlay-based lighting component.
 *
 * * Component works by applying a visual object to the parent target.
@@ -20,6 +21,22 @@
 *
 * * Another limitation is for big lights: you only see the light if you see the object emiting it.
 * * For small objects this is good (you can't see them behind a wall), but for big ones this quickly becomes prety clumsy.
+=======
+	 * Movable atom overlay-based lighting component.
+	 *
+	 * * Component works by applying a visual object to the parent target.
+	 *
+	 * * The component tracks the parent's loc to determine the current_holder.
+	 * * The current_holder is either the parent or its loc, whichever is on a turf. If none, then the current_holder is null and the light is not visible.
+	 *
+	 * * Lighting works at its base by applying a dark overlay and "cutting" said darkness with light, adding (possibly colored) transparency.
+	 * * This component uses the visible_mask visual object to apply said light mask on the darkness.
+	 *
+	 * * The main limitation of this system is that it uses a limited number of pre-baked geometrical shapes, but for most uses it does the job.
+	 *
+	 * * Another limitation is for big lights: you only see the light if you see the object emiting it.
+	 * * For small objects this is good (you can't see them behind a wall), but for big ones this quickly becomes prety clumsy.
+>>>>>>> upstream/main
 */
 /datum/component/overlay_lighting
 	///How far the light reaches, float.
@@ -35,6 +52,7 @@
 
 	///Cache of the possible light overlays, according to size.
 	var/static/list/light_overlays = list(
+<<<<<<< HEAD
 		"32" = 'icons/effects/light_overlays/light_32.dmi',
 		"64" = 'icons/effects/light_overlays/light_64.dmi',
 		"96" = 'icons/effects/light_overlays/light_96.dmi',
@@ -46,6 +64,25 @@
 		"288" = 'icons/effects/light_overlays/light_288.dmi',
 		"320" = 'icons/effects/light_overlays/light_320.dmi',
 		"352" = 'icons/effects/light_overlays/light_352.dmi',
+=======
+		"32" = 'icons/effects/light_overlays/light_32.dmi', // range = 1
+		"64" = 'icons/effects/light_overlays/light_64.dmi',
+		"96" = 'icons/effects/light_overlays/light_96.dmi', // range = 2
+		"128" = 'icons/effects/light_overlays/light_128.dmi',
+		"160" = 'icons/effects/light_overlays/light_160.dmi', // range = 3
+		"192" = 'icons/effects/light_overlays/light_192.dmi',
+		"224" = 'icons/effects/light_overlays/light_224.dmi', // range = 4
+		"256" = 'icons/effects/light_overlays/light_256.dmi',
+		"288" = 'icons/effects/light_overlays/light_288.dmi', // range = 5
+		"320" = 'icons/effects/light_overlays/light_320.dmi',
+		"352" = 'icons/effects/light_overlays/light_352.dmi', // range = 6
+		"384" = 'icons/effects/light_overlays/light_384.dmi',
+		"416" = 'icons/effects/light_overlays/light_416.dmi', // range = 7
+		"448" = 'icons/effects/light_overlays/light_448.dmi',
+		"480" = 'icons/effects/light_overlays/light_480.dmi', // range = 8
+		"512" = 'icons/effects/light_overlays/light_512.dmi',
+		"544" = 'icons/effects/light_overlays/light_544.dmi', // range = 9
+>>>>>>> upstream/main
 		)
 
 	///Overlay effect to cut into the darkness and provide light.
@@ -86,7 +123,11 @@
 /datum/component/overlay_lighting/RegisterWithParent()
 	. = ..()
 	RegisterSignal(parent, COMSIG_MOVABLE_MOVED, PROC_REF(on_parent_moved))
+<<<<<<< HEAD
 	RegisterSignal(parent, COMSIG_ATOM_SET_LIGHT_RANGE, PROC_REF(set_range))
+=======
+	RegisterSignal(parent, COMSIG_ATOM_SET_LIGHT_RANGE, PROC_REF(set_range)) // proc handles old values
+>>>>>>> upstream/main
 	RegisterSignal(parent, COMSIG_ATOM_SET_LIGHT_POWER, PROC_REF(set_power))
 	RegisterSignal(parent, COMSIG_ATOM_SET_LIGHT_COLOR, PROC_REF(set_color))
 	RegisterSignal(parent, COMSIG_ATOM_SET_LIGHT_ON, PROC_REF(on_toggle))
@@ -99,7 +140,10 @@
 	if(movable_parent.light_on)
 		turn_on()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/main
 /datum/component/overlay_lighting/UnregisterFromParent()
 	overlay_lighting_flags &= ~LIGHTING_ATTACHED
 	set_parent_attached_to(null)
@@ -128,8 +172,12 @@
 
 ///Clears the affected_turfs lazylist, removing from its contents the effects of being near the light.
 /datum/component/overlay_lighting/proc/clean_old_turfs()
+<<<<<<< HEAD
 	for(var/t in affected_turfs)
 		var/turf/lit_turf = t
+=======
+	for(var/turf/lit_turf as anything in affected_turfs)
+>>>>>>> upstream/main
 		lit_turf.dynamic_lumcount -= lum_power
 	affected_turfs = null
 
@@ -266,7 +314,11 @@
 	make_luminosity_update()
 
 
+<<<<<<< HEAD
 ///Changes the range which the light reaches. 0 means no light, 6 is the maximum value.
+=======
+///Changes the range which the light reaches. 0 means no light, 9 is the maximum value.
+>>>>>>> upstream/main
 /datum/component/overlay_lighting/proc/set_range(atom/source, old_inner_range, old_outer_range)
 	SIGNAL_HANDLER
 	var/new_range = source.light_outer_range
@@ -274,7 +326,11 @@
 		return
 	if(range == 0)
 		turn_off()
+<<<<<<< HEAD
 	range = clamp(CEILING(new_range, 0.5), 1, 6)
+=======
+	range = clamp(CEILING(new_range, 0.5), 1, 9)
+>>>>>>> upstream/main
 	var/pixel_bounds = ((range - 1) * 64) + 32
 	lumcount_range = CEILING(range, 1)
 	visible_mask.icon = light_overlays["[pixel_bounds]"]
@@ -353,8 +409,12 @@
 	. = lum_power
 	lum_power = new_lum_power
 	var/difference = . - lum_power
+<<<<<<< HEAD
 	for(var/t in affected_turfs)
 		var/turf/lit_turf = t
+=======
+	for(var/turf/lit_turf as anything in affected_turfs)
+>>>>>>> upstream/main
 		lit_turf.dynamic_lumcount -= difference
 
 

@@ -1,6 +1,5 @@
 #define POPCOUNT_SURVIVORS "survivors"					//Not dead at roundend
 #define POPCOUNT_ESCAPEES "escapees"					//Not dead and on centcom/shuttles marked as escaped
-#define POPCOUNT_SHUTTLE_ESCAPEES "shuttle_escapees" 	//Emergency shuttle only.
 
 /datum/controller/subsystem/ticker/proc/gather_roundend_feedback()
 	gather_antag_data()
@@ -8,10 +7,6 @@
 	var/list/file_data = list("escapees" = list("humans" = list(), "silicons" = list(), "others" = list(), "npcs" = list()), "abandoned" = list("humans" = list(), "silicons" = list(), "others" = list(), "npcs" = list()), "ghosts" = list(), "additional data" = list())
 	var/num_survivors = 0
 	var/num_escapees = 0
-	var/num_shuttle_escapees = 0
-	var/list/area/shuttle_areas
-	if(SSshuttle && SSshuttle.emergency)
-		shuttle_areas = SSshuttle.emergency.shuttle_areas
 	for(var/mob/m in GLOB.mob_list)
 		var/escaped
 		var/category
@@ -30,6 +25,7 @@
 				if(ishuman(L))
 					var/mob/living/carbon/human/H = L
 					category = "humans"
+<<<<<<< HEAD
 					mob_data += list("job" = H.mind.assigned_role, "species" = H.dna.species.name)
 			else
 				category = "others"
@@ -42,6 +38,12 @@
 					num_shuttle_escapees++
 			else
 				escaped = "abandoned"
+=======
+					mob_data += list("job" = H.mind.assigned_role.title, "species" = H.dna.species.name)
+			else
+				category = "others"
+				mob_data += list("typepath" = m.type)
+>>>>>>> upstream/main
 		if(!m.mind && (!ishuman(m)))
 			var/list/npc_nest = file_data["[escaped]"]["npcs"]
 			if(npc_nest.Find(initial(m.name)))
@@ -58,10 +60,6 @@
 					mob_data += list("name" = m.name, "typepath" = m.type)
 				var/pos = length(file_data["[escaped]"]["[category]"]) + 1
 				file_data["[escaped]"]["[category]"]["[pos]"] = mob_data
-	var/datum/station_state/end_state = new /datum/station_state()
-	end_state.count()
-	var/station_integrity = min(PERCENT(GLOB.start_state.score(end_state)), 100)
-	file_data["additional data"]["station integrity"] = station_integrity
 	WRITE_FILE(json_file, json_encode(file_data))
 	SSblackbox.record_feedback("nested tally", "round_end_stats", num_survivors, list("survivors", "total"))
 	SSblackbox.record_feedback("nested tally", "round_end_stats", num_escapees, list("escapees", "total"))
@@ -70,8 +68,6 @@
 	. = list()
 	.[POPCOUNT_SURVIVORS] = num_survivors
 	.[POPCOUNT_ESCAPEES] = num_escapees
-	.[POPCOUNT_SHUTTLE_ESCAPEES] = num_shuttle_escapees
-	.["station_integrity"] = station_integrity
 
 /datum/controller/subsystem/ticker/proc/gather_antag_data()
 	var/team_gid = 1
@@ -105,7 +101,12 @@
 /mob/proc/do_game_over()
 	if(SSticker.current_state != GAME_STATE_FINISHED)
 		return
+	status_flags |= GODMODE
+	ADD_TRAIT(src, TRAIT_NO_TRANSFORM, ROUNDSTART_TRAIT)
+	ai_controller?.set_ai_status(AI_STATUS_OFF)
 	if(client)
+		add_verb(client, /client/proc/lobbyooc)
+		add_verb(client, /client/proc/view_stats)
 		client.show_game_over()
 
 /mob/living/do_game_over()
@@ -114,103 +115,72 @@
 	Stun(6000, 1, 1)
 	ADD_TRAIT(src, TRAIT_MUTE, TRAIT_GENERIC)
 	walk(src, 0) //stops them mid pathing even if they're stunimmune
-	if(isanimal(src))
-		var/mob/living/simple_animal/S = src
-		S.toggle_ai(AI_OFF)
-	if(ishostile(src))
-		var/mob/living/simple_animal/hostile/H = src
-		H.LoseTarget()
-	if(ishuman(src))
-		var/mob/living/carbon/human/H = src
-		H.mode = AI_OFF
 	if(client)
-		client.verbs += /client/proc/lobbyooc
-		client.verbs += /client/proc/commendsomeone
+		add_verb(client, /client/proc/commendsomeone)
 
 /client/proc/show_game_over()
-	var/atom/movable/screen/splash/credits/S = new(src, FALSE)
+	var/atom/movable/screen/splash/credits/S = new(null, null, src, FALSE, FALSE)
 	S.Fade(FALSE,FALSE)
 	RollCredits()
-//	if(GLOB.credits_icons.len)
-//		for(var/i=0, i<=GLOB.credits_icons.len, i++)
-//			var/atom/movable/screen/P = new()
-//			P.layer = SPLASHSCREEN_LAYER+1
-//			P.appearance = GLOB.credits_icons
-//			screen += P
 
 /datum/controller/subsystem/ticker/proc/declare_completion()
 	set waitfor = FALSE
 
 	log_game("The round has ended.")
 
-	to_chat(world, "<BR><BR><BR><span class='reallybig'>So ends this tale of Roguetown.</span>")
+	INVOKE_ASYNC(world, TYPE_PROC_REF(/world, flush_byond_tracy))
+
+	to_chat(world, "<BR><BR><BR><span class='reallybig'>So ends this tale of Vanderlin.</span>")
 	get_end_reason()
 
 	var/list/key_list = list()
 	for(var/client/C in GLOB.clients)
 		if(C.mob)
-			SSdroning.kill_droning(C)
+			C.mob.cancel_looping_ambience()
 			C.mob.playsound_local(C.mob, 'sound/misc/roundend.ogg', 100, FALSE)
 		if(isliving(C.mob) && C.ckey)
 			key_list += C.ckey
-//	if(key_list.len)
-//		add_roundplayed(key_list)
+
 	for(var/mob/living/carbon/human/H in GLOB.player_list)
 		if(H.stat != DEAD)
 			if(H.get_triumphs() < 0)
 				H.adjust_triumphs(1)
+
 	add_roundplayed(key_list)
-//	SEND_SOUND(world, sound(pick('sound/misc/roundend1.ogg','sound/misc/roundend2.ogg')))
-//	SEND_SOUND(world, sound('sound/misc/roundend.ogg'))
+
+	update_god_rankings()
 
 	for(var/mob/M in GLOB.mob_list)
 		M.do_game_over()
 		M.playsound_local(M, 'sound/music/credits.ogg', 100, FALSE)
 
-	for(var/I in round_end_events)
-		var/datum/callback/cb = I
+	for(var/datum/callback/cb as anything in round_end_events)
 		cb.InvokeAsync()
 	LAZYCLEARLIST(round_end_events)
 
 	to_chat(world, "Round ID: [GLOB.rogue_round_id]")
 
-	SSvote.initiate_vote("map", "Psydon")
-
 	sleep(5 SECONDS)
+
+	//TODO: use build_roundend_report()
 
 	gamemode_report()
 
-	sleep(10 SECONDS)
+	sleep(8 SECONDS)
+
+	var/datum/triumph_buy/communal/psydon_retirement_fund/fund = locate() in SStriumphs.triumph_buy_datums
+	if(fund && SStriumphs.communal_pools[fund.type] > 0)
+		fund.on_activate()
+
+	sleep(6 SECONDS)
 
 	players_report()
 
-	stats_report()
-
-//	for(var/client/C in GLOB.clients)
-//		if(!C.credits)
-//			C.RollCredits()
-//		C.playtitlemusic(40)
-
-//	var/popcount = gather_roundend_feedback()
-//	display_report(popcount)
+	SSvote.initiate_vote("map", "Psydon")
 
 	CHECK_TICK
 
-//	// Add AntagHUD to everyone, see who was really evil the whole time!
-//	for(var/datum/atom_hud/antag/H in GLOB.huds)
-//		for(var/m in GLOB.player_list)
-//			var/mob/M = m
-//			H.add_hud_to(M)
-
-	CHECK_TICK
-
-	//Set news report and mode result
-//	mode.set_round_result()
-
-//	send2irc("Server", "Round just ended.")
-
-//	if(length(CONFIG_GET(keyed_list/cross_server)))
-//		send_news_report()
+	SSgamemode.store_roundend_data()
 
 	CHECK_TICK
 
@@ -235,20 +205,20 @@
 
 	CHECK_TICK
 	SSdbcore.SetRoundEnd()
-	//Collects persistence features
-	if(mode.allow_persistence_save)
-		SSpersistence.CollectData()
+	SSpersistence.CollectData()
 
 	//stop collecting feedback during grifftime
 	SSblackbox.Seal()
 
 	sleep(10 SECONDS)
 	ready_for_reboot = TRUE
+	SSplexora.roundended()
 	standard_reboot()
 
 /datum/controller/subsystem/ticker/proc/get_end_reason()
 	var/end_reason
 
+<<<<<<< HEAD
 	if(istype(SSticker.mode, /datum/game_mode/chaosmode))
 		var/datum/game_mode/chaosmode/C = SSticker.mode
 /*		if(C.check_for_lord)
@@ -262,17 +232,23 @@
 								"Without a Monarch, the town was abandoned.")
 		if(C.not_enough_players)
 			end_reason = "The town was abandoned." */
+=======
+	if(!check_for_lord(TRUE)) //TRUE forces the check, otherwise it will autofail.
+		end_reason = pick("Without a Monarch, the forces of Zizo grew ever bolder.",
+						"Without a Monarch, the settlement fell into turmoil.",
+						"Without a Monarch, some jealous rival reigned in tyranny.")
+>>>>>>> upstream/main
 
-		if(C.vampire_werewolf() == "vampire")
-			end_reason = "When the Vampires finished sucking the town dry, they moved on to the next one."
-		if(C.vampire_werewolf() == "werewolf")
-			end_reason = "The Werevolves formed an unholy clan, marauding Rockhill until the end of its daes."
+	if(vampire_werewolf() == "vampire")
+		end_reason = "When the Vampires finished sucking the town dry, they moved on to the next one."
+	if(vampire_werewolf() == "werewolf")
+		end_reason = "The Werevolves formed an unholy clan, marauding Rockhill until the end of its daes."
 
-		if(C.cultascended)
-			end_reason = "ZIZOZIZOZIZOZIZO"
+	if(SSmapping.retainer.cult_ascended)
+		end_reason = "ZIZOZIZOZIZOZIZO"
 
-		if(C.headrebdecree)
-			end_reason = "The peasant rebels took control of the throne, hail the new community!"
+	if(SSmapping.retainer.head_rebel_decree)
+		end_reason = "The peasant rebels took control of the throne, hail the new community!"
 
 
 	if(end_reason)
@@ -281,12 +257,18 @@
 		to_chat(world, "<span class='big bold'>The town has managed to survive another week.</span>")
 
 /datum/controller/subsystem/ticker/proc/gamemode_report()
+	//TODO: This is a copypaste of antag_report(), this should be deleted
 	var/list/all_teams = list()
 	var/list/all_antagonists = list()
 
+	var/list/header_parts
+	if(GLOB.antagonist_teams.len || GLOB.antagonists.len)
+		header_parts += "<br>"
+		header_parts += "<div style='text-align: center; font-size: 1.2em;'>VILLAINS:</div>"
+		header_parts += "<hr class='paneldivider'>"
+		to_chat(world, header_parts)
+
 	for(var/datum/team/A in GLOB.antagonist_teams)
-		if(!A.members)
-			continue
 		all_teams |= A
 
 	for(var/datum/antagonist/A in GLOB.antagonists)
@@ -295,10 +277,15 @@
 		all_antagonists |= A
 
 	for(var/datum/team/T in all_teams)
-		T.roundend_report()
-		for(var/datum/antagonist/X in all_antagonists)
-			if(X.get_team() == T)
-				all_antagonists -= X
+		//check if we should show the team
+		if(!T.show_roundend_report)
+			continue
+
+		for(var/datum/mind/member_mind as anything in T.members)
+			if(!isnull(member_mind.antag_datums))
+				all_antagonists -= member_mind.antag_datums
+
+		to_chat(world, T.roundend_report())
 		CHECK_TICK
 
 	var/currrent_category
@@ -324,41 +311,11 @@
 		if(last.show_in_roundend)
 			last.roundend_report_footer()
 
-
-	return
-
-/datum/controller/subsystem/ticker/proc/stats_report()
-	var/list/shit = list()
-	shit += "<br><span class='bold'>Δ--------------------Δ</span><br>"
-	shit += "<br><font color='#9b6937'><span class='bold'>Deaths:</span></font> [deaths]"
-	shit += "<br><font color='#825b1c'><span class='bold'>Moat Fallers:</span></font> [moatfallers]"
-	shit += "<br><font color='#700000'><span class='bold'>Ankles Broken:</span></font> [holefall]"
-	shit += "<br><font color='#ffee00'><span class='bold'>People Smiten:</span></font> [pplsmited]"
-	shit += "<br><font color='#af2323'><span class='bold'>Blood spilt:</span></font> [round(blood_lost / 100, 1)]L"
-	shit += "<br><font color='#af2323'><span class='bold'>People Gibbed:</span></font> [gibbs]"
-	shit += "<br><font color='#36959c'><span class='bold'>TRIUMPH(s) Awarded:</span></font> [tri_gained]"
-	shit += "<br><font color='#a02fa4'><span class='bold'>TRIUMPH(s) Stolen:</span></font> [tri_lost * -1]"
-	shit += "<br><font color='#f200ff'><span class='bold'>Drugs Snorted:</span></font> [snort]"
-	shit += "<br><font color='#0f555c'><span class='bold'>Beards Shaved:</span></font> [beardshavers]"
-	shit += "<br><font color='#ffffff'><span class='bold'>Pleasures:</span></font> [cums]"
-//	if(cuckers.len)
-//		shit += "<br><font color='#4e488a'><span class='bold'>Adulterers:</span></font> "
-//		for(var/x in cuckers.len)
-//			shit += "[x]"
-	if(GLOB.confessors.len)
-		shit += "<br><font color='#93cac7'><span class='bold'>Confessors:</span></font> "
-		for(var/x in GLOB.confessors)
-			shit += "[x]"
-	shit += "<br><br><span class='bold'>∇--------------------∇</span>"
-	to_chat(world, "[shit.Join()]")
-	return
+	to_chat(world, personal_objectives_report())
 
 /datum/controller/subsystem/ticker/proc/standard_reboot()
 	if(ready_for_reboot)
-		if(mode.station_was_nuked)
-			Reboot("Station destroyed by Nuclear Device.", "nuke")
-		else
-			Reboot("Round ended.", "proper completion")
+		Reboot("Round ended.", "proper completion")
 	else
 		CRASH("Attempted standard reboot without ticker roundend completion")
 
@@ -366,13 +323,21 @@
 /datum/controller/subsystem/ticker/proc/build_roundend_report()
 	var/list/parts = list()
 
+<<<<<<< HEAD
 	//Gamemode specific things. Should be empty most of the time.
 	parts += mode.special_report()
 
+=======
+>>>>>>> upstream/main
 	CHECK_TICK
 
 	//Antagonists
 	parts += antag_report()
+
+	CHECK_TICK
+
+	//Personal objectives
+	parts += personal_objectives_report()
 
 	CHECK_TICK
 	//Medals
@@ -384,20 +349,15 @@
 
 /datum/controller/subsystem/ticker/proc/survivor_report(popcount)
 	var/list/parts = list()
-	var/station_evacuated = EMERGENCY_ESCAPED_OR_ENDGAMED
 
 	if(GLOB.round_id)
 		var/statspage = CONFIG_GET(string/roundstatsurl)
 		var/info = statspage ? "<a href='?action=openLink&link=[url_encode(statspage)][GLOB.round_id]'>[GLOB.round_id]</a>" : GLOB.round_id
 		parts += "[FOURSPACES]Round ID: <b>[info]</b>"
 	parts += "[FOURSPACES]Shift Duration: <B>[DisplayTimeText(world.time - SSticker.round_start_time)]</B>"
-	parts += "[FOURSPACES]Station Integrity: <B>[mode.station_was_nuked ? "<span class='redtext'>Destroyed</span>" : "[popcount["station_integrity"]]%"]</B>"
 	var/total_players = GLOB.joined_player_list.len
 	if(total_players)
 		parts+= "[FOURSPACES]Total Population: <B>[total_players]</B>"
-		if(station_evacuated)
-			parts += "<BR>[FOURSPACES]Evacuation Rate: <B>[popcount[POPCOUNT_ESCAPEES]] ([PERCENT(popcount[POPCOUNT_ESCAPEES]/total_players)]%)</B>"
-			parts += "[FOURSPACES](on emergency shuttle): <B>[popcount[POPCOUNT_SHUTTLE_ESCAPEES]] ([PERCENT(popcount[POPCOUNT_SHUTTLE_ESCAPEES]/total_players)]%)</B>"
 		parts += "[FOURSPACES]Survival Rate: <B>[popcount[POPCOUNT_SURVIVORS]] ([PERCENT(popcount[POPCOUNT_SURVIVORS]/total_players)]%)</B>"
 		if(SSblackbox.first_death)
 			var/list/ded = SSblackbox.first_death
@@ -406,13 +366,6 @@
 			//ignore this comment, it fixes the broken sytax parsing caused by the " above
 			else
 				parts += "[FOURSPACES]<i>Nobody died this shift!</i>"
-	if(istype(SSticker.mode, /datum/game_mode/dynamic))
-		var/datum/game_mode/dynamic/mode = SSticker.mode
-		parts += "[FOURSPACES]Threat level: [mode.threat_level]"
-		parts += "[FOURSPACES]Threat left: [mode.threat]"
-		parts += "[FOURSPACES]Executed rules:"
-		for(var/datum/dynamic_ruleset/rule in mode.executed_rules)
-			parts += "[FOURSPACES][FOURSPACES][rule.ruletype] - <b>[rule.name]</b>: -[rule.cost + rule.scaled_times * rule.scaling_cost] threat"
 	return parts.Join("<br>")
 
 /client/proc/roundend_report_file()
@@ -427,13 +380,12 @@
 	if(!previous)
 		var/list/report_parts = list(personal_report(C), GLOB.common_report)
 		content = report_parts.Join()
-		C.verbs -= /client/proc/show_previous_roundend_report
+		remove_verb(C, /client/proc/show_previous_roundend_report)
 		fdel(filename)
 		text2file(content, filename)
 	else
 		content = file2text(filename)
 	roundend_report.set_content(content)
-	roundend_report.stylesheets = list()
 //	roundend_report.add_stylesheet("roundend", 'html/browser/roundend.css')
 //	roundend_report.add_stylesheet("font-awesome", 'html/font-awesome/css/all.min.css')
 	roundend_report.open(FALSE)
@@ -443,16 +395,8 @@
 	var/mob/M = C.mob
 	if(M.mind && !isnewplayer(M))
 		if(M.stat != DEAD && !isbrain(M))
-			if(EMERGENCY_ESCAPED_OR_ENDGAMED)
-				if(!M.onCentCom() && !M.onSyndieBase())
-					parts += "<div class='panel stationborder'>"
-					parts += "<span class='marooned'>I managed to survive, but were marooned on [station_name()]...</span>"
-				else
-					parts += "<div class='panel greenborder'>"
-					parts += "<span class='greentext'>I managed to survive the events on [station_name()] as [M.real_name].</span>"
-			else
-				parts += "<div class='panel greenborder'>"
-				parts += "<span class='greentext'>I managed to survive the events on [station_name()] as [M.real_name].</span>"
+			parts += "<div class='panel greenborder'>"
+			parts += "<span class='greentext'>I managed to survive the events on [station_name()] as [M.real_name].</span>"
 
 		else
 			parts += "<div class='panel redborder'>"
@@ -466,8 +410,41 @@
 	return parts.Join()
 
 /datum/controller/subsystem/ticker/proc/players_report()
+	reward_notables()
 	for(var/client/C in GLOB.clients)
 		give_show_playerlist_button(C)
+
+/datum/controller/subsystem/ticker/proc/reward_notables()
+	var/list/notable_minds = list()
+
+	for(var/stat_type in SSgamemode.chosen_chronicle_stats)
+		var/list/stat_data = GLOB.chronicle_stats[stat_type]
+		if(!stat_data)
+			continue
+
+		var/datum/weakref/holder_ref = stat_data["holder"]
+		var/mob/living/carbon/human/notable = holder_ref?.resolve()
+		if(!notable.client || !notable.mind || notable.stat == DEAD)
+			continue
+
+		if(!notable_minds[notable.mind])
+			notable_minds[notable.mind] = list()
+
+		notable_minds[notable.mind] += stat_data["title"]
+
+	if(length(notable_minds) > 0)
+		var/list/shuffled_minds = shuffle(notable_minds)
+		var/recipients_given = 0
+
+		for(var/datum/mind/selected_mind as anything in shuffled_minds)
+			if(recipients_given >= MAX_CHRONICLE_STATS)
+				break
+
+			var/list/titles = notable_minds[selected_mind]
+			var/reason = "Being a notable person ([english_list(titles)])"
+			selected_mind.adjust_triumphs(1, TRUE, reason)
+			to_chat(selected_mind, "<br>")
+			recipients_given++
 
 /datum/controller/subsystem/ticker/proc/display_report(popcount)
 	GLOB.common_report = build_roundend_report()
@@ -486,26 +463,86 @@
 		return "<div class='panel stationborder'>[parts.Join("<br>")]</div>"
 	return ""
 
+/datum/controller/subsystem/ticker/proc/personal_objectives_report()
+	var/list/parts = list()
+	var/failed_chosen = 0
+	var/has_any_objectives = FALSE
+	var/showed_any_champions = FALSE
+
+	// Header
+	parts += "<div class='panel stationborder'>"
+	if(GLOB.personal_objective_minds.len)
+		parts += "<div style='text-align: center; font-size: 1.2em;'>HEROES:</div>"
+		parts += "<hr class='paneldivider'>"
+
+	var/list/successful_champions = list()
+	for(var/datum/mind/mind as anything in GLOB.personal_objective_minds)
+		if(!mind.personal_objectives || !mind.personal_objectives.len)
+			continue
+
+		has_any_objectives = TRUE
+		var/any_success = FALSE
+		for(var/datum/objective/personal/objective as anything in mind.personal_objectives)
+			if(objective.check_completion())
+				any_success = TRUE
+				break
+
+		if(any_success)
+			successful_champions += mind
+		else
+			failed_chosen++
+
+	var/last_index = length(successful_champions)
+	var/current_index = 0
+	for(var/datum/mind/mind as anything in successful_champions)
+		current_index++
+		showed_any_champions = TRUE
+		var/name_with_title = mind.current ? printplayer(mind) : "<b>Unknown Hero</b>"
+		parts += name_with_title
+
+		var/obj_count = 1
+		for(var/datum/objective/personal/objective as anything in mind.personal_objectives)
+			var/result = objective.check_completion() ? span_greentext("TRIUMPH!") : span_redtext("FAIL")
+			parts += "<B>Goal #[obj_count]</B>: [objective.explanation_text] - [result]"
+			obj_count++
+
+		if(current_index < last_index)
+			parts += "<br>"
+		CHECK_TICK
+
+	if(!has_any_objectives)
+		parts += "<div style='text-align: center;'>No heroes were chosen this round</div>"
+	else if(failed_chosen > 0)
+		if(showed_any_champions)
+			parts += "<br>"
+		parts += "<div style='text-align: center;'>[failed_chosen] [failed_chosen == 1 ? "hero" : "heroes"] [failed_chosen == 1 ? "has" : "have"] failed to complete their calling.</div>"
+
+	parts += "</div>"
+	return parts.Join("<br>")
+
 /datum/controller/subsystem/ticker/proc/antag_report()
 	var/list/result = list()
 	var/list/all_teams = list()
 	var/list/all_antagonists = list()
 
-	for(var/datum/team/A in GLOB.antagonist_teams)
-		if(!A.members)
-			continue
-		all_teams |= A
+	for(var/datum/team/team as anything in GLOB.antagonist_teams)
+		all_teams |= team
 
-	for(var/datum/antagonist/A in GLOB.antagonists)
-		if(!A.owner)
+	for(var/datum/antagonist/antagonist as anything in GLOB.antagonists)
+		if(!antagonist.owner)
 			continue
-		all_antagonists |= A
+		all_antagonists |= antagonist
 
-	for(var/datum/team/T in all_teams)
-		result += T.roundend_report()
-		for(var/datum/antagonist/X in all_antagonists)
-			if(X.get_team() == T)
-				all_antagonists -= X
+	for(var/datum/team/active_team as anything in all_teams)
+		//check if we should show the team
+		if(!active_team.show_roundend_report)
+			continue
+
+		for(var/datum/mind/member_mind as anything in active_team.members)
+			if(!isnull(member_mind.antag_datums))
+				all_antagonists -= member_mind.antag_datums
+
+		result += active_team.roundend_report()
 		result += " "//newline between teams
 		CHECK_TICK
 
@@ -514,19 +551,19 @@
 
 	sortTim(all_antagonists, GLOBAL_PROC_REF(cmp_antag_category))
 
-	for(var/datum/antagonist/A in all_antagonists)
-		if(!A.show_in_roundend)
+	for(var/datum/antagonist/antagonist as anything in all_antagonists)
+		if(antagonist.show_in_roundend)
 			continue
-		if(A.roundend_category != currrent_category)
+		if(antagonist.roundend_category != currrent_category)
 			if(previous_category)
 				result += previous_category.roundend_report_footer()
 				result += "</div>"
 			result += "<div class='panel redborder'>"
-			result += A.roundend_report_header()
-			currrent_category = A.roundend_category
-			previous_category = A
-		result += A.roundend_report()
-		result += "<br><br>"
+			result += antagonist.roundend_report_header()
+			currrent_category = antagonist.roundend_category
+			previous_category = antagonist
+		result += antagonist.roundend_report()
+		result += "<br>"
 		CHECK_TICK
 
 	if(all_antagonists.len)
@@ -543,18 +580,21 @@
 	var/datum/action/report/R = new
 	C.player_details.player_actions += R
 	R.Grant(C.mob)
-	to_chat(C,"<a href='?src=[REF(R)];report=1'>Show roundend report again</a>")
+	to_chat(C,"<a href='byond://?src=[REF(R)];report=1'>Show roundend report again</a>")
 
 /datum/controller/subsystem/ticker/proc/give_show_playerlist_button(client/C)
 	set waitfor = 0
-	to_chat(C,"<a href='?src=[C];playerlistrogue=1'>* SHOW PLAYER LIST *</a>")
-	to_chat(C,"<a href='?src=[C];commendsomeone=1'>* Commend a Character *</a>")
+	to_chat(C,"<a href='byond://?src=[C];playerlist=1'>* SHOW PLAYER LIST *</a>")
+	to_chat(C,"<a href='byond://?src=[C];commendsomeone=1'>* Commend a Character *</a>")
+	to_chat(C,"<a href='byond://?src=[C];viewstats=1'>* View Statistics *</a>")
+	C.show_round_stats(pick_assoc(GLOB.featured_stats))
+	C.commendation_popup()
 
 /datum/action/report
 	name = "Show roundend report"
 	button_icon_state = "round_end"
 
-/datum/action/report/Trigger()
+/datum/action/report/Trigger(trigger_flags)
 	if(owner && GLOB.common_report && SSticker.current_state == GAME_STATE_FINISHED)
 		SSticker.show_roundend_report(owner.client, FALSE)
 
@@ -570,38 +610,28 @@
 
 /proc/printplayer(datum/mind/ply, fleecheck)
 	var/jobtext = ""
-	if(ply.assigned_role)
-		jobtext = " the <b>[ply.assigned_role]</b>"
-	var/usede = ply.key
-	if(ply.key)
-		usede = ckey(ply.key)
-		if(ckey(ply.key) in GLOB.anonymize)
-//			if(check_whitelist(ckey(ply.key)))
-			usede = get_fake_key(ckey(ply.key))
+	if(ply.special_role)
+		jobtext = " the <b>[ply.special_role]</b>"
+	else if(ply.assigned_role && ply.current)
+		jobtext = " the <b>[ply.assigned_role.get_informed_title(ply.current)]</b>"
+	var/usede = get_display_ckey(ply.key)
 	var/text = "<b>[usede]</b> was <b>[ply.name]</b>[jobtext] and"
 	if(ply.current)
-		if(ply.current.real_name != ply.name)
-			text += " <span class='redtext'>died</span>"
+		if(ply.current.stat == DEAD)
+			text += span_redtext(" died.")
 		else
-			if(ply.current.stat == DEAD)
-				text += " <span class='redtext'>died</span>"
-			else
-				text += " <span class='greentext'>survived</span>"
-//		if(fleecheck)
-//			var/turf/T = get_turf(ply.current)
-//			if(!T || !is_station_level(T.z))
-//				text += " while <span class='redtext'>fleeing the station</span>"
-//		if(ply.current.real_name != ply.name)
-//			text += " as <b>[ply.current.real_name]</b>"
-	to_chat(world, "[text]")
+			text += span_greentext(" survived.")
+	else
+		text += span_redtext(" died.")
+	return text
 
-/proc/printplayerlist(list/players,fleecheck)
+/proc/printplayerlist(list/datum/mind/players,fleecheck)
 	var/list/parts = list()
 
-	parts += "<ul class='playerlist'>"
+	//parts += "<ul class='playerlist'>"
 	for(var/datum/mind/M in players)
-		parts += "<li>[printplayer(M,fleecheck)]</li>"
-	parts += "</ul>"
+		parts += printplayer(M,fleecheck)//"<li>[printplayer(M,fleecheck)]</li>"
+	//parts += "</ul>"
 	return parts.Join()
 
 
@@ -612,9 +642,9 @@
 	var/count = 1
 	for(var/datum/objective/objective in objectives)
 		if(objective.check_completion())
-			objective_parts += "<b>Objective #[count]</b>: [objective.explanation_text] <span class='greentext'>Success!</span>"
+			objective_parts += "<b>[objective.flavor] #[count]</b>: [objective.explanation_text] <span class='greentext'>Success!</span>"
 		else
-			objective_parts += "<b>Objective #[count]</b>: [objective.explanation_text] <span class='redtext'>Fail.</span>"
+			objective_parts += "<b>[objective.flavor] #[count]</b>: [objective.explanation_text] <span class='redtext'>Fail.</span>"
 		count++
 	return objective_parts.Join("<br>")
 

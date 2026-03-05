@@ -3,16 +3,12 @@
 /obj/structure/closet/supplypod
 	name = "supply pod" //Names and descriptions are normally created with the setStyle() proc during initialization, but we have these default values here as a failsafe
 	desc = ""
-	icon = 'icons/obj/supplypods.dmi'
 	icon_state = "supplypod"
-	pixel_x = -16 //2x2 sprite
-	pixel_y = -5
+	SET_BASE_PIXEL(-16, -5)
 	layer = TABLE_LAYER //So that the crate inside doesn't appear underneath
-	allow_objects = TRUE
 	allow_dense = TRUE
-	delivery_icon = null
 	can_weld_shut = FALSE
-	armor = list("melee" = 30, "bullet" = 50, "laser" = 50, "energy" = 100, "bomb" = 100, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 80)
+	armor = list("blunt" = 30, "slash" = 30, "stab" = 30,  "piercing" = 50, "fire" = 100, "acid" = 80)
 	anchored = TRUE //So it cant slide around after landing
 	anchorable = FALSE
 	flags_1 = PREVENT_CONTENTS_EXPLOSION_1
@@ -71,23 +67,15 @@
 /obj/structure/closet/supplypod/proc/specialisedPod()
 	return 1
 
-/obj/structure/closet/supplypod/extractionpod/specialisedPod(atom/movable/holder)
-	holder.forceMove(pick(GLOB.holdingfacility)) // land in ninja jail
-	open(holder, forced = TRUE)
-
 /obj/structure/closet/supplypod/Initialize()
 	. = ..()
 	setStyle(style, TRUE) //Upon initialization, give the supplypod an iconstate, name, and description based on the "style" variable. This system is important for the centcom_podlauncher to function correctly
 
-/obj/structure/closet/supplypod/update_icon()
-	cut_overlays()
-	if (style == STYLE_SEETHROUGH || style == STYLE_INVISIBLE) //If we're invisible, we dont bother adding any overlays
+/obj/structure/closet/supplypod/update_overlays()
+	. = ..()
+	if(style == STYLE_SEETHROUGH || style == STYLE_INVISIBLE) //If we're invisible, we dont bother adding any overlays
 		return
-	else
-		if (opened)
-			add_overlay("[icon_state]_open")
-		else
-			add_overlay("[icon_state]_door")
+	. += "[icon_state][opened ? "_open" : "_door"]"
 
 /obj/structure/closet/supplypod/proc/setStyle(chosenStyle, duringInit = FALSE) //Used to give the sprite an icon state, name, and description
 	if (!duringInit && style == chosenStyle) //Check if the input style is already the same as the pod's style. This happens in centcom_podlauncher, and as such we set the style to STYLE_CENTCOM.
@@ -98,7 +86,7 @@
 	if (!adminNamed && !specialised) //We dont want to name it ourselves if it has been specifically named by an admin using the centcom_podlauncher datum
 		name = POD_STYLES[chosenStyle][POD_NAME]
 		desc = POD_STYLES[chosenStyle][POD_DESC]
-	update_icon()
+	update_appearance(UPDATE_OVERLAYS)
 /*
 /obj/structure/closet/supplypod/tool_interact(obj/item/W, mob/user)
 	if(bluespace) //We dont want to worry about interacting with bluespace pods, as they are due to delete themselves soon anyways.
@@ -145,7 +133,7 @@
 	var/turf/T = get_turf(src)
 	var/list/B = explosionSize //Mostly because B is more readable than explosionSize :p
 	if (landingSound)
-		playsound(get_turf(src), landingSound, soundVolume, FALSE, FALSE)
+		playsound(src, landingSound, soundVolume, FALSE, FALSE)
 	for (var/mob/living/M in T)
 		if (effectLimb && iscarbon(M)) //If effectLimb is true (which means we pop limbs off when we hit people):
 			var/mob/living/carbon/CM = M
@@ -182,12 +170,7 @@
 	if (effectMissile) //If we are acting like a missile, then right after we land and finish fucking shit up w explosions, we should delete
 		opened = TRUE //We set opened to TRUE to avoid spending time trying to open (due to being deleted) during the Destroy() proc
 		qdel(src)
-	if (style == STYLE_GONDOLA) //Checks if we are supposed to be a gondola pod. If so, create a gondolapod mob, and move this pod to nullspace. I'd like to give a shout out, to my man oranges
-		var/mob/living/simple_animal/pet/gondola/gondolapod/benis = new(get_turf(src), src)
-		benis.contents |= contents //Move the contents of this supplypod into the gondolapod mob.
-		moveToNullspace()
-		addtimer(CALLBACK(src, PROC_REF(open), benis), openingDelay) //After the openingDelay passes, we use the open proc from this supplyprod while referencing the contents of the "holder", in this case the gondolapod mob
-	else if (style == STYLE_SEETHROUGH)
+	if (style == STYLE_SEETHROUGH)
 		open(src)
 	else
 		addtimer(CALLBACK(src, PROC_REF(open), src), openingDelay) //After the openingDelay passes, we use the open proc from this supplypod, while referencing this supplypod's contents
@@ -205,14 +188,14 @@
 		if (M.key && !forced && !broken) //If we are player controlled, then we shouldnt open unless the opening is manual, or if it is due to being destroyed (represented by the "broken" parameter)
 			return
 	if (openingSound)
-		playsound(get_turf(holder), openingSound, soundVolume, FALSE, FALSE) //Special admin sound to play
+		playsound(holder, openingSound, soundVolume, FALSE, FALSE) //Special admin sound to play
 	INVOKE_ASYNC(holder, PROC_REF(setOpened)) //Use the INVOKE_ASYNC proc to call setOpened() on whatever the holder may be, without giving the atom/movable base class a setOpened() proc definition
 	if (style == STYLE_SEETHROUGH)
-		update_icon()
+		update_appearance(UPDATE_OVERLAYS)
 	for (var/atom/movable/O in holder.contents) //Go through the contents of the holder
 		O.forceMove(T) //move everything from the contents of the holder to the turf of the holder
 	if (!effectQuiet && !openingSound && style != STYLE_SEETHROUGH) //If we aren't being quiet, play the default pod open sound
-		playsound(get_turf(holder), open_sound, 15, TRUE, -3)
+		playsound(holder, open_sound, 15, TRUE, -3)
 	if (broken) //If the pod is opening because it's been destroyed, we end here
 		return
 	if (style == STYLE_SEETHROUGH)
@@ -223,7 +206,7 @@
 
 /obj/structure/closet/supplypod/proc/depart(atom/movable/holder)
 	if (leavingSound)
-		playsound(get_turf(holder), leavingSound, soundVolume, FALSE, FALSE)
+		playsound(holder, leavingSound, soundVolume, FALSE, FALSE)
 	if (reversing) //If we're reversing, we call the close proc. This sends the pod back up to centcom
 		close(holder)
 	else if (bluespace) //If we're a bluespace pod, then delete ourselves (along with our holder, if a seperate holder exists)
@@ -245,15 +228,15 @@
 		holder = src
 
 	if (leavingSound)
-		playsound(get_turf(holder), leavingSound, soundVolume, FALSE, FALSE)
+		playsound(holder, leavingSound, soundVolume, FALSE, FALSE)
 
 	handleReturningClose(holder, FALSE)
 
 /obj/structure/closet/supplypod/proc/setOpened() //Proc exists here, as well as in any atom that can assume the role of a "holder" of a supplypod. Check the open() proc for more details
-	update_icon()
+	update_appearance(UPDATE_OVERLAYS)
 
 /obj/structure/closet/supplypod/proc/setClosed() //Ditto
-	update_icon()
+	update_appearance(UPDATE_OVERLAYS)
 
 /obj/structure/closet/supplypod/Destroy()
 	open(src, broken = TRUE) //Lets dump our contents by opening up
@@ -262,9 +245,7 @@
 //------------------------------------FALLING SUPPLY POD-------------------------------------//
 /obj/effect/DPfall //Falling pod
 	name = ""
-	icon = 'icons/obj/supplypods.dmi'
-	pixel_x = -16
-	pixel_y = -5
+	SET_BASE_PIXEL(-16, -5)
 	pixel_z = 200
 	desc = ""
 	layer = FLY_LAYER//that wasnt flying, that was falling with style!
@@ -272,8 +253,6 @@
 
 /obj/effect/DPfall/Initialize(dropLocation, obj/structure/closet/supplypod/pod)
 	if (pod.style == STYLE_SEETHROUGH)
-		pixel_x = -16
-		pixel_y = 0
 		for (var/atom/movable/O in pod.contents)
 			var/icon/I = getFlatIcon(O) //im so sorry
 			add_overlay(I)
@@ -286,8 +265,7 @@
 /obj/effect/DPtarget //This is the object that forceMoves the supplypod to it's location
 	name = "Landing Zone Indicator"
 	desc = ""
-	icon = 'icons/mob/actions/actions_items.dmi'
-	icon_state = "sniper_zoom"
+	icon_state = ""
 	layer = PROJECTILE_HIT_THRESHHOLD_LAYER
 	light_outer_range =  2
 	var/obj/effect/temp_visual/fallingPod //Temporary "falling pod" that we animate
@@ -302,10 +280,7 @@
 		podParam = new podParam() //If its just a path, instantiate it
 	pod = podParam
 	if (single_order)
-		if (istype(single_order, /datum/supply_order))
-			var/datum/supply_order/SO = single_order
-			SO.generate(pod)
-		else if (istype(single_order, /atom/movable))
+		if (istype(single_order, /atom/movable))
 			var/atom/movable/O = single_order
 			O.forceMove(pod)
 	for (var/mob/living/M in pod) //If there are any mobs in the supplypod, we want to forceMove them into the target. This is so that they can see where they are about to land, AND so that they don't get sent to the nullspace error room (as the pod is currently in nullspace)
@@ -334,7 +309,7 @@
 	var/angle = effectCircle ? rand(0,360) : rand(70,110) //The angle that we can come in from
 	fallingPod.pixel_x = cos(angle)*400 //Use some ADVANCED MATHEMATICS to set the animated pod's position to somewhere on the edge of a circle with the center being the target
 	fallingPod.pixel_z = sin(angle)*400
-	var/rotation = Get_Pixel_Angle(fallingPod.pixel_z, fallingPod.pixel_x) //CUSTOM HOMEBREWED proc that is just arctan with extra steps
+	var/rotation = get_pixel_angle(fallingPod.pixel_z, fallingPod.pixel_x) //CUSTOM HOMEBREWED proc that is just arctan with extra steps
 	M.Turn(rotation) //Turn our matrix accordingly
 	fallingPod.transform = M //Transform the animated pod according to the matrix
 	M = matrix(pod.transform) //Make another matrix based on the pod
@@ -344,19 +319,10 @@
 	addtimer(CALLBACK(src, PROC_REF(endLaunch)), pod.fallDuration, TIMER_CLIENT_TIME) //Go onto the last step after a very short falling animation
 
 /obj/effect/DPtarget/proc/endLaunch()
-	pod.update_icon()
+	pod.update_appearance(UPDATE_OVERLAYS)
 	pod.forceMove(drop_location()) //The fallingPod animation is over, now's a good time to forceMove the actual pod into position
 	QDEL_NULL(fallingPod) //Delete the falling pod effect, because at this point its animation is over. We dont use temp_visual because we want to manually delete it as soon as the pod appears
 	for (var/mob/living/M in src) //Remember earlier (initialization) when we moved mobs into the DPTarget so they wouldnt get lost in nullspace? Time to get them out
 		M.forceMove(pod)
 	pod.preOpen() //Begin supplypod open procedures. Here effects like explosions, damage, and other dangerous (and potentially admin-caused, if the centcom_podlauncher datum was used) memes will take place
 	qdel(src) //The target's purpose is complete. It can rest easy now
-
-//------------------------------------UPGRADES-------------------------------------//
-/obj/item/disk/cargo/bluespace_pod //Disk that can be inserted into the Express Console to allow for Advanced Bluespace Pods
-	name = "Bluespace Drop Pod Upgrade"
-	desc = ""
-	icon = 'icons/obj/module.dmi'
-	icon_state = "cargodisk"
-	item_state = "card-id"
-	w_class = WEIGHT_CLASS_SMALL

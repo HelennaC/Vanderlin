@@ -1,326 +1,120 @@
+/obj/item/clothing/head/padded	// slightly armored subtype for convenience
+	armor = ARMOR_MINIMAL
+	prevent_crits = MINOR_CRITICALS
+	abstract_type = /obj/item/clothing/head/padded
 
+//................ Simple Hats ............... //
+/obj/item/clothing/head/dungeoneer
+	name = "sack hood"
+	desc = "A crude way to conceal one's identity, these are usually worn by local brigands to not get recognised."
+	icon_state = "dungeoneer"
+	flags_inv = HIDEEARS|HIDEFACE|HIDEHAIR|HIDEFACIALHAIR
+	fiber_salvage = FALSE
 
-/obj/item/clothing/head/centhat
-	name = "\improper CentCom hat"
-	icon_state = "centcom"
-	desc = ""
-	item_state = "that"
-	flags_inv = 0
-	armor = list("melee" = 30, "bullet" = 15, "laser" = 30, "energy" = 10, "bomb" = 25, "bio" = 0, "rad" = 0, "fire" = 50, "acid" = 50)
-	strip_delay = 80
+/obj/item/clothing/head/menacing
+	name = "sack hood"
+	desc = "A crude way to conceal one's identity, these are usually worn by local brigands to not get recognised."
+	icon_state = "menacing"
+	flags_inv = HIDEEARS|HIDEFACE|HIDEHAIR|HIDEFACIALHAIR
+	fiber_salvage = FALSE
 
-/obj/item/clothing/head/powdered_wig
-	name = "powdered wig"
-	desc = ""
-	icon_state = "pwig"
-	item_state = "pwig"
+/obj/item/clothing/head/knitcap
+	name = "knit cap"
+	desc = "A crude peasant cap worn by about every serf under Astrata's radiance."
+	icon_state = "knitcap"
+	min_cold_protection_temperature = -5
 
-/obj/item/clothing/head/that
-	name = "top-hat"
-	desc = ""
-	icon_state = "tophat"
-	item_state = "that"
-	dog_fashion = /datum/dog_fashion/head
-	throwforce = 1
+/obj/item/clothing/head/turban
+	name = "turban"
+	desc = "A headwrap worn throughout the southern parts of Faience."
+	icon_state = "turban"
+	min_cold_protection_temperature = -5
 
-/obj/item/clothing/head/canada
-	name = "striped red tophat"
-	desc = ""
-	icon_state = "canada"
-	item_state = "canada"
-
-/obj/item/clothing/head/redcoat
-	name = "redcoat's hat"
-	icon_state = "redcoat"
-	desc = ""
-
-/obj/item/clothing/head/mailman
-	name = "mailman's hat"
-	icon_state = "mailman"
-	desc = ""
-
-/obj/item/clothing/head/plaguedoctorhat
-	name = "plague doctor's hat"
-	desc = ""
-	icon_state = "plaguedoctor"
-	permeability_coefficient = 0.01
-
-/obj/item/clothing/head/hasturhood
-	name = "hastur's hood"
-	desc = ""
-	icon_state = "hasturhood"
-	flags_inv = HIDEHAIR
-	flags_cover = HEADCOVERSEYES
-
-/obj/item/clothing/head/nursehat
-	name = "nurse's hat"
-	desc = ""
-	icon_state = "nursehat"
+/obj/item/clothing/head/headband
+	name = "headband"
+	desc = "A piece of cloth worn around the temple."
+	icon_state = "headband"
 	dynamic_hair_suffix = ""
+	fiber_salvage = FALSE
+	salvage_amount = 1
 
-	dog_fashion = /datum/dog_fashion/head/nurse
+/obj/item/clothing/head/headband/colored
+	misc_flags = CRAFTING_TEST_EXCLUDE
 
-/obj/item/clothing/head/syndicatefake
-	name = "black space-helmet replica"
-	icon_state = "syndicate-helm-black-red"
-	item_state = "syndicate-helm-black-red"
-	desc = ""
-	clothing_flags = SNUG_FIT
-	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE|HIDEHAIR|HIDEFACIALHAIR
+/obj/item/clothing/head/headband/colored/red
+	color = CLOTHING_BLOOD_RED
 
-/obj/item/clothing/head/cueball
-	name = "cueball helmet"
-	desc = ""
-	icon_state = "cueball"
-	item_state="cueball"
-	clothing_flags = SNUG_FIT
-	flags_cover = HEADCOVERSEYES|HEADCOVERSMOUTH
-	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE|HIDEHAIR|HIDEFACIALHAIR
-
-/obj/item/clothing/head/snowman
-	name = "Snowman Head"
-	desc = ""
-	icon_state = "snowman_h"
-	item_state = "snowman_h"
-	clothing_flags = SNUG_FIT
-	flags_cover = HEADCOVERSEYES
-	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE|HIDEHAIR|HIDEFACIALHAIR
-
-/obj/item/clothing/head/justice
-	name = "justice hat"
-	desc = ""
-	icon_state = "justicered"
-	item_state = "justicered"
-	clothing_flags = SNUG_FIT
-	flags_inv = HIDEHAIR|HIDEEARS|HIDEEYES|HIDEFACE|HIDEFACIALHAIR
-	flags_cover = HEADCOVERSEYES
-
-/obj/item/clothing/head/justice/blue
-	icon_state = "justiceblue"
-	item_state = "justiceblue"
-
-/obj/item/clothing/head/justice/yellow
-	icon_state = "justiceyellow"
-	item_state = "justiceyellow"
-
-/obj/item/clothing/head/justice/green
-	icon_state = "justicegreen"
-	item_state = "justicegreen"
-
-/obj/item/clothing/head/justice/pink
-	icon_state = "justicepink"
-	item_state = "justicepink"
-
-/obj/item/clothing/head/rabbitears
-	name = "rabbit ears"
-	desc = ""
-	icon_state = "bunny"
-	dynamic_hair_suffix = ""
-
-	dog_fashion = /datum/dog_fashion/head/rabbit
-
-/obj/item/clothing/head/pirate
-	name = "pirate hat"
-	desc = ""
-	icon_state = "pirate"
-	item_state = "pirate"
-	dog_fashion = /datum/dog_fashion/head/pirate
-
-/obj/item/clothing/head/pirate
-	var/datum/language/piratespeak/L = new
-
-/obj/item/clothing/head/pirate/equipped(mob/user, slot)
-	. = ..()
-	if(!ishuman(user))
-		return
-	if(slot == SLOT_HEAD)
-		user.grant_language(/datum/language/piratespeak/)
-		to_chat(user, "<span class='boldnotice'>I suddenly know how to speak like a pirate!</span>")
-
-/obj/item/clothing/head/pirate/dropped(mob/user)
-	. = ..()
-	if(!ishuman(user))
-		return
-	var/mob/living/carbon/human/H = user
-	if(H.get_item_by_slot(SLOT_HEAD) == src)
-		user.remove_language(/datum/language/piratespeak/)
-		to_chat(user, "<span class='boldnotice'>I can no longer speak like a pirate.</span>")
-
-/obj/item/clothing/head/pirate/captain
-	icon_state = "hgpiratecap"
-	item_state = "hgpiratecap"
-
-/obj/item/clothing/head/bandana
-	name = "pirate bandana"
-	desc = ""
-	icon_state = "bandana"
-	item_state = "bandana"
-	dynamic_hair_suffix = ""
-
-/obj/item/clothing/head/bowler
-	name = "bowler-hat"
-	desc = ""
-	icon_state = "bowler"
-	item_state = "bowler"
-	dynamic_hair_suffix = ""
-
-/obj/item/clothing/head/witchwig
-	name = "witch costume wig"
-	desc = ""
-	icon_state = "witch"
-	item_state = "witch"
-	flags_inv = HIDEHAIR
-
-/obj/item/clothing/head/chicken
-	name = "chicken suit head"
-	desc = ""
-	icon_state = "chickenhead"
-	item_state = "chickensuit"
-	clothing_flags = SNUG_FIT
-	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE|HIDEHAIR|HIDEFACIALHAIR
-
-/obj/item/clothing/head/griffin
-	name = "griffon head"
-	desc = ""
-	icon_state = "griffinhat"
-	item_state = "griffinhat"
-	clothing_flags = SNUG_FIT
-	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE|HIDEHAIR|HIDEFACIALHAIR
-
-/obj/item/clothing/head/bearpelt
-	name = "bear pelt hat"
-	desc = ""
-	icon_state = "bearpelt"
-	item_state = "bearpelt"
-
-/obj/item/clothing/head/xenos
-	name = "xenos helmet"
-	icon_state = "xenos"
-	item_state = "xenos_helm"
-	desc = ""
-	clothing_flags = SNUG_FIT
-	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE|HIDEHAIR|HIDEFACIALHAIR
-	flags_cover = HEADCOVERSEYES | HEADCOVERSMOUTH
-
-/obj/item/clothing/head/fedora
-	name = "fedora"
-	icon_state = "fedora"
-	item_state = "fedora"
-	desc = ""
-	pocket_storage_component_path = /datum/component/storage/concrete/pockets/small/fedora
-
-/obj/item/clothing/head/fedora/suicide_act(mob/user)
-	if(user.gender == FEMALE)
-		return 0
-	var/mob/living/carbon/human/H = user
-	user.visible_message("<span class='suicide'>[user] is donning [src]! It looks like [user.p_theyre()] trying to be nice to girls.</span>")
-	user.say("M'lady.", forced = "fedora suicide")
-	sleep(10)
-	H.facial_hairstyle = "Neckbeard"
-	return(BRUTELOSS)
-
-/obj/item/clothing/head/sombrero
-	name = "sombrero"
-	icon_state = "sombrero"
-	item_state = "sombrero"
-	desc = ""
-	flags_inv = HIDEHAIR
-
-	dog_fashion = /datum/dog_fashion/head/sombrero
-
-/obj/item/clothing/head/sombrero/green
-	name = "green sombrero"
-	icon_state = "greensombrero"
-	item_state = "greensombrero"
-	desc = ""
-	flags_inv = HIDEHAIR|HIDEFACE|HIDEEARS
-	dog_fashion = null
-
-/obj/item/clothing/head/sombrero/shamebrero
-	name = "shamebrero"
-	icon_state = "shamebrero"
-	item_state = "shamebrero"
-	desc = ""
-	dog_fashion = null
-
-/obj/item/clothing/head/sombrero/shamebrero/Initialize()
-	. = ..()
-	ADD_TRAIT(src, TRAIT_NODROP, SHAMEBRERO_TRAIT)
-
-/obj/item/clothing/head/flatcap
-	name = "flat cap"
-	desc = ""
-	icon_state = "flat_cap"
-	item_state = "detective"
-
-/obj/item/clothing/head/hunter
-	name = "bounty hunting hat"
-	desc = ""
-	icon_state = "hunter"
-	item_state = "hunter"
-	armor = list("melee" = 5, "bullet" = 5, "laser" = 5, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 0, "acid" = 0)
-	resistance_flags = FIRE_PROOF | ACID_PROOF
-
-/obj/item/clothing/head/cone
-	desc = ""
-	name = "warning cone"
-	icon = 'icons/obj/janitor.dmi'
-	icon_state = "cone"
-	item_state = "cone"
-	force = 1
-	throwforce = 3
-	throw_speed = 2
-	throw_range = 5
-	w_class = WEIGHT_CLASS_SMALL
-	attack_verb = list("warned", "cautioned", "smashed")
-	resistance_flags = NONE
-	dynamic_hair_suffix = ""
-
-/obj/item/clothing/head/santa
-	name = "santa hat"
-	desc = ""
-	icon_state = "santahatnorm"
-	item_state = "that"
-	cold_protection = HEAD
-	min_cold_protection_temperature = FIRE_HELM_MIN_TEMP_PROTECT
-	dog_fashion = /datum/dog_fashion/head/santa
-
-/obj/item/clothing/head/jester
-	name = "jester hat"
-	desc = ""
-	icon_state = "jester_hat"
-	dynamic_hair_suffix = ""
-
-/obj/item/clothing/head/rice_hat
-	name = "rice hat"
-	desc = ""
-	icon_state = "rice_hat"
-
-/obj/item/clothing/head/lizard
-	name = "lizardskin cloche hat"
-	desc = ""
-	icon_state = "lizard"
-
-/obj/item/clothing/head/papersack
-	name = "paper sack hat"
-	desc = ""
-	icon_state = "papersack"
-	flags_inv = HIDEHAIR|HIDEFACE|HIDEEARS
-
-/obj/item/clothing/head/papersack/smiley
-	name = "paper sack hat"
-	desc = ""
-	icon_state = "papersack_smile"
-	flags_inv = HIDEHAIR|HIDEFACE|HIDEEARS
-
-/obj/item/clothing/head/crown
-	name = "crown"
-	desc = ""
-	icon_state = "crown"
-	armor = list("melee" = 15, "bullet" = 0, "laser" = 0,"energy" = 15, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 50)
+/obj/item/clothing/head/headband/naledi
+	name = "sojourner's headband"
+	desc = "A traditional monk's headband, for those disciples who prefer the sweat out of their eyes."
+	icon_state = "headband"
+	color = "#48443b"
+	sewrepair = TRUE
 	resistance_flags = FIRE_PROOF
-	dynamic_hair_suffix = ""
+	armor = ARMOR_HEAD_PSYDON //Higher-tier protection for pugilist-centric classes. Fits the 'glass cannon' style, and prevents instant death through a glancing headshot on the intended archetype.
+	blade_dulling = DULLING_BASHCHOP
+	body_parts_covered = HEAD|HAIR|EARS
+	max_integrity = ARMOR_INT_SIDE_STEEL //High leather-tier protection and critical resistances, steel-tier integrity. Integrity boost encourages hand-to-hand parrying. Weaker than the Psydonic Thorns.
+	prevent_crits = list(BCLASS_CUT, BCLASS_STAB, BCLASS_BLUNT, BCLASS_TWIST)
+	blocksound = SOFTHIT
+	//dropshrink = 0.75
+	dynamic_hair_suffix = null
 
+/obj/item/clothing/head/shawl
+	name = "shawl"
+	desc = "Keeps the hair in check, and looks proper."
+	icon_state = "shawl"
+	flags_inv = HIDEEARS
+
+/obj/item/clothing/head/brimmed
+	name = "brimmed hat"
+	desc = "A simple brimmed hat that provides some relief from the sun."
+	icon_state = "brimmed"
+
+//................ Fur Hats ............... //
+/obj/item/clothing/head/hatfur
+	name = "fur hat"
+	desc = "A hat made of fur typically worn by guildsmen."
+	icon_state = "hatfur"
+	min_cold_protection_temperature = -20
+
+/obj/item/clothing/head/hatblu
+	name = "fur hat"
+	icon_state = "hatblu"
+	min_cold_protection_temperature = -20
+
+/obj/item/clothing/head/papakha
+	name = "papakha"
+	desc = "A fuzzy helmet of fur typically worn by frontiersmen of the far steppes."
+	icon_state = "papakha"
+	sellprice = VALUE_FINE_CLOTHING
+	max_integrity = INTEGRITY_POOR
+	min_cold_protection_temperature = -20
+
+//................ Fancy Hats ............... //
+
+/obj/item/clothing/head/antlerhood
+	name = "antlerhood"
+	desc = "a hood suited for druids and shamans."
+	color = null
+	flags_inv = HIDEEARS|HIDEHAIR
+	icon_state = "antlerhood"
+	item_state = "antlerhood"
+	icon = 'icons/roguetown/clothing/head.dmi'
+	body_parts_covered = HEAD|HAIR|EARS|NECK
+	slot_flags = ITEM_SLOT_HEAD
+	dynamic_hair_suffix = ""
+	max_integrity = 100
+	armor = list("blunt" = 16, "slash" = 19, "stab" = 15,  "piercing" = 0, "fire" = 0, "acid" = 0)
+	prevent_crits = list(BCLASS_TWIST)
+	anvilrepair = null
+	sewrepair = TRUE
+	blocksound = SOFTHIT
+	salvage_amount = 1
+	salvage_result = /obj/item/natural/hide
+	min_cold_protection_temperature = -1
+
+<<<<<<< HEAD
 /obj/item/clothing/head/crown/fancy
 	name = "magnificent crown"
 	desc = ""
@@ -431,12 +225,296 @@
 	mob_overlay_icon = 'icons/mob/large-worn-icons/64x64/head.dmi'
 	icon_state = "shrine_wig"
 	item_state = "shrine_wig"
+=======
+/obj/item/clothing/head/helmet/leather/saiga
+	name = "saiga skull"
+	desc = "Skull from big game. Looks like it could withstand some damage."
+	icon_state = "saigahead"
+	item_state = "saigahead"
+	mob_overlay_icon = 'icons/roguetown/clothing/onmob/64x64/head.dmi'
+>>>>>>> upstream/main
 	worn_x_dimension = 64
 	worn_y_dimension = 64
-	dynamic_hair_suffix = ""
+	armor = list("blunt" = 60, "slash" = 40, "stab" = 45,  "piercing" = 0, "fire" = 0, "acid" = 0)
+	flags_inv = HIDEEARS|HIDEFACE
+	flags_cover = HEADCOVERSEYES
+	body_parts_covered = HEAD|EARS|HAIR|NOSE|EYES
+	min_cold_protection_temperature = -1
 
-/obj/item/clothing/head/intern
-	name = "\improper CentCom Head Intern beancap"
+
+//................ Briar Thorns ............... //	- Dendor Briar
+/obj/item/clothing/head/padded/briarthorns
+	name = "briar thorns"
+	desc = "The pain it causes perhaps can distract from the whispers of a mad God overpowering your sanity..."
+	icon_state = "briarthorns"
+
+/obj/item/clothing/head/padded/briarthorns/pickup(mob/living/user)
+	. = ..()
+	to_chat(user, span_warning ("The thorns prick me."))
+	user.adjustBruteLoss(4)
+
+//................ Hennin ............... //
+/obj/item/clothing/head/hennin
+	name = "hennin"
+	desc = "A fashionable conical hat typically worn by princesses."
+	icon_state = "hennin"
+	sellprice = VALUE_FINE_CLOTHING
+
+
+//......................................................................................................
+/*------------------\
+|			 	 	|
+|  Basic Helmets	|
+|			 	 	|
+\------------------*/
+
+
+//................ Nasal Helmet ............... //
+
+
+
+//............... Arming Cap ............... //
+/obj/item/clothing/head/armingcap // arming caps are padded caps worn under maille coifs and such, should basically be on par with leather coif (it should BE the coif but whatever)
+	name = "arming cap"
+	desc = "A white padded cap worn by most manual laborers to protect from sunburn."
+	icon_state = "armingcap"
+	flags_inv = HIDEEARS
+
+	armor = ARMOR_PADDED
+	body_parts_covered = HEAD|HAIR|EARS
+	prevent_crits =  MINOR_CRITICALS
+	max_integrity = INTEGRITY_POOR
+
+
+
+/*------------------\
+| Feldsher headwear |
+\-------------------*/
+
+
+
+//......................................................................................................
+/*----------------------\
+| Unique helmets & hats |	- Unique means no crafting them, no importing, nothing but spawn with the intended class
+\----------------------*/
+
+
+//............... Rare Helmets ............... //
+///obj/item/clothing/head/helmet/rare
+
+/*-------------------\
+| Antagonist Helmets |
+\-------------------*/
+
+
+/*---------------------\
+| Magic hats & helmets |
+\---------------------*/
+
+//............... Wizard Hat ........................... (unique effects for court mage. Not any more so just a plain hat)
+
+//............... Thermal Vision Circlet ............... //
+
+//............... Black bag for inquisition ............... //
+/obj/item/clothing/head/sack
+	name = "black bag"
+	desc = "An eyeless sack, used to blindfold prisoners or hostages."
+	icon_state = "sacked"
+	item_state = "sacked"
+	flags_inv = HIDEEARS|HIDEFACE|HIDEHAIR|HIDEFACIALHAIR
+	tint = TINT_BLIND
+
+/obj/item/clothing/head/sack/equipped(mob/living/carbon/human/user, slot)
+	. = ..()
+	if(slot & ITEM_SLOT_HEAD)
+		user.become_blind("blindfold_[REF(src)]")
+
+/obj/item/clothing/head/sack/dropped(mob/living/carbon/human/user)
+	..()
+	user.cure_blind("blindfold_[REF(src)]")
+
+/obj/item/clothing/head/sack/attack(mob/living/target, mob/living/user, list/modifiers)
+	if(target.get_item_by_slot(ITEM_SLOT_HEAD))
+		to_chat(user, "<span class='warning'>Remove [target.p_their()] headgear first!</span>")
+		return
+	target.visible_message("<span class='warning'>[user] forces [src] onto [target]'s head!</span>", \
+	"<span class='danger'>[target] forces [src] onto your head!</span>", "<i>I can't see anything.</i>")
+	if(ishuman(target)) // If the target is human and not in combat mode, stun them the same way a feint would.
+		var/mob/living/carbon/human/T = target
+		if(!T.cmode)
+			T.emote("whimper", intentional = FALSE)
+			T.changeNext_move(8)
+			T.Immobilize(10)
+	user.dropItemToGround(src)
+	target.equip_to_slot_if_possible(src, ITEM_SLOT_HEAD)
+
+//............... Adept's Cowl ............... //
+
+/obj/item/clothing/head/adeptcowl
+	name = "adept's cowl"
+	desc = "A black cowl worn by the Adepts of the Inquisitorial Lodge"
+	icon_state = "adeptscowl"
+	item_state = "adeptscowl"
+	flags_inv = HIDEEARS|HIDEHAIR
+
+/*----------\
+| Graveyard |	- Not used or ingame in any way except admeme spawning them.
+\-----------*/
+
+/obj/item/clothing/head/priesthat // bishops mitre really
+	name = "priest's hat"
+	desc = "The sacred headpiece of a priest."
+	icon_state = "priest"
+	mob_overlay_icon = 'icons/roguetown/clothing/onmob/64x64/head.dmi'
+	dynamic_hair_suffix = "+generic"
+	worn_x_dimension = 64
+	worn_y_dimension = 64
+	bloody_icon = 'icons/effects/blood64x64.dmi'
+	bloody_icon_state = "helmetblood_big"
+
+	prevent_crits = MINOR_CRITICALS
+
+/obj/item/clothing/head/headdress // egyptian
+	name = "foreign headdress"
 	desc = ""
-	icon_state = "intern_hat"
-	item_state = "intern_hat"
+	icon_state = "headdress"
+
+/obj/item/clothing/head/headdress/alt
+	icon_state = "headdressalt"
+
+/obj/item/clothing/head/armingcap/colored
+	misc_flags = CRAFTING_TEST_EXCLUDE
+
+/obj/item/clothing/head/armingcap/colored/dwarf // gnome hat I guess?
+	color = "#cb3434"
+
+/obj/item/clothing/head/vampire
+	name = "crown of darkness"
+	icon_state = "vcrown"
+	body_parts_covered = null
+	slot_flags = ITEM_SLOT_HEAD
+	dynamic_hair_suffix = null
+	sellprice = 1000
+	resistance_flags = FIRE_PROOF
+
+//................ Faceless Hood ............... //	- Faceless One
+
+/obj/item/clothing/head/faceless //A hood that doesn't cover the face.
+	name = "hood"
+	desc = "Conceals your face, whether against the rain, or the gazes of others."
+	icon_state = "facelesshood"
+	item_state = "facelesshood"
+	color = CLOTHING_SOOT_BLACK
+	dynamic_hair_suffix = ""
+	equip_sound = 'sound/foley/equip/cloak_equip.ogg'
+	pickup_sound = 'sound/foley/equip/cloak_take_off.ogg'
+	break_sound = 'sound/foley/cloth_rip.ogg'
+	drop_sound = 'sound/foley/dropsound/cloth_drop.ogg'
+	adjustable = CAN_CADJUST
+	toggle_icon_state = TRUE
+	var/default_hidden = null
+	body_parts_covered = NECK
+	salvage_amount = 1
+	salvage_result = /obj/item/natural/cloth
+
+/obj/item/clothing/head/faceless/AdjustClothes(mob/living/carbon/user)
+	if(loc == user)
+		if(adjustable == CAN_CADJUST)
+			adjustable = CADJUSTED
+			if(toggle_icon_state)
+				icon_state = "[initial(icon_state)]_t"
+			body_parts_covered = NECK|HAIR|EARS|HEAD
+			dynamic_hair_suffix = "+generic"
+			if(ishuman(user))
+				var/mob/living/carbon/H = user
+				H.update_inv_head()
+			block2add = FOV_BEHIND
+		else if(adjustable == CADJUSTED)
+			ResetAdjust(user)
+			dynamic_hair_suffix = ""
+			if(user)
+				if(ishuman(user))
+					var/mob/living/carbon/H = user
+					H.update_inv_head()
+		user.update_fov_angles()
+		user.regenerate_clothes()
+
+/obj/item/clothing/head/takuhatsugasa // egyptian
+	name = "takuhatsugasa"
+	desc = ""
+	icon_state = "takuhatsugasa"
+	item_flags = ABSTRACT
+
+/obj/item/clothing/head/helmet/pegasusknight
+	name = "coifed helmet"
+	desc = "Many find the design of this helmet unusual, but it protects the neck well and is easy to see out of."
+	icon_state = "lakkarihelm"
+	armor = ARMOR_PLATE
+	flags_inv = HIDEEARS|HIDEHAIR
+	body_parts_covered = HEAD_NECK
+	prevent_crits = ALL_EXCEPT_BLUNT
+	block2add = FOV_BEHIND
+	anvilrepair = /datum/skill/craft/armorsmithing
+	sewrepair = FALSE
+
+/obj/item/clothing/head/roguehood/psydon
+	name = "psydonian hood"
+	desc = "A hood worn by Psydon's disciples, oft-worn in conjunction with its matching tabard. Made with spell-laced fabric to provide some protection."
+	icon_state = "psydonhood"
+	item_state = "psydonhood"
+	color = null
+	blocksound = SOFTHIT
+	break_sound = 'sound/foley/cloth_rip.ogg'
+	drop_sound = 'sound/foley/dropsound/cloth_drop.ogg'
+	body_parts_covered = NECK | HEAD | HAIR
+	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_MASK
+	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT, BCLASS_TWIST)
+	armor = list("blunt" = 70, "slash" = 70, "stab" = 50, "piercing" = 30, "fire" = 0, "acid" = 0)
+	dynamic_hair_suffix = ""
+	edelay_type = 1
+	adjustable = CAN_CADJUST
+	toggle_icon_state = TRUE
+	max_integrity = 200
+
+/obj/item/clothing/head/roguehood/psydon/AdjustClothes(mob/living/carbon/user)
+	if(loc == user)
+		if(adjustable == CAN_CADJUST)
+			adjustable = CADJUSTED
+			if(toggle_icon_state)
+				icon_state = "[initial(icon_state)]"
+			flags_inv = HIDEEARS|HIDEFACE|HIDEHAIR|HIDEFACIALHAIR
+			body_parts_covered = NECK|HAIR|EARS|HEAD
+			if(ishuman(user))
+				var/mob/living/carbon/H = user
+				H.update_inv_head()
+			block2add = FOV_BEHIND
+		else if(adjustable == CADJUSTED)
+			ResetAdjust(user)
+		user.update_fov_angles()
+		user.regenerate_clothes()
+
+/obj/item/clothing/head/roguehood/psydon/ResetAdjust(mob/user)
+	. = ..()
+	if(toggle_icon_state)
+		icon_state = "[initial(icon_state)]_t"
+	flags_inv = default_hidden
+	if(iscarbon(user))
+		var/mob/living/carbon/H = user
+		H.update_inv_head()
+
+/obj/item/clothing/head/roguehood/psydon/confessor
+	name = "confessional hood"
+	desc = "A loose-fitting piece of leatherwear that can be tightened on the move. Keeps rain, blood, and the tears of the sullied away."
+	icon_state = "confessorhood"
+	item_state = "confessorhood"
+	color = null
+	body_parts_covered = NECK | HEAD | HAIR
+	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_MASK
+	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT, BCLASS_TWIST)
+	armor = list("blunt" = 70, "slash" = 70, "stab" = 50, "piercing" = 30, "fire" = 0, "acid" = 0)
+	dynamic_hair_suffix = ""
+	edelay_type = 1
+	adjustable = CAN_CADJUST
+	toggle_icon_state = TRUE
+	max_integrity = 200
+

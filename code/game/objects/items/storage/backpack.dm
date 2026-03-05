@@ -14,13 +14,12 @@
 	desc = ""
 	icon_state = "backpack"
 	item_state = "backpack"
-	lefthand_file = 'icons/mob/inhands/equipment/backpack_lefthand.dmi'
-	righthand_file = 'icons/mob/inhands/equipment/backpack_righthand.dmi'
 	w_class = WEIGHT_CLASS_BULKY
-	slot_flags = ITEM_SLOT_BACK	//ERROOOOO
+	slot_flags = ITEM_SLOT_BACK
 	resistance_flags = NONE
 	max_integrity = 300
 
+<<<<<<< HEAD
 /obj/item/storage/backpack/ComponentInitialize()
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
@@ -530,3 +529,10 @@
 	new /obj/item/clothing/mask/gas/clown_hat(src)
 	new /obj/item/bikehorn(src)
 	new /obj/item/implanter/sad_trombone(src)
+=======
+	sewrepair = TRUE
+	fiber_salvage = TRUE
+	salvage_amount = 1
+	salvage_result = /obj/item/natural/hide/cured
+	carry_multiplier = 0.75
+>>>>>>> upstream/main

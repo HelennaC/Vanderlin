@@ -7,6 +7,7 @@
 					"<span class='danger'>I block the attack!</span>")
 		user.Stun(40)
 		return TRUE
+<<<<<<< HEAD
 
 
 /obj/item/melee/chainofcommand
@@ -429,3 +430,5 @@
 	overlay = mutable_appearance(icon, overlay_state)
 	overlay.appearance_flags = RESET_COLOR
 	add_overlay(overlay)
+=======
+>>>>>>> upstream/main

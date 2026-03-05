@@ -1,7 +1,11 @@
 /mob/living/brain/death(gibbed)
 	if(stat == DEAD)
 		return
+<<<<<<< HEAD
 	stat = DEAD
+=======
+	set_stat(DEAD)
+>>>>>>> upstream/main
 
 	return ..()
 

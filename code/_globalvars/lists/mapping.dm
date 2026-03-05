@@ -17,41 +17,45 @@ GLOBAL_LIST_EMPTY(start_landmarks_list)			//list of all spawn points created
 GLOBAL_LIST_EMPTY(department_security_spawns)	//list of all department security spawns
 GLOBAL_LIST_EMPTY(generic_event_spawns)			//handles clockwork portal+eminence teleport destinations
 GLOBAL_LIST_EMPTY(jobspawn_overrides)			//These will take precedence over normal spawnpoints if created.
+GLOBAL_LIST_EMPTY(quest_landmarks_list)
 
-GLOBAL_LIST_EMPTY(wizardstart)
-GLOBAL_LIST_EMPTY(nukeop_start)
+GLOBAL_LIST_EMPTY(lich_starts)
 GLOBAL_LIST_EMPTY(bandit_starts)
+GLOBAL_LIST_EMPTY(admin_warp)
 GLOBAL_LIST_EMPTY(vlord_starts)
 GLOBAL_LIST_EMPTY(vspawn_starts)
 GLOBAL_LIST_EMPTY(dknight_starts)
-GLOBAL_LIST_EMPTY(vlordspawn_starts)
 GLOBAL_LIST_EMPTY(delf_starts)
-GLOBAL_LIST_EMPTY(nukeop_leader_start)
+GLOBAL_LIST_EMPTY(jarosite_starts) // ewww
 GLOBAL_LIST_EMPTY(newplayer_start)
 GLOBAL_LIST_EMPTY(prisonwarp)	//admin prisoners go to these
+<<<<<<< HEAD
 GLOBAL_LIST_EMPTY(holdingfacility)	//captured people go here (ninja energy net)
 GLOBAL_LIST_EMPTY(tdome1)
 GLOBAL_LIST_EMPTY(tdome2)
 GLOBAL_LIST_EMPTY(tdomeobserve)
 GLOBAL_LIST_EMPTY(tdomeadmin)
+=======
+>>>>>>> upstream/main
 GLOBAL_LIST_EMPTY(prisonwarped)	//list of players already warped
-GLOBAL_LIST_EMPTY(blobstart) //stationloving objects, blobs, santa, respawning devils
 GLOBAL_LIST_EMPTY(underworldspawn)
-GLOBAL_LIST_EMPTY(underworldcoinspawns)
-GLOBAL_LIST_EMPTY(underworldcoins)
+GLOBAL_LIST_EMPTY(underworldspiritspawns) //Where spirits can spawn
+GLOBAL_LIST_EMPTY(underworld_coinpull_locs) //When picking up coin maze, warp here
 GLOBAL_LIST_EMPTY(hauntstart)
 GLOBAL_LIST_EMPTY(testportals)
 GLOBAL_LIST_EMPTY(traveltiles)
-GLOBAL_LIST_EMPTY(secequipment) //sec equipment lockers that scale with the number of sec players
-GLOBAL_LIST_EMPTY(deathsquadspawn)
+GLOBAL_LIST_EMPTY(traveltile_spawners)
 GLOBAL_LIST_EMPTY(emergencyresponseteamspawn)
 GLOBAL_LIST_EMPTY(ruin_landmarks)
 
-	//away missions
-GLOBAL_LIST_EMPTY(awaydestinations)	//a list of landmarks that the warpgate can take you to
-GLOBAL_LIST_EMPTY(vr_spawnpoints)
+/// List of all the maps that have been cached for /proc/load_map
+GLOBAL_LIST_EMPTY(cached_maps)
 
-	//used by jump-to-area etc. Updated by area/updateName()
+/// Just a list of all the area objects in the game
+/// Note, areas can have duplicate types
+GLOBAL_LIST_EMPTY(areas)
+/// Used by jump-to-area etc. Updated by area/updateName()
+/// If this is null, it needs to be recalculated. Use get_sorted_areas() as a getter please
 GLOBAL_LIST_EMPTY(sortedAreas)
 /// An association from typepath to area instance. Only includes areas with `unique` set.
 GLOBAL_LIST_EMPTY_TYPED(areas_by_type, /area)

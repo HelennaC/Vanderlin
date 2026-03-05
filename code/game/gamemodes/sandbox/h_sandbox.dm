@@ -5,7 +5,7 @@ GLOBAL_VAR_INIT(hsboxspawn, TRUE)
 	sandbox.owner = src.ckey
 	if(src.client.holder)
 		sandbox.admin = 1
-	verbs += new/mob/proc/sandbox_panel
+	add_verb(src, new/mob/proc/sandbox_panel)
 /mob/proc/sandbox_panel()
 	set name = "Sandbox Panel"
 	if(sandbox)
@@ -22,24 +22,22 @@ GLOBAL_VAR_INIT(hsboxspawn, TRUE)
 	var/hsbinfo = null
 	//items that shouldn't spawn on the floor because they would bug or act weird
 	var/static/list/spawn_forbidden = list(
+<<<<<<< HEAD
 		/obj/item/tk_grab, /obj/item/implant, // not implanter, the actual thing that is inside you
 		/obj/item/assembly, /obj/item/onetankbomb,
 		/obj/item/smallDelivery, /obj/projectile)
+=======
+		/obj/projectile)
+>>>>>>> upstream/main
 
 /datum/hSB/proc/update()
 	var/static/list/hrefs = list(
 			"Space Gear",
-			"Suit Up (Space Travel Gear)"		= "hsbsuit",
-			"Spawn Gas Mask"					= "hsbspawn&path=[/obj/item/clothing/mask/gas]",
-			"Spawn Emergency Air Tank"			= "hsbspawn&path=[/obj/item/tank/internals/emergency_oxygen/double]",
 
 			"Standard Tools",
-			"Spawn Flashlight"					= "hsbspawn&path=[/obj/item/flashlight]",
-			"Spawn Toolbox"						= "hsbspawn&path=[/obj/item/storage/toolbox/mechanical]",
-			"Spawn Light Replacer"				= "hsbspawn&path=[/obj/item/lightreplacer]",
-			"Spawn Medical Kit"					= "hsbspawn&path=[/obj/item/storage/firstaid/regular]",
-			"Spawn All-Access ID"				= "hsbaaid",
+			"Spawn Torch"					= "hsbspawn&path=[/obj/item/flashlight/flare/torch]")
 
+<<<<<<< HEAD
 			"Building Supplies",
 			"Spawn 50 Wood"                     = "hsbwood",
 			"Spawn 50 Metal"					= "hsbmetal",
@@ -59,19 +57,16 @@ GLOBAL_VAR_INIT(hsboxspawn, TRUE)
 			"Canisters",
 			"Spawn O2 Canister" 				= "hsbspawn&path=[/obj/machinery/portable_atmospherics/canister/oxygen]",
 			"Spawn Air Canister"				= "hsbspawn&path=[/obj/machinery/portable_atmospherics/canister/air]")
+=======
+>>>>>>> upstream/main
 
 
 	if(!hsbinfo)
 		hsbinfo = "<center><b>Sandbox Panel</b></center><hr>"
 		if(admin)
 			hsbinfo += "<b>Administration</b><br>"
-			hsbinfo += "- <a href='?src=[REF(src)];hsb=hsbtobj'>Toggle Object Spawning</a><br>"
-			hsbinfo += "- <a href='?src=[REF(src)];hsb=hsbtac'>Toggle Item Spawn Panel Auto-close</a><br>"
-			hsbinfo += "<b>Canister Spawning</b><br>"
-			hsbinfo += "- <a href='?src=[REF(src)];hsb=hsbspawn&path=[/obj/machinery/portable_atmospherics/canister/toxins]'>Spawn Plasma Canister</a><br>"
-			hsbinfo += "- <a href='?src=[REF(src)];hsb=hsbspawn&path=[/obj/machinery/portable_atmospherics/canister/carbon_dioxide]'>Spawn CO2 Canister</a><br>"
-			hsbinfo += "- <a href='?src=[REF(src)];hsb=hsbspawn&path=[/obj/machinery/portable_atmospherics/canister/nitrogen]'>Spawn Nitrogen Canister</a><br>"
-			hsbinfo += "- <a href='?src=[REF(src)];hsb=hsbspawn&path=[/obj/machinery/portable_atmospherics/canister/nitrous_oxide]'>Spawn N2O Canister</a><hr>"
+			hsbinfo += "- <a href='byond://?src=[REF(src)];hsb=hsbtobj'>Toggle Object Spawning</a><br>"
+			hsbinfo += "- <a href='byond://?src=[REF(src)];hsb=hsbtac'>Toggle Item Spawn Panel Auto-close</a><br>"
 		else
 			hsbinfo += "<i>Some item spawning may be disabled by the administrators.</i><br>"
 			hsbinfo += "<i>Only administrators may spawn dangerous canisters.</i><br>"
@@ -122,6 +117,7 @@ GLOBAL_VAR_INIT(hsboxspawn, TRUE)
 				CONFIG_SET(flag/sandbox_autoclose, !sbac)
 				return
 			//
+<<<<<<< HEAD
 			// Spacesuit with full air jetpack set as internals
 			//
 			if("hsbsuit")
@@ -198,6 +194,8 @@ GLOBAL_VAR_INIT(hsboxspawn, TRUE)
 				ID.update_label()
 
 			//
+=======
+>>>>>>> upstream/main
 			// Object spawn window
 			//
 
@@ -211,7 +209,7 @@ GLOBAL_VAR_INIT(hsboxspawn, TRUE)
 					for(var/typekey in spawn_forbidden)
 						all_items -= typesof(typekey)
 					for(var/O in reverseRange(all_items))
-						clothinfo += "<a href='?src=[REF(src)];hsb=hsb_safespawn&path=[O]'>[O]</a><br>"
+						clothinfo += "<a href='byond://?src=[REF(src)];hsb=hsb_safespawn&path=[O]'>[O]</a><br>"
 
 				usr << browse(clothinfo,"window=sandbox")
 
@@ -225,7 +223,7 @@ GLOBAL_VAR_INIT(hsboxspawn, TRUE)
 					for(var/typekey in spawn_forbidden)
 						all_items -= typesof(typekey)
 					for(var/O in reverseRange(all_items))
-						reaginfo += "<a href='?src=[REF(src)];hsb=hsb_safespawn&path=[O]'>[O]</a><br>"
+						reaginfo += "<a href='byond://?src=[REF(src)];hsb=hsb_safespawn&path=[O]'>[O]</a><br>"
 
 				usr << browse(reaginfo,"window=sandbox")
 
@@ -240,7 +238,7 @@ GLOBAL_VAR_INIT(hsboxspawn, TRUE)
 						all_items -= typesof(typekey)
 
 					for(var/O in reverseRange(all_items))
-						objinfo += "<a href='?src=[REF(src)];hsb=hsb_safespawn&path=[O]'>[O]</a><br>"
+						objinfo += "<a href='byond://?src=[REF(src)];hsb=hsb_safespawn&path=[O]'>[O]</a><br>"
 
 				usr << browse(objinfo,"window=sandbox")
 

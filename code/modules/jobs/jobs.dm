@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 GLOBAL_LIST_INIT(command_positions, list(
 	"Captain",
 	"Head of Personnel",
@@ -81,9 +82,55 @@ GLOBAL_LIST_INIT(garrison_positions, list(
 	"Dungeoneer",
 	"Garrison Archer",
 	"Mayor"
+=======
+GLOBAL_LIST_INIT(noble_positions, list(
+	/datum/job/lord::title,
+	/datum/job/consort::title,
+	/datum/job/hand::title,
+	/datum/job/prince::title,
+	/datum/job/captain::title,
+	/datum/job/steward::title,
+	/datum/job/magician::title,
+	/datum/job/archivist::title,
+	/datum/job/courtphys::title,
+	/datum/job/minor_noble::title,
+))
+GLOBAL_PROTECT(noble_positions)
+
+GLOBAL_LIST_INIT(noble_courthand_positions, list(
+	/datum/job/lord::title,
+	/datum/job/consort::title,
+	/datum/job/hand::title,
+	/datum/job/prince::title,
+	/datum/job/captain::title,
+	/datum/job/steward::title,
+	/datum/job/magician::title,
+	/datum/job/archivist::title,
+	/datum/job/courtphys::title,
+	/datum/job/minor_noble::title,
+	/datum/job/adventurer/courtagent::title,
+))
+GLOBAL_PROTECT(noble_positions)
+
+GLOBAL_LIST_INIT(garrison_positions, list(
+	/datum/job/royalknight::title,
+	/datum/job/veteran::title,
+	/datum/job/guardsman::title,
+	/datum/job/lieutenant::title,
+	/datum/job/men_at_arms::title,
+	/datum/job/gatemaster::title,
+	/datum/job/jailor::title,
+	/datum/job/dungeoneer::title,
+	/datum/job/town_elder::title,
+	/datum/job/forestwarden::title,
+	/datum/job/forestguard::title,
+	/datum/job/persistence/caravanguard::title,
+>>>>>>> upstream/main
 	))
+GLOBAL_PROTECT(garrison_positions)
 
 GLOBAL_LIST_INIT(church_positions, list(
+<<<<<<< HEAD
 	"Priest",
 	"Acolyte",
 	"Gravekeeper",
@@ -91,8 +138,27 @@ GLOBAL_LIST_INIT(church_positions, list(
 	"Templar",
 	"Adept",
 	"Confessor",
+=======
+	/datum/job/priest::title,
+	/datum/job/gmtemplar::title,
+	/datum/job/monk::title,
+	/datum/job/undertaker::title,
+	/datum/job/templar::title,
+>>>>>>> upstream/main
 	))
+GLOBAL_PROTECT(church_positions)
 
+GLOBAL_LIST_INIT(inquisition_positions, list(
+	/datum/job/inquisitor::title,
+	/datum/job/orthodoxist::title,
+	/datum/job/absolver::title,
+	/datum/job/adept::title,
+	))
+GLOBAL_PROTECT(inquisition_positions)
+
+
+
+<<<<<<< HEAD
 GLOBAL_LIST_INIT(towner_positions, list(
 	"Merchant",
 	"Stevedore",
@@ -107,9 +173,27 @@ GLOBAL_LIST_INIT(towner_positions, list(
 	"Nitemaiden",
 	"Alchemist",
 	"Scribe",
+=======
+GLOBAL_LIST_INIT(serf_positions, list(
+	/datum/job/innkeep::title,
+	/datum/job/blacksmith::title,
+	/datum/job/tailor::title,
+	/datum/job/alchemist::title,
+	/datum/job/artificer::title,
+	/datum/job/matron::title,
+	/datum/job/feldsher::title,
+	/datum/job/apothecary::title,
+	/datum/job/scribe::title,
+	/datum/job/gaffer::title,
+	/datum/job/butler::title,
+	/datum/job/persistence/carpenter::title,
+	/datum/job/persistence/stonemason::title,
+>>>>>>> upstream/main
 	))
+GLOBAL_PROTECT(serf_positions)
 
 GLOBAL_LIST_INIT(peasant_positions, list(
+<<<<<<< HEAD
 	"Soilson",
 	"Butcher",
 	"Cook",
@@ -121,9 +205,28 @@ GLOBAL_LIST_INIT(peasant_positions, list(
 	"Prisoner",
 	"Beggar",
 
+=======
+	/datum/job/farmer::title,
+	/datum/job/miner::title,
+	/datum/job/butcher::title,
+	/datum/job/cook::title,
+	/datum/job/carpenter::title,
+	/datum/job/mason::title,
+	/datum/job/jester::title,
+	/datum/job/hunter::title,
+	/datum/job/fisher::title,
+	/datum/job/bard::title,
+	/datum/job/prisoner::title,
+	/datum/job/vagrant::title,
+	/datum/job/persistence/woodsman::title,
+	/datum/job/persistence/miner::title,
+	/datum/job/persistence/farmer::title,
+>>>>>>> upstream/main
 ))
+GLOBAL_PROTECT(peasant_positions)
 
 GLOBAL_LIST_INIT(apprentices_positions, list(
+<<<<<<< HEAD
 	"Squire",
 	"Smithy Apprentice",
 	"Magician's Apprentice",
@@ -139,32 +242,54 @@ GLOBAL_LIST_INIT(no_antag_positions, list(
 	"Stevedore",
 	"Inquisitor",
 	"Adept"
+=======
+	/datum/job/squire::title,
+	/datum/job/bapprentice::title,
+	/datum/job/mageapprentice::title,
+	/datum/job/servant::title,
+	/datum/job/tapster::title,
+	/datum/job/gaffer_assistant::title,
+	/datum/job/clinicapprentice::title,
+>>>>>>> upstream/main
 	))
+GLOBAL_PROTECT(apprentices_positions)
+
+GLOBAL_LIST_INIT(youngfolk_positions, list(
+	/datum/job/innkeep_son::title,
+	/datum/job/orphan::title,
+	/datum/job/churchling::title,
+	/datum/job/soilchild::title,
+))
+GLOBAL_PROTECT(youngfolk_positions)
+
+GLOBAL_LIST_INIT(company_positions, list(
+	/datum/job/merchant::title,
+	/datum/job/shophand::title,
+	/datum/job/grabber::title,
+	))
+GLOBAL_PROTECT(company_positions)
 
 GLOBAL_LIST_INIT(allmig_positions, list(
+<<<<<<< HEAD
 	"Mercenary",
 	"Adventurer",
 	"Pilgrim",
 	"Drifter"
+=======
+	/datum/job/pilgrim::title,
+	/datum/job/adventurer::title,
+	/datum/job/mercenary::title,
+	/datum/job/bandit::title,
+	/datum/job/wretch::title,
+>>>>>>> upstream/main
 	))
 
 GLOBAL_LIST_INIT(roguewar_positions, list(
-	"Adventurer"
-	))
-
-GLOBAL_LIST_INIT(roguefight_positions, list(
-	"Red Captain",
-	"Red Caster",
-	"Red Ranger",
-	"Red Fighter",
-	"Green Captain",
-	"Green Caster",
-	"Green Ranger",
-	"Green Fighter"
+	"Adventurer",
 	))
 
 GLOBAL_LIST_INIT(test_positions, list(
-	"Tester"
+	"Tester",
 	))
 
 GLOBAL_LIST_EMPTY(job_assignment_order)
@@ -173,78 +298,23 @@ GLOBAL_LIST_EMPTY(job_assignment_order)
 	var/list/sorting_order = list()
 	sorting_order += GLOB.court_positions
 	sorting_order += GLOB.church_positions
+<<<<<<< HEAD
 	sorting_order += GLOB.towner_positions
 	sorting_order += GLOB.garrison_positions
+=======
+	sorting_order += GLOB.inquisition_positions
+	sorting_order += GLOB.serf_positions
+	sorting_order += GLOB.company_positions
+>>>>>>> upstream/main
 	sorting_order += GLOB.peasant_positions
 	sorting_order += GLOB.apprentices_positions
 	sorting_order += GLOB.allmig_positions
+	sorting_order += GLOB.youngfolk_positions
 	return sorting_order
-
-GLOBAL_LIST_INIT(exp_jobsmap, list(
-	EXP_TYPE_CREW = list("titles" = peasant_positions | command_positions | engineering_positions | medical_positions | science_positions | supply_positions | security_positions | civilian_positions | list("AI","Cyborg")), // crew positions
-	EXP_TYPE_COMMAND = list("titles" = command_positions),
-	EXP_TYPE_ENGINEERING = list("titles" = engineering_positions),
-	EXP_TYPE_MEDICAL = list("titles" = medical_positions),
-	EXP_TYPE_SCIENCE = list("titles" = science_positions),
-	EXP_TYPE_SUPPLY = list("titles" = supply_positions),
-	EXP_TYPE_SECURITY = list("titles" = security_positions),
-	EXP_TYPE_SILICON = list("titles" = list("AI","Cyborg")),
-	EXP_TYPE_SERVICE = list("titles" = civilian_positions),
-))
 
 GLOBAL_LIST_INIT(exp_specialmap, list(
 	EXP_TYPE_LIVING = list(), // all living mobs
 	EXP_TYPE_ANTAG = list(),
-	EXP_TYPE_SPECIAL = list("Lifebringer","Ash Walker","Exile","Servant Golem","Free Golem","Hermit","Translocated Vet","Escaped Prisoner","Hotel Staff","SuperFriend","Space Syndicate","Ancient Crew","Space Doctor","Space Bartender","Beach Bum","Skeleton","Zombie","Space Bar Patron","Lavaland Syndicate","Ghost Role"), // Ghost roles
-	EXP_TYPE_GHOST = list() // dead people, observers
+	EXP_TYPE_GHOST = list(), // dead people, observers
 ))
-GLOBAL_PROTECT(exp_jobsmap)
 GLOBAL_PROTECT(exp_specialmap)
-
-/proc/guest_jobbans(job)
-	return ((job in GLOB.command_positions) || (job in GLOB.nonhuman_positions) || (job in GLOB.security_positions))
-
-
-
-//this is necessary because antags happen before job datums are handed out, but NOT before they come into existence
-//so I can't simply use job datum.department_head straight from the mind datum, laaaaame.
-/proc/get_department_heads(job_title)
-	if(!job_title)
-		return list()
-
-	for(var/datum/job/J in SSjob.occupations)
-		if(J.title == job_title)
-			return J.department_head //this is a list
-
-/proc/get_full_job_name(job)
-	var/static/regex/cap_expand = new("cap(?!tain)")
-	var/static/regex/cmo_expand = new("cmo")
-	var/static/regex/hos_expand = new("hos")
-	var/static/regex/hop_expand = new("hop")
-	var/static/regex/rd_expand = new("rd")
-	var/static/regex/ce_expand = new("ce")
-	var/static/regex/qm_expand = new("qm")
-	var/static/regex/sec_expand = new("(?<!security )officer")
-	var/static/regex/engi_expand = new("(?<!station )engineer")
-	var/static/regex/atmos_expand = new("atmos tech")
-	var/static/regex/doc_expand = new("(?<!medical )doctor|medic(?!al)")
-	var/static/regex/mine_expand = new("(?<!shaft )miner")
-	var/static/regex/chef_expand = new("chef")
-	var/static/regex/borg_expand = new("(?<!cy)borg")
-
-	job = lowertext(job)
-	job = cap_expand.Replace(job, "captain")
-	job = cmo_expand.Replace(job, "chief medical officer")
-	job = hos_expand.Replace(job, "head of security")
-	job = hop_expand.Replace(job, "head of personnel")
-	job = rd_expand.Replace(job, "research director")
-	job = ce_expand.Replace(job, "chief engineer")
-	job = qm_expand.Replace(job, "quartermaster")
-	job = sec_expand.Replace(job, "security officer")
-	job = engi_expand.Replace(job, "station engineer")
-	job = atmos_expand.Replace(job, "atmospheric technician")
-	job = doc_expand.Replace(job, "medical doctor")
-	job = mine_expand.Replace(job, "shaft miner")
-	job = chef_expand.Replace(job, "cook")
-	job = borg_expand.Replace(job, "cyborg")
-	return job

@@ -7,16 +7,9 @@
 	invisibility = INVISIBILITY_ABSTRACT
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF
 
-/obj/effect/landmark/singularity_act()
-	return
-
 // Please stop bombing the Observer-Start landmark.
 /obj/effect/landmark/ex_act()
 	return
-
-/obj/effect/landmark/singularity_pull()
-	return
-
 
 INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 
@@ -38,36 +31,40 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 	var/delete_after_roundstart = TRUE
 	var/used = FALSE
 
-/obj/effect/landmark/start/proc/after_round_start()
-	if(delete_after_roundstart)
-		qdel(src)
-
-/obj/effect/landmark/start/New()
+/obj/effect/landmark/start/Initialize(mapload)
+	. = ..()
 	GLOB.start_landmarks_list += src
-	if(jobspawn_override.len)
+
+	if(length(jobspawn_override))
 		for(var/X in jobspawn_override)
 			if(!GLOB.jobspawn_overrides[X])
 				GLOB.jobspawn_overrides[X] = list()
 			GLOB.jobspawn_overrides[X] += src
-	..()
+
 	if(name != "start")
 		tag = "start*[name]"
 
-/obj/effect/landmark/start/Destroy()
+/obj/effect/landmark/start/Destroy(force)
 	GLOB.start_landmarks_list -= src
 	for(var/X in jobspawn_override)
 		GLOB.jobspawn_overrides[X] -= src
 	return ..()
 
+/obj/effect/landmark/start/proc/after_round_start()
+	if(delete_after_roundstart)
+		qdel(src)
+
 /obj/effect/landmark/events/haunts
 	name = "hauntz"
-	icon_state = "generic_event"
+	icon_state = MAP_SWITCH("", "generic_event")
 
 /obj/effect/landmark/events/haunts/Initialize(mapload)
 	. = ..()
-	GLOB.hauntstart += src
-	icon_state = ""
+	GLOB.hauntstart |= src
 
+/obj/effect/landmark/events/haunts/Destroy()
+	GLOB.hauntstart -= src
+	return ..()
 
 /obj/effect/landmark/events/testportal
 	name = "testserverportal"
@@ -87,7 +84,11 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 /obj/effect/landmark/start/adventurerlate
 	name = "Adventurerlate"
 	icon_state = "arrow"
+<<<<<<< HEAD
 	jobspawn_override = list("Drifter", "Adventurer")
+=======
+	jobspawn_override = list("Pilgrim", "Adventurer", "Wretch")
+>>>>>>> upstream/main
 	delete_after_roundstart = FALSE
 
 /obj/effect/landmark/start/vagrantlate
@@ -117,23 +118,23 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 /obj/effect/landmark/start/combatlate
 	name = "Combatlate"
 	icon_state = "arrow"
+<<<<<<< HEAD
 	jobspawn_override = list("Drifter", "Adventurer", "Mercenary")
 	delete_after_roundstart = FALSE
 
 /obj/effect/landmark/start/pilgrim
 	name = "Pilgrim"
 	jobspawn_override = list("Pilgrim")
+=======
+	jobspawn_override = list( "Pilgrim", "Adventurer", "Mercenary")
+>>>>>>> upstream/main
 	delete_after_roundstart = FALSE
 
 /obj/effect/landmark/start/lord
-	name = "King"
+	name = "Monarch"
 	icon_state = "arrow"
 
-/obj/effect/landmark/start/knight
-	name = "Knight"
-	icon_state = "arrow"
-
-/obj/effect/landmark/start/sheriff
+/obj/effect/landmark/start/captain
 	name = "Captain"
 	icon_state = "arrow"
 
@@ -145,16 +146,28 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 	name = "Court Magician"
 	icon_state = "arrow"
 
+/obj/effect/landmark/start/courtphys
+	name = "Court Physician"
+	icon_state = "arrow"
+
 /obj/effect/landmark/start/guardsman
-	name = "Garrison Guard"
+	name = "City Watchmen"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/lieutenant
+	name = "City Watch Lieutenant"
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/manorguardsman
-	name = "Royal Guard"
+	name = "Royal Knight"
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/veteran
 	name = "Veteran"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/jailor
+	name = "Jailor"
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/dungeoneer
@@ -162,24 +175,42 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/watchman
+<<<<<<< HEAD
 	name = "Watchman"
+=======
+	name = "Men-at-arms"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/gatemaster
+	name = "Gatemaster"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/forestwarden
+	name = "Forest Warden"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/forestguard
+	name = "Forest Guard"
+>>>>>>> upstream/main
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/villager
 	name = "Towner"
 	icon_state = "arrow"
+	jobspawn_override = list("Hunter","Lumberjack","Miner","Bard","Carpenter","Cheesemaker")
+
+/obj/effect/landmark/start/cheesemaker
+	name = "Cheesemaker"
+	icon_state = "arrow"
 
 /obj/effect/landmark/start/woodsman
-	name = "Mayor"
+	name = "Town Elder"
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/priest
 	name = "Priest"
 	icon_state = "arrow"
 
-/obj/effect/landmark/start/cleric
-	name = "Cleric"
-	icon_state = "arrow"
 
 /obj/effect/landmark/start/monk
 	name = "Acolyte"
@@ -189,16 +220,29 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 	name = "Inquisitor"
 	icon_state = "arrow"
 
-/obj/effect/landmark/start/shepherd
+/obj/effect/landmark/start/orthodoxist
+	name = "Orthodoxist"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/absolver
+	name = "Absolver"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/adept
 	name = "Adept"
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/templar
 	name = "Templar"
+	jobspawn_override = list("Grandmaster Templar", "Templar") // Temp until I can map in the spawn
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/gmtemplar
+	name = "Grandmaster Templar"
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/nightman
-	name = "Niteman"
+	name = "Apothecary"
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/nightmaiden
@@ -209,12 +253,21 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 	name = "Merchant"
 	icon_state = "arrow"
 
+<<<<<<< HEAD
 /obj/effect/landmark/start/stevedore
 	name = "Stevedore"
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/innkeep
 	name = "Innkeep"
+=======
+/obj/effect/landmark/start/grabber
+	name = "Stevedore"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/shophand
+	name = "Shophand"
+>>>>>>> upstream/main
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/innkeep
@@ -225,12 +278,8 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 	name = "Archivist"
 	icon_state = "arrow"
 
-/obj/effect/landmark/start/weaponsmith
-	name = "Weaponsmith"
-	icon_state = "arrow"
-
-/obj/effect/landmark/start/armorsmith
-	name = "Armorer"
+/obj/effect/landmark/start/blacksmith
+	name = "Blacksmith"
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/blacksmith
@@ -245,12 +294,16 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 	name = "Alchemist"
 	icon_state = "arrow"
 
-/obj/effect/landmark/start/mason
-	name = "Mason"
+/obj/effect/landmark/start/artificer
+	name = "Artificer"
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/scribe
 	name = "Scribe"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/matron
+	name = "Matron"
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/farmer
@@ -266,11 +319,31 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/gravedigger
+<<<<<<< HEAD
 	name = "Gravekeeper"
+=======
+	name = "Gravetender"
+>>>>>>> upstream/main
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/mercenary
 	name = "Mercenary"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/minor_noble
+	name = "Noble"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/miner
+	name = "Miner"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/carpenter
+	name = "Carpenter"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/bard
+	name = "Bard"
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/vagrant
@@ -297,6 +370,10 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 	name = "Hand"
 	icon_state = "arrow"
 
+/obj/effect/landmark/start/courtagent
+	name = "Court Agent"
+	icon_state = "arrow"
+
 /obj/effect/landmark/start/hunter
 	name = "Hunter"
 	icon_state = "arrow"
@@ -321,6 +398,9 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 	name = "Feldsher"
 	icon_state = "arrow"
 
+/obj/effect/landmark/start/gaffer
+	name = "Gaffer"
+	icon_state = "arrow"
 //yrf
 
 /obj/effect/landmark/start/squire
@@ -328,17 +408,47 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/wapprentice
-	name = "Magician's Apprentice"
+	name = "Magician Apprentice"
 	icon_state = "arrow"
 
 /obj/effect/landmark/start/servant
 	name = "Servant"
 	icon_state = "arrow"
 
+<<<<<<< HEAD
+=======
+/obj/effect/landmark/start/tapster
+	name = "Tapster"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/matron_assistant
+	name = "Matron Assistant"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/gaffer_assistant
+	name = "Ring Servant"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/churchling
+	name = "Churchling"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/orphan
+	name = "Orphan"
+	icon_state = "arrow"
+
+>>>>>>> upstream/main
 /obj/effect/landmark/start/sapprentice
 	name = "Smithy Apprentice"
 	icon_state = "arrow"
 
+/obj/effect/landmark/start/innkeep_son
+	name = "Innkeepers Son"
+	icon_state = "arrow"
+
+/obj/effect/landmark/start/clinicapprentice
+	name = "Clinic Apprentice"
+	icon_state = "arrow"
 
 /obj/effect/landmark/start/colonist
 	name = "Colonist"
@@ -353,33 +463,36 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 
 //Antagonist spawns
 
-/obj/effect/landmark/start/wizard
-	name = "wizard"
-	icon = 'icons/effects/landmarks_static.dmi'
-	icon_state = "wiznerd_spawn"
-
-/obj/effect/landmark/start/wizard/Initialize()
-	. = ..()
-	GLOB.wizardstart += loc
-
-/obj/effect/landmark/start/nukeop
-	name = "nukeop"
-	icon = 'icons/effects/landmarks_static.dmi'
-	icon_state = "snukeop_spawn"
-
-/obj/effect/landmark/start/nukeop/Initialize()
-	. = ..()
-	GLOB.nukeop_start += loc
-
 /obj/effect/landmark/start/bandit
-	name = "bandit"
+	name = "Bandit"
 	icon = 'icons/mob/landmarks.dmi'
 	icon_state = "arrow"
+	jobspawn_override = list("Bandit")
+	delete_after_roundstart = FALSE
 
 /obj/effect/landmark/start/bandit/Initialize()
 	. = ..()
 	GLOB.bandit_starts += loc
 
+/obj/effect/landmark/start/lich
+	name = "Lich"
+	icon = 'icons/mob/landmarks.dmi'
+	icon_state = "arrow"
+	jobspawn_override = list("Lich")
+	delete_after_roundstart = FALSE
+
+/obj/effect/landmark/start/lich/Initialize()
+	. = ..()
+	GLOB.lich_starts += loc
+
+/obj/effect/landmark/admin
+	name = "admin"
+	icon = 'icons/mob/landmarks.dmi'
+	icon_state = "arrow"
+
+/obj/effect/landmark/admin/Initialize()
+	. = ..()
+	GLOB.admin_warp += loc
 
 /obj/effect/landmark/start/delf
 	name = "delf"
@@ -390,15 +503,14 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 	. = ..()
 	GLOB.delf_starts += loc
 
+/obj/effect/landmark/start/jarosite
+	name = "jarosite"
+	icon = 'icons/mob/landmarks.dmi'
+	icon_state = "arrow"
 
-/obj/effect/landmark/start/nukeop_leader
-	name = "nukeop leader"
-	icon = 'icons/effects/landmarks_static.dmi'
-	icon_state = "snukeop_leader_spawn"
-
-/obj/effect/landmark/start/nukeop_leader/Initialize()
+/obj/effect/landmark/start/jarosite/Initialize()
 	. = ..()
-	GLOB.nukeop_leader_start += loc
+	GLOB.jarosite_starts += loc
 
 // Must be immediate because players will
 // join before SSatom initializes everything.
@@ -429,6 +541,7 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark/start/new_player)
 	name = "Observer-Start"
 	icon_state = "x"
 
+<<<<<<< HEAD
 //objects with the stationloving component (nuke disk) respawn here.
 //also blobs that have their spawn forcemoved (running out of time when picking their spawn spot), santa and respawning devils
 /obj/effect/landmark/blobstart
@@ -449,6 +562,8 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark/start/new_player)
 	..()
 	GLOB.secequipment += loc
 	return INITIALIZE_HINT_QDEL
+=======
+>>>>>>> upstream/main
 
 //players that get put in admin jail show up here
 /obj/effect/landmark/prisonwarp
@@ -469,52 +584,6 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark/start/new_player)
 	GLOB.emergencyresponseteamspawn += loc
 	return INITIALIZE_HINT_QDEL
 
-//ninja energy nets teleport victims here
-/obj/effect/landmark/holding_facility
-	name = "Holding Facility"
-	icon_state = "holding_facility"
-
-/obj/effect/landmark/holding_facility/Initialize(mapload)
-	..()
-	GLOB.holdingfacility += loc
-	return INITIALIZE_HINT_QDEL
-
-/obj/effect/landmark/thunderdome/observe
-	name = "tdomeobserve"
-	icon_state = "tdome_observer"
-
-/obj/effect/landmark/thunderdome/observe/Initialize(mapload)
-	..()
-	GLOB.tdomeobserve += loc
-	return INITIALIZE_HINT_QDEL
-
-/obj/effect/landmark/thunderdome/one
-	name = "tdome1"
-	icon_state = "tdome_t1"
-
-/obj/effect/landmark/thunderdome/one/Initialize(mapload)
-	..()
-	GLOB.tdome1	+= loc
-	return INITIALIZE_HINT_QDEL
-
-/obj/effect/landmark/thunderdome/two
-	name = "tdome2"
-	icon_state = "tdome_t2"
-
-/obj/effect/landmark/thunderdome/two/Initialize(mapload)
-	..()
-	GLOB.tdome2 += loc
-	return INITIALIZE_HINT_QDEL
-
-/obj/effect/landmark/thunderdome/admin
-	name = "tdomeadmin"
-	icon_state = "tdome_admin"
-
-/obj/effect/landmark/thunderdome/admin/Initialize(mapload)
-	..()
-	GLOB.tdomeadmin += loc
-	return INITIALIZE_HINT_QDEL
-
 //generic event spawns
 /obj/effect/landmark/event_spawn
 	name = "generic event spawn"
@@ -522,8 +591,8 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark/start/new_player)
 	layer = HIGH_LANDMARK_LAYER
 
 
-/obj/effect/landmark/event_spawn/New()
-	..()
+/obj/effect/landmark/event_spawn/Initialize(mapload)
+	. = ..()
 	GLOB.generic_event_spawns += src
 
 /obj/effect/landmark/event_spawn/Destroy()
@@ -533,9 +602,9 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark/start/new_player)
 /obj/effect/landmark/ruin
 	var/datum/map_template/ruin/ruin_template
 
-/obj/effect/landmark/ruin/New(loc, my_ruin_template)
-	name = "ruin_[GLOB.ruin_landmarks.len + 1]"
-	..(loc)
+/obj/effect/landmark/ruin/Initialize(mapload, my_ruin_template)
+	. = ..()
+	name = "ruin_[length(GLOB.ruin_landmarks) + 1]"
 	ruin_template = my_ruin_template
 	GLOB.ruin_landmarks |= src
 
@@ -544,18 +613,41 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark/start/new_player)
 	ruin_template = null
 	. = ..()
 
-//Underworld landmark
+/// Marks the bottom left of the testing zone.
+/// In landmarks.dm and not unit_test.dm so it is always active in the mapping tools.
+/obj/effect/landmark/unit_test_bottom_left
+	name = "unit test zone bottom left"
 
-/obj/effect/landmark/underworld
-	name = "underworld spawn"
+/// Marks the top right of the testing zone.
+/// In landmarks.dm and not unit_test.dm so it is always active in the mapping tools.
+/obj/effect/landmark/unit_test_top_right
+	name = "unit test zone top right"
 
-/obj/effect/landmark/underworldcoin
-	name = "ferryman coin"
+//Underworld landmarks
 
-/obj/effect/landmark/underworldsafe // To prevent demons spawn camping will save a lot of ear rape.
-	name = "safe zone"
+/obj/effect/landmark/underworld_spawnpoint
+	name = "underworld spawnpoint"
 
-/obj/effect/landmark/underworldcoin/Initialize(mapload)
-	SHOULD_CALL_PARENT(FALSE)
-	GLOB.underworldcoinspawns += loc
+/obj/effect/landmark/underworld_spawnpoint/Initialize(mapload)
+	. = ..()
+	GLOB.underworldspiritspawns |= loc
 	return INITIALIZE_HINT_QDEL
+
+/obj/effect/landmark/underworld_pull_location
+	name = "coin pull teleport zone"
+
+/obj/effect/landmark/underworld_pull_location/Initialize()
+	. = ..()
+	GLOB.underworld_coinpull_locs |= loc
+	return INITIALIZE_HINT_QDEL
+
+/obj/effect/landmark/death_arena
+	name = "Death arena spawn 1"
+
+/obj/effect/landmark/death_arena/Initialize()
+	. = ..()
+	SSdeath_arena.assign_death_spawn(src)
+	return INITIALIZE_HINT_QDEL
+
+/obj/effect/landmark/death_arena/second
+	name = "Death arena spawn 2"

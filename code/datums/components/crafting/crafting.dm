@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /datum/component/personal_crafting/Initialize()
 	if(!ismob(parent))
 		return COMPONENT_INCOMPATIBLE
@@ -593,6 +594,8 @@
 
 	return data
 
+=======
+>>>>>>> upstream/main
 //Mind helpers
 
 /datum/mind/proc/teach_crafting_recipe(R)
@@ -600,70 +603,26 @@
 		learned_recipes = list()
 	learned_recipes |= R
 
-// new crafting button interaction
-
-/datum/component/personal_crafting/proc/roguecraft(location, control, params, mob/user)
-	if(user.doing)
+/datum/mind/proc/forget_crafting_recipe(R)
+	if(!learned_recipes)
 		return
-	var/area/A = get_area(user)
-	if(!A.can_craft_here())
-		to_chat(user, "<span class='warning'>I can't craft here.</span>")
-		return
-//	if(user != parent)
-//		testing("c2")
-//		return
-	var/list/data = list()
-	var/list/catty = list()
-	var/list/surroundings = get_surroundings(user)
-	for(var/rec in GLOB.crafting_recipes)
-		var/datum/crafting_recipe/R = rec
-		if(!R.always_availible && !(R.type in user?.mind?.learned_recipes)) //User doesn't actually know how to make this.
-			continue
+	learned_recipes -= R
 
-//		if((R.category != cur_category) || (R.subcategory != cur_subcategory))
-//			continue
+/atom/proc/OnCrafted(dirin, mob/user)
+	SHOULD_CALL_PARENT(TRUE)
+	if(user)
+		SEND_SIGNAL(user, COMSIG_ITEM_CRAFTED, user, type)
+		record_featured_stat(FEATURED_STATS_CRAFTERS, user)
+	record_featured_object_stat(FEATURED_STATS_CRAFTED_ITEMS, name)
+	add_abstract_elastic_data(ELASCAT_CRAFTING, "[name]", 1)
+	return
 
-		if(check_contents(R, surroundings))
-			if(R.name)
-				data += R
-				if(R.skillcraft)
-					var/datum/skill/S = new R.skillcraft()
-					catty |= S.name
-				else
-					catty |= "Other"
-	if(!data.len)
-		to_chat(user, "<span class='warning'>There is nothing I can craft.</span>")
-		return
-	if(!catty.len)
-		return
+/obj/OnCrafted(dirin, mob/user)
+	if(lock)
+		QDEL_NULL(lock)
+		can_add_lock = TRUE
+	. = ..()
 
-	// Craft Last Again
-	var/list/modifiers = params2list(params)
-	if(modifiers["right"])
-		var/mob/living/H = user
-		var/r = H.last_crafted
-		construct_item(user, r)
-		return
-
-	var/t
-	if(catty.len > 1)
-		t=input(user, "CHOOSE SKILL") as null|anything in catty
-	else
-		t=pick(catty)
-	if(t)
-		var/list/realdata = list()
-		for(var/datum/crafting_recipe/X in data)
-			if(X.skillcraft)
-				var/datum/skill/S = new X.skillcraft()
-				if(t == S.name)
-					realdata += X
-			else
-				if(t == "Other")
-					realdata += X
-		if(realdata.len)
-			var/r = input(user, "What should I craft?") as null|anything in realdata
-
-			if(r)
-				var/mob/living/H = user
-				H.last_crafted = r
-				construct_item(user, r)
+/obj/structure/OnCrafted(dirin, mob/user)
+	obj_flags |= CAN_BE_HIT
+	. = ..()

@@ -9,6 +9,7 @@
 
 /obj/item/antag_spawner/proc/equip_antag(mob/target)
 	return
+<<<<<<< HEAD
 
 
 ///////////WIZARD
@@ -92,3 +93,5 @@
 	app_mind.special_role = "apprentice"
 	//
 	SEND_SOUND(M, sound('sound/blank.ogg'))
+=======
+>>>>>>> upstream/main

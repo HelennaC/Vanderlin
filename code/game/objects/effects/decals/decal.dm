@@ -10,10 +10,6 @@
 	if(turf_loc_check && (!isturf(loc) || NeverShouldHaveComeHere(loc)))
 		return INITIALIZE_HINT_QDEL
 
-/obj/effect/decal/blob_act(obj/structure/blob/B)
-	if(B && B.loc == loc)
-		qdel(src)
-
 /obj/effect/decal/proc/NeverShouldHaveComeHere(turf/T)
 	return isclosedturf(T) || isgroundlessturf(T)
 
@@ -38,11 +34,8 @@
 
 /obj/effect/turf_decal/Initialize()
 	..()
-	return INITIALIZE_HINT_QDEL
-
-/obj/effect/turf_decal/ComponentInitialize()
-	. = ..()
 	var/turf/T = loc
 	if(!istype(T)) //you know this will happen somehow
 		CRASH("Turf decal initialized in an object/nullspace")
-	T.AddComponent(/datum/component/decal, icon, icon_state, dir, CLEAN_GOD, color, null, null, alpha)
+	T.AddComponent(/datum/component/decal, icon, icon_state, dir, CLEAN_ALL, color, null, null, alpha)
+	return INITIALIZE_HINT_QDEL

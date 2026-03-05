@@ -9,5 +9,9 @@
 	var/list/STAT_ENTRY = entrylist[entryname] || (entrylist[entryname] = new /list(STAT_ENTRY_LENGTH));\
 	STAT_ENTRY[STAT_ENTRY_TIME] += STAT_TIME;\
 	STAT_ENTRY[STAT_ENTRY_COUNT] += 1;
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/main
 
 

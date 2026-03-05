@@ -14,6 +14,7 @@ again.
 		for(var/I in spawn_list)
 			new I(get_turf(src))
 	return INITIALIZE_HINT_QDEL
+<<<<<<< HEAD
 
 
 //normal windows
@@ -292,3 +293,5 @@ again.
 		if(NORTHWEST)
 			spawn_list = list(/obj/structure/grille, /obj/structure/window/plasma/reinforced/spawner/north, /obj/structure/window/plasma/reinforced/spawner/west)
 	. = ..()
+=======
+>>>>>>> upstream/main

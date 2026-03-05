@@ -2,42 +2,44 @@
 /mob/living/carbon/human/proc/change_name(new_name)
 	real_name = new_name
 
-/mob/living/carbon/human/restrained(ignore_grab)
-	. = ((wear_armor && wear_armor.breakouttime) || ..())
-
 /mob/living/carbon/human/check_language_hear(language)
 	var/mob/living/carbon/V = src
 	if(!language)
 		return
 	if(wear_neck)
-		if(istype(wear_neck, /obj/item/clothing/neck/roguetown/talkstone))
+		if(istype(wear_neck, /obj/item/clothing/neck/talkstone))
 			return TRUE
 	if(!has_language(language))
-		if(has_flaw(/datum/charflaw/paranoid))
-			V.add_stress(/datum/stressevent/paratalk)
-
+		if(has_quirk(/datum/quirk/vice/paranoid))
+			V.add_stress(/datum/stress_event/paratalk)
 
 /mob/living/carbon/human/canBeHandcuffed()
-	if(get_num_arms(FALSE) >= 2)
-		return TRUE
-	else
+	if(num_hands < 2)
 		return FALSE
+	return TRUE
 
 //gets assignment from ID or ID inside PDA or PDA itself
 //Useful when player do something with computers
 /mob/living/carbon/human/proc/get_assignment(if_no_id = "No id", if_no_job = "No job", hand_first = TRUE)
+<<<<<<< HEAD
 	var/obj/item/card/id/id = get_idcard(hand_first)
 	if(id)
 		. = id.assignment
 	if(!.)
 		return if_no_job
+=======
+	return if_no_job
+>>>>>>> upstream/main
 
 //gets name from ID or ID inside PDA or PDA itself
 //Useful when player do something with computers
 /mob/living/carbon/human/proc/get_authentification_name(if_no_id = "Unknown")
+<<<<<<< HEAD
 	var/obj/item/card/id/id = get_idcard(FALSE)
 	if(id)
 		return id.registered_name
+=======
+>>>>>>> upstream/main
 	return if_no_id
 
 //repurposed proc. Now it combines get_id_name() and get_face_name() to determine a mob's name variable. Made into a separate proc as it'll be useful elsewhere
@@ -55,11 +57,9 @@
 	return "Unknown"
 
 //Returns "Unknown" if facially disfigured and real_name if not. Useful for setting name when Fluacided or when updating a human's name variable
-/mob/living/carbon/human/proc/get_face_name(if_no_face="Unknown")
-	if( wear_mask && (wear_mask.flags_inv&HIDEFACE) )	//Wearing a mask which hides our face, use id-name if possible
+/mob/living/carbon/human/proc/get_face_name(if_no_face = "Unknown")
+	if(!is_human_part_visible(src, HIDEFACE))
 		return if_no_face
-	if( head && (head.flags_inv&HIDEFACE) )
-		return if_no_face		//Likewise for hats
 	var/obj/item/bodypart/O = get_bodypart(BODY_ZONE_HEAD)
 	if( !O || (HAS_TRAIT(src, TRAIT_DISFIGURED)) || !real_name || O.skeletonized )	//disfigured. use id-name if possible
 		return if_no_face
@@ -68,6 +68,7 @@
 //gets name from ID or PDA itself, ID inside PDA doesn't matter
 //Useful when player is being seen by other mobs
 /mob/living/carbon/human/proc/get_id_name(if_no_id = "Unknown")
+<<<<<<< HEAD
 	var/obj/item/storage/wallet/wallet = wear_ring
 	var/obj/item/card/id/id = wear_ring
 	if(istype(wallet))
@@ -76,42 +77,10 @@
 		. = id.registered_name
 	if(!.)
 		. = if_no_id	//to prevent null-names making the mob unclickable
+=======
+	. = if_no_id	//to prevent null-names making the mob unclickable
+>>>>>>> upstream/main
 	return
-
-//Gets ID card from a human. If hand_first is false the one in the id slot is prioritized, otherwise inventory slots go first.
-/mob/living/carbon/human/get_idcard(hand_first = TRUE)
-	//Check hands
-	var/obj/item/card/id/id_card
-	var/obj/item/held_item
-	held_item = get_active_held_item()
-	if(held_item) //Check active hand
-		id_card = held_item.GetID()
-	if(!id_card) //If there is no id, check the other hand
-		held_item = get_inactive_held_item()
-		if(held_item)
-			id_card = held_item.GetID()
-
-	if(id_card)
-		if(hand_first)
-			return id_card
-		else
-			. = id_card
-
-	//Check inventory slots
-	if(wear_ring)
-		id_card = wear_ring.GetID()
-		if(id_card)
-			return id_card
-	else if(belt)
-		id_card = belt.GetID()
-		if(id_card)
-			return id_card
-
-/mob/living/carbon/human/get_id_in_hand()
-	var/obj/item/held_item = get_active_held_item()
-	if(!held_item)
-		return
-	return held_item.GetID()
 
 /mob/living/carbon/human/IsAdvancedToolUser()
 	if(HAS_TRAIT(src, TRAIT_MONKEYLIKE))
@@ -141,17 +110,6 @@
 		to_chat(src, "<span class='warning'>I can't bring myself to use a ranged weapon!</span>")
 		return FALSE
 
-/mob/living/carbon/human/proc/get_bank_account()
-	RETURN_TYPE(/datum/bank_account)
-	var/datum/bank_account/account
-	var/obj/item/card/id/I = get_idcard()
-
-	if(I && I.registered_account)
-		account = I.registered_account
-		return account
-
-	return FALSE
-
 /mob/living/carbon/human/get_policy_keywords()
 	. = ..()
 	. += "[dna.species.type]"
@@ -160,32 +118,103 @@
 	. = ..()
 	if(.) //No need to run through all of this if it's already true.
 		return
-	if(isclothing(glasses) && (glasses.clothing_flags & SCAN_REAGENTS))
-		return TRUE
 	if(isclothing(head) && (head.clothing_flags & SCAN_REAGENTS))
 		return TRUE
 	if(isclothing(wear_mask) && (wear_mask.clothing_flags & SCAN_REAGENTS))
 		return TRUE
 
 /mob/living/carbon/human/get_punch_dmg()
-	var/damage = 12
+	if(QDELETED(src) || !ishuman(src))
+		return
+
+	var/damage
+	if(STASTR > 12 || STASTR < 10)
+		damage = STASTR
+	else
+		damage = 12
 
 	var/used_str = STASTR
+
+	if(mind?.has_antag_datum(/datum/antagonist/werewolf))
+		return damage * 2
 
 	if(domhand)
 		used_str = get_str_arms(used_hand)
 
+	var/obj/G = get_item_by_slot(ITEM_SLOT_GLOVES)
+	if(istype(G, /obj/item/clothing/gloves))
+		var/obj/item/clothing/gloves/GL = G
+		damage = (damage * GL.unarmed_bonus)
+
+	if(used_str >= 11)
+		damage = max(damage * (1 + ((used_str - 10) * 0.03)), 1)
+	if(used_str <= 9)
+		damage = max(damage * (1 - ((10 - used_str) * 0.05)), 1)
+
+	var/obj/item/bodypart/BP = has_hand_for_held_index(used_hand)
+	if(istype(BP))
+		damage *= BP.punch_modifier
+
+	damage += dna.species.punch_damage
+	return damage
+
+/mob/living/carbon/human/proc/get_kick_damage(multiplier = 1)
+	if(QDELETED(src) || !ishuman(src))
+		return
+
+	var/damage = 12
+	var/used_str = STASTR
+	damage += dna?.species?.kick_damage || 0
+
+	if(mind?.has_antag_datum(/datum/antagonist/werewolf))
+		return 30 * multiplier
+
 	if(used_str >= 11)
 		damage = max(damage + (damage * ((used_str - 10) * 0.3)), 1)
-
 	if(used_str <= 9)
 		damage = max(damage - (damage * ((10 - used_str) * 0.1)), 1)
 
-	if(mind)
-		if(mind.has_antag_datum(/datum/antagonist/werewolf))
-			return 30
+	if(shoes)
+		damage *= (1 + (shoes.armor_class * 0.2))
 
-	return damage
+	return damage * multiplier
+
+/// Fully randomizes everything in the character.
+// Reflect changes in [datum/preferences/proc/randomise_appearance_prefs]
+/mob/living/carbon/human/proc/randomize_human_appearance(randomise_flags = ALL, include_donator = TRUE)
+	if(!dna)
+		return
+
+	if(randomise_flags & RANDOMIZE_SPECIES)
+		var/rando_race = GLOB.species_list[pick(GLOB.roundstart_species)]
+		set_species(rando_race, FALSE)
+
+	var/datum/species/species = dna.species
+
+	if(NOEYESPRITES in species?.species_traits)
+		randomise_flags &= ~RANDOMIZE_EYE_COLOR
+
+	if(randomise_flags & RANDOMIZE_GENDER)
+		gender = species.sexes ? pick(MALE, FEMALE) : PLURAL
+
+	if(randomise_flags & RANDOMIZE_AGE)
+		age = pick(species.possible_ages)
+
+	if(randomise_flags & RANDOMIZE_NAME)
+		real_name = species.random_name(gender, TRUE)
+
+	if(randomise_flags & RANDOMIZE_UNDERWEAR)
+		underwear = species.random_underwear(gender)
+
+	if(randomise_flags & RANDOMIZE_SKIN_TONE)
+		var/list/skin_list = species.get_skin_list()
+		skin_tone = pick_assoc(skin_list)
+
+	if(randomise_flags & RANDOMIZE_EYE_COLOR)
+		set_eye_color(random_eye_color(TRUE))
+
+	// if(randomise_flags & RANDOMIZE_FEATURES)
+	// 	dna.features = random_features()
 
 /*
 * Family Tree subsystem helpers
@@ -207,6 +236,7 @@
 //Instead of putting the spouse variable everywhere its all funneled through this proc.
 /mob/living/carbon/human/proc/MarryTo(mob/living/carbon/human/spouse)
 	if(!ishuman(spouse))
+<<<<<<< HEAD
 		return
 	var/datum/heritage/brides_family = spouse.family_datum
 	var/groommale = FALSE
@@ -240,6 +270,57 @@
 				checkfamdat.TransferFamilies(who_we_transfer, FAMILY_INLAW)
 				break
 	return checkfamdat
+=======
+		return null
+
+	// Set basic spouse relationship
+	spouse_mob = spouse
+	spouse.spouse_mob = src
+
+	// Handle family integration
+	var/datum/heritage/primary_family = null
+	//var/datum/heritage/secondary_family = null
+	var/datum/family_member/primary_member = null
+	var/datum/family_member/secondary_member = null
+
+	// Determine which family takes precedence
+	if(family_datum && !spouse.family_datum)
+		// Spouse joins our family
+		primary_family = family_datum
+		primary_member = family_member_datum
+		secondary_member = primary_family.CreateFamilyMember(spouse)
+
+	else if(!family_datum && spouse.family_datum)
+		// We join spouse's family
+		primary_family = spouse.family_datum
+		primary_member = spouse.family_member_datum
+		secondary_member = primary_family.CreateFamilyMember(src)
+
+	else if(family_datum && spouse.family_datum)
+		// Both have families - keep separate but mark as married
+		primary_family = family_datum
+		primary_member = family_member_datum
+		secondary_member = spouse.family_member_datum
+
+	else
+		// Neither has family - create new one
+		var/new_family_name = null
+		// Use the male's surname traditionally, or first person's if no male
+		if(gender == MALE)
+			new_family_name = family_datum?.SurnameFormatting(src)
+		else if(spouse.gender == MALE)
+			new_family_name = family_datum?.SurnameFormatting(spouse)
+
+		primary_family = new /datum/heritage(src, new_family_name)
+		primary_member = primary_family.founder
+		secondary_member = primary_family.CreateFamilyMember(spouse)
+
+	// Add spouse relationship in family system
+	if(primary_member && secondary_member && primary_family)
+		primary_family.MarryMembers(primary_member, secondary_member)
+
+	return primary_family
+>>>>>>> upstream/main
 
 //Perspective stranger looks at --> src
 /mob/living/carbon/human/proc/ReturnRelation(mob/living/carbon/human/stranger)

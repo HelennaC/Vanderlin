@@ -22,11 +22,10 @@
 	var/brute_damage = 0
 	var/oxy_damage = 0
 	var/burn_damage = 0
-	var/datum/disease/disease = null //Do they start with a pre-spawned disease?
 	var/mob_color //Change the mob's color
-	var/assignedrole
+	var/datum/job/assignedrole
 	var/show_flavour = TRUE
-	var/banType = ROLE_LAVALAND
+	var/banType = ROLE_NECRO_SKELETON
 	var/ghost_usable = TRUE
 
 //ATTACK GHOST IGNORING PARENT RETURN VALUE
@@ -37,7 +36,7 @@
 		to_chat(user, "<span class='warning'>This spawner is out of charges!</span>")
 		return
 	if(is_banned_from(user.key, banType))
-		to_chat(user, "<span class='warning'>I are jobanned!</span>")
+		to_chat(user, "<span class='warning'>I am jobbanned!</span>")
 		return
 	if(QDELETED(src) || QDELETED(user))
 		return
@@ -81,8 +80,6 @@
 		M.gender = mob_gender
 	if(faction)
 		M.faction = list(faction)
-	if(disease)
-		M.ForceContractDisease(new disease)
 	if(death)
 		M.death(1) //Kills the new mob
 
@@ -108,7 +105,7 @@
 				O.owner = MM
 				A.objectives += O
 		if(assignedrole)
-			M.mind.assigned_role = assignedrole
+			M.mind.set_assigned_role(assignedrole)
 		special(M)
 		MM.name = M.real_name
 	if(uses > 0)
@@ -129,7 +126,6 @@
 	var/id_job = null			//Such as "Clown" or "Chef." This just determines what the ID reads as, not their access
 	var/id_access = null		//This is for access. See access.dm for which jobs give what access. Use "Captain" if you want it to be all access.
 	var/id_access_list = null	//Allows you to manually add access to an ID card.
-	assignedrole = "Ghost Role"
 
 	var/husk = null
 	//these vars are for lazy mappers to override parts of the outfit
@@ -167,27 +163,18 @@
 /obj/effect/mob_spawn/human/equip(mob/living/carbon/human/H)
 	if(mob_species)
 		H.set_species(mob_species)
-	if(husk)
-		H.Drain()
-	else //Because for some reason I can't track down, things are getting turned into husks even if husk = false. It's in some damage proc somewhere.
-		H.cure_husk()
+	H.cure_husk()
 	H.underwear = "Nude"
 	H.undershirt = "Nude"
 	H.socks = "Nude"
 	if(hairstyle)
-		H.hairstyle = hairstyle
-	else
-		H.hairstyle = random_hairstyle(H.gender)
+		H.set_hair_style(hairstyle, FALSE)
 	if(facial_hairstyle)
-		H.facial_hairstyle = facial_hairstyle
-	else
-		H.facial_hairstyle = random_facial_hairstyle(H.gender)
+		H.set_facial_hair_style(facial_hairstyle, FALSE)
 	if(skin_tone)
 		H.skin_tone = skin_tone
-	else
-		H.skin_tone = random_skin_tone()
-	H.update_hair()
 	H.update_body()
+	H.update_body_parts()
 	if(outfit)
 		var/static/list/slots = list("uniform", "r_hand", "l_hand", "suit", "shoes", "gloves", "ears", "glasses", "mask", "head", "belt", "r_pocket", "l_pocket", "back", "id", "neck", "backpack_contents", "suit_store")
 		for(var/slot in slots)
@@ -195,6 +182,7 @@
 			if(!isnum(T))
 				outfit.vars[slot] = T
 		H.equipOutfit(outfit)
+<<<<<<< HEAD
 		if(disable_sensors)
 			// Using crew monitors to find corpses while creative makes finding certain ruins too easy.
 			var/obj/item/clothing/under/C = H.wear_pants
@@ -217,6 +205,8 @@
 			W.assignment = id_job
 		W.registered_name = H.real_name
 		W.update_label()
+=======
+>>>>>>> upstream/main
 
 //Instant version - use when spawning corpses during runtime
 /obj/effect/mob_spawn/human/corpse
@@ -226,15 +216,10 @@
 /obj/effect/mob_spawn/human/corpse/damaged
 	brute_damage = 1000
 
-/obj/effect/mob_spawn/human/alive
-	icon = 'icons/obj/machines/sleeper.dmi'
-	icon_state = "sleeper"
-	death = FALSE
-	roundstart = FALSE //you could use these for alive fake humans on roundstart but this is more common scenario
-
 /obj/effect/mob_spawn/human/corpse/delayed
 	ghost_usable = FALSE //These are just not-yet-set corpses.
 	instant = FALSE
+<<<<<<< HEAD
 
 //Non-human spawners
 
@@ -451,3 +436,5 @@
 	shoes = /obj/item/clothing/shoes/sneakers/black
 	suit = /obj/item/clothing/suit/armor/vest
 	glasses = /obj/item/clothing/glasses/sunglasses/reagent
+=======
+>>>>>>> upstream/main

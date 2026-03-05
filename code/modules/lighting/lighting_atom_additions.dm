@@ -24,6 +24,10 @@
 	///Bitflags to determine lighting-related atom properties.
 	var/light_flags = NONE
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/main
 /atom/movable
 	///Lazylist to keep track on the sources of illumination.
 	var/list/affected_dynamic_lights
@@ -32,8 +36,16 @@
 
 /atom/movable/Initialize(mapload, ...)
 	. = ..()
+<<<<<<< HEAD
 	if(light_system == MOVABLE_LIGHT)
 		AddComponent(/datum/component/overlay_lighting)
+=======
+	if((light_system == MOVABLE_LIGHT) && !istype(src, /atom/movable/outdoor_effect) && !istype(src, /atom/movable/lighting_object))
+		AddComponent(/datum/component/overlay_lighting)
+	if (has_initial_mana_pool && can_have_mana_pool())
+		mana_pool = initialize_mana_pool()
+		after_manapool_init()
+>>>>>>> upstream/main
 
 ///Keeps track of the sources of dynamic luminosity and updates our visibility with the highest.
 /atom/movable/proc/update_dynamic_luminosity()
@@ -58,10 +70,18 @@
 /obj/effect/overlay/light_visible
 	name = ""
 	icon = 'icons/effects/light_overlays/light_32.dmi'
+<<<<<<< HEAD
 	icon_state = "light"
 	layer = O_LIGHTING_VISUAL_LAYER
+=======
+	icon_state = "light2"
+>>>>>>> upstream/main
 	plane = O_LIGHTING_VISUAL_PLANE
 	appearance_flags = RESET_COLOR | RESET_ALPHA | RESET_TRANSFORM
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
 	alpha = 0
 	vis_flags = NONE
+<<<<<<< HEAD
+=======
+	blocks_emissive = NONE
+>>>>>>> upstream/main

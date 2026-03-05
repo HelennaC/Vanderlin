@@ -37,8 +37,6 @@
 	return sellprice
 
 /atom/movable/proc/get_real_price()
-	if(sellprice == initial(sellprice))
-		randomize_price()
 	return sellprice
 
 /atom/movable/proc/pre_sell()
@@ -60,8 +58,7 @@
 
 	var/newbudget = 0
 	// We go backwards, so it'll be innermost objects sold first
-	for(var/i in reverseRange(contents))
-		var/atom/movable/thing = i
+	for(var/atom/movable/thing as anything in reverseRange(contents))
 		var/sold = FALSE
 		if(QDELETED(thing))
 			continue
@@ -160,10 +157,7 @@
 
 	report.total_value[src] += the_cost
 
-	if(istype(O, /datum/export/material))
-		report.total_amount[src] += amount*MINERAL_MATERIAL_AMOUNT
-	else
-		report.total_amount[src] += amount
+	report.total_amount[src] += amount
 
 	if(!dry_run)
 		if(apply_elastic)

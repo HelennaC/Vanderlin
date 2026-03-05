@@ -31,15 +31,15 @@
 		return pick(targets)
 
 /mob/living/carbon/has_hand_for_held_index(i, extra_checks)
-	if(i)
-		var/obj/item/bodypart/L = hand_bodyparts[i]
-		if(L && !L.disabled)
-			if(extra_checks)
-				if(!L.fingers || HAS_TRAIT(L, TRAIT_FINGERLESS))
-					return FALSE
-			return L
+	if(!i || length(hand_bodyparts) < i)
+		return FALSE
+	var/obj/item/bodypart/hand_instance = hand_bodyparts[i]
+	if(hand_instance && !hand_instance.bodypart_disabled)
+		if(extra_checks)
+			if(!hand_instance.fingers || HAS_TRAIT(hand_instance, TRAIT_FINGERLESS))
+				return FALSE
+		return hand_instance
 	return FALSE
-
 
 /mob/proc/has_left_hand(check_disabled = TRUE)
 	return TRUE
@@ -47,7 +47,7 @@
 /mob/living/carbon/has_left_hand(check_disabled = TRUE)
 	for(var/obj/item/bodypart/L in hand_bodyparts)
 		if(L.held_index % 2)
-			if(!check_disabled || !L.disabled)
+			if(!check_disabled || !L.bodypart_disabled)
 				return TRUE
 	return FALSE
 
@@ -59,10 +59,11 @@
 /mob/living/carbon/has_right_hand(check_disabled = TRUE)
 	for(var/obj/item/bodypart/L in hand_bodyparts)
 		if(!(L.held_index % 2))
-			if(!check_disabled || !L.disabled)
+			if(!check_disabled || !L.bodypart_disabled)
 				return TRUE
 	return FALSE
 
+<<<<<<< HEAD
 
 
 //Limb numbers
@@ -112,6 +113,9 @@
 	return list()
 
 /mob/living/carbon/get_missing_limbs()
+=======
+/mob/living/carbon/proc/get_missing_limbs()
+>>>>>>> upstream/main
 	RETURN_TYPE(/list)
 	var/list/full = list(
 		BODY_ZONE_HEAD,
@@ -141,7 +145,11 @@
 	var/list/disabled = list()
 	for(var/zone in full)
 		var/obj/item/bodypart/affecting = get_bodypart(zone)
+<<<<<<< HEAD
 		if(affecting && affecting.disabled)
+=======
+		if(affecting?.bodypart_disabled)
+>>>>>>> upstream/main
 			disabled += zone
 	return disabled
 
@@ -187,6 +195,7 @@
 		if(robotic)
 			L.change_bodypart_status(BODYPART_ROBOTIC)
 	. = L
+<<<<<<< HEAD
 
 /mob/living/carbon/proc/Digitigrade_Leg_Swap(swap_back)
 	var/body_plan_changed = FALSE
@@ -222,3 +231,5 @@
 				H.update_inv_w_uniform()
 		if(H.shoes && !swap_back)
 			H.dropItemToGround(H.shoes)
+=======
+>>>>>>> upstream/main

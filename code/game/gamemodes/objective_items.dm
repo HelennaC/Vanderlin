@@ -2,7 +2,7 @@
 
 /datum/objective_item
 	var/name = "A silly bike horn! Honk!"
-	var/targetitem = /obj/item/bikehorn		//typepath of the objective item
+	var/targetitem = /obj/item/paper	//typepath of the objective item
 	var/difficulty = 9001							//vaguely how hard it is to do this objective
 	var/list/excludefromjob = list()				//If you don't want a job to get a certain objective (no captain stealing his own medal, etcetc)
 	var/list/altitems = list()				//Items which can serve as an alternative to the objective (darn you blueprints)
@@ -27,26 +27,27 @@
 
 /datum/objective_item/steal/rogue/ledger
 	name = "the merchant's catatoma."
-	targetitem = /obj/item/book/rogue/ledger
+	targetitem = /obj/item/book/secret/ledger
 	difficulty = 2
 	excludefromjob = list("Merchant")
 
 /datum/objective_item/steal/rogue/mkey
 	name = "the master key."
-	targetitem = /obj/item/roguekey/lord
+	targetitem = /obj/item/key/lord
 	difficulty = 3
-	excludefromjob = list("Lord", "Knight")
+	excludefromjob = list("Monarch", "Knight")
 
 /datum/objective_item/steal/rogue/spices
 	name = "a pepper mill."
-	targetitem = /obj/item/reagent_containers/food/condiment/peppermill
+	targetitem = /obj/item/reagent_containers/peppermill
 	difficulty = 1
 	excludefromjob = list("Cook")
 
 /datum/objective_item/steal/rogue/crown
 	name = "the Lord's crown."
-	targetitem = /obj/item/clothing/head/roguetown/crown/serpcrown
+	targetitem = /obj/item/clothing/head/crown/serpcrown
 	difficulty = 3
+<<<<<<< HEAD
 	excludefromjob = list("King", "Queen", "Knight")
 
 
@@ -203,3 +204,6 @@
 	name = "25 refined uranium bars."
 	targetitem = /obj/item/stack/sheet/mineral/uranium
 	difficulty = 10
+=======
+	excludefromjob = list("Monarch", "Knight")
+>>>>>>> upstream/main

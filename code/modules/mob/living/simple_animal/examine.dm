@@ -61,9 +61,17 @@
 			msg += "<span class='bloody'>[m1] [bleed_wording]!</span>"
 
 	//Fire/water stacks
-	if(fire_stacks > 0)
+	if(on_fire)
+		var/fire_text = "[m1] on fire!"
+		if(isliving(user))
+			var/mob/living/liver = user
+			if(liver.has_quirk(/datum/quirk/vice/pyromaniac))
+				fire_text += span_boldred(" IT'S BEAUTIFUL!")
+				liver.sate_addiction(/datum/quirk/vice/pyromaniac)
+		msg += fire_text
+	if(fire_stacks + divine_fire_stacks > 0)
 		msg += "[m1] covered in something flammable."
-	else if(fire_stacks < 0)
+	else if(fire_stacks < 0 && !on_fire)
 		msg += "[m1] soaked."
 
 	//Grabbing
@@ -79,6 +87,8 @@
 	if((user != src) && isliving(user))
 		var/mob/living/L = user
 		var/final_str = STASTR
+		if(HAS_TRAIT(src, TRAIT_DECEIVING_MEEKNESS))
+			final_str = 10
 		var/strength_diff = final_str - L.STASTR
 		switch(strength_diff)
 			if(5 to INFINITY)
@@ -93,9 +103,20 @@
 				. += "<span class='warning'><B>[t_He] look[p_s()] much weaker than I.</B></span>"
 
 	if(Adjacent(user) && HAS_TRAIT(src, TRAIT_SIMPLE_WOUNDS))
-		. += "<a href='?src=[REF(src)];inspect_animal=1'>Inspect Wounds</a>"
+		. += "<a href='byond://?src=[REF(src)];inspect_animal=1'>Inspect Wounds</a>"
 
 	if(desc)
 		. += desc
 
+	if(ssaddle)
+		. += span_notice("This animal is saddled: ([ssaddle.name]).")
+	if(ccaparison)
+		. += span_notice("This animal is wearing a caparison: ([ccaparison.name]).")
+	if(bbarding)
+		. += span_notice("This animal is wearing a bard: ([bbarding.name]).")
+
+	if(genetics && length(genetics.genes))
+		. += span_notice("Genetic traits: [english_list(genetics.get_gene_names())].")
+
 	. += "ᛉ ------------ ᛉ</span>"
+	SEND_SIGNAL(src, COMSIG_PARENT_EXAMINE, user, .)

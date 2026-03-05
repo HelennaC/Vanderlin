@@ -2,54 +2,69 @@
 	category = CATEGORY_ADMIN
 	weight = WEIGHT_ADMIN
 
+<<<<<<< HEAD
+=======
+/datum/keybinding/admin/can_use(client/user)
+	return user.holder ? TRUE : FALSE
+>>>>>>> upstream/main
 
 /datum/keybinding/admin/admin_say
 	hotkey_keys = list("F3")
+	classic_keys = list("F3")
 	name = "admin_say"
 	full_name = "Admin say"
 	description = "Talk with other admins."
 
 /datum/keybinding/admin/admin_say/down(client/user)
-	user.get_admin_say()
+	. = ..()
+	user.native_say?.open_say_window("Admin")
 	return TRUE
 
 /datum/keybinding/admin/admin_ghost
 	hotkey_keys = list("F5")
+	classic_keys = list("F5")
 	name = "admin_ghost"
 	full_name = "Aghost"
 	description = "Go ghost"
 
 /datum/keybinding/admin/admin_ghost/down(client/user)
+	. = ..()
 	user.admin_ghost()
 	return TRUE
 
 /datum/keybinding/admin/player_panel_new
 	hotkey_keys = list("F6")
+	classic_keys = list("F6")
 	name = "player_panel_new"
 	full_name = "Player Panel New"
 	description = "Opens up the new player panel"
 
 /datum/keybinding/admin/player_panel_new/down(client/user)
+	. = ..()
 	user.holder.player_panel_new()
 	return TRUE
 
 /datum/keybinding/admin/toggle_buildmode_self
 	hotkey_keys = list("F7")
+	classic_keys = list("F7")
 	name = "toggle_buildmode_self"
 	full_name = "Toggle Buildmode Self"
 	description = "Toggles buildmode"
 
 /datum/keybinding/admin/toggle_buildmode_self/down(client/user)
+	. = ..()
 	user.togglebuildmodeself()
 	return TRUE
 
 /datum/keybinding/admin/stealthmode
 	hotkey_keys = list("CtrlF8")
+	classic_keys = list("CtrlF8")
 	name = "stealth_mode"
 	full_name = "Stealth mode"
 	description = "Enters stealth mode"
 
 /datum/keybinding/admin/stealthmode/down(client/user)
+	. = ..()
 	user.stealth()
 	return TRUE
 
@@ -60,6 +75,7 @@
 	description = "Toggles ghost-like invisibility (Don't abuse this)"
 
 /datum/keybinding/admin/invisimin/down(client/user)
+	. = ..()
 	user.invisimin()
 	return TRUE
 
@@ -70,6 +86,20 @@
 	description = "Allows you to send a message to dead chat"
 
 /datum/keybinding/admin/deadsay/down(client/user)
+	. = ..()
 	user.get_dead_say()
 	return TRUE
 
+<<<<<<< HEAD
+=======
+/datum/keybinding/admin/toggle_rightclick_menu
+	hotkey_keys = list("F11")
+	name = "Toggle rmb menu"
+	full_name = "Toggle right click menu"
+	description = "Toggles the admin context menu."
+
+/datum/keybinding/admin/toggle_rightclick_menu/down(client/user)
+	. = ..()
+	user.toggle_context_menu()
+	return TRUE
+>>>>>>> upstream/main

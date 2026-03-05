@@ -1,416 +1,402 @@
+#define UPDATE_STRENGTH(...) STASTR = clamp(base_strength + modified_strength, 1, 20)
+#define UPDATE_PERCEPTION(...) STAPER = clamp(base_perception + modified_perception, 1, 20)
+#define UPDATE_ENDURANCE(...) STAEND = clamp(base_endurance + modified_endurance, 1, 20)
+#define UPDATE_CONSTITUTION(...) STACON = clamp(base_constitution + modified_constitution, 1, 20)
+#define UPDATE_INTELLIGENCE(...) STAINT = clamp(base_intelligence + modified_intelligence, 1, 20)
+#define UPDATE_SPEED(...) STASPD = clamp(base_speed + modified_speed, 1, 20)
+#define UPDATE_FORTUNE(...) STALUC = clamp(base_fortune + modified_fortune, 1, 20)
 
 /mob/living
-	var/STASTR = 10
-	var/STAPER = 10
-	var/STAINT = 10
-	var/STACON = 10
-	var/STAEND = 10
-	var/STASPD = 10
-	var/STALUC = 10
-	//buffers, the 'true' amount of each stat
-	var/BUFSTR = 0
-	var/BUFPER = 0
-	var/BUFINT = 0
-	var/BUFCON = 0
-	var/BUFEND = 0
-	var/BUFSPE = 0
-	var/BUFLUC = 0
-	var/statbuf = FALSE
-	var/list/statindex = list()
-	var/datum/patron/patron = /datum/patron/godless
+	var/datum/patron/patron = null
+
+	/* Base stat values */
+	var/base_strength = 10
+	var/base_perception = 10
+	var/base_endurance = 10
+	var/base_constitution = 10
+	var/base_intelligence = 10
+	var/base_speed = 10
+	var/base_fortune = 10
+
+	/* Cached modifier values, calculated when needed */
+	VAR_PRIVATE/final/modified_strength
+	VAR_PRIVATE/final/modified_perception
+	VAR_PRIVATE/final/modified_endurance
+	VAR_PRIVATE/final/modified_constitution
+	VAR_PRIVATE/final/modified_intelligence
+	VAR_PRIVATE/final/modified_speed
+	VAR_PRIVATE/final/modified_fortune
+	/// Lazy-list of stat modifiers keyed with sources.
+	var/list/stat_modifiers = null
+
+	/* Calculated stat values, these are what you want to use. */
+	var/final/STASTR = 10
+	var/final/STAPER = 10
+	var/final/STAEND = 10
+	var/final/STACON = 10
+	var/final/STAINT = 10
+	var/final/STASPD = 10
+	var/final/STALUC = 10
+
+	var/has_rolled_for_stats = FALSE
 
 /mob/living/proc/init_faith()
-	patron = GLOB.patronlist[/datum/patron/godless]
+	patron = GLOB.patrons_by_type[/datum/patron/godless/godless]
 
-/mob/living/proc/set_patron(datum/patron/new_patron)
+/mob/living/proc/set_patron(datum/patron/new_patron, check_antag = FALSE)
 	if(!new_patron)
-		return TRUE
+		return FALSE
+	if(check_antag && mind?.special_role)
+		return FALSE
 	if(ispath(new_patron))
-		new_patron = GLOB.patronlist[new_patron]
+		new_patron = GLOB.patrons_by_type[new_patron]
 	if(!istype(new_patron))
+<<<<<<< HEAD
 		return TRUE
 	if(patron && !ispath(patron))
 		patron.on_remove(src)
 	patron = new_patron
 	patron.on_gain(src)
+=======
+		return FALSE
+	if(patron && !ispath(patron))
+		patron.on_remove(src)
+		mana_pool?.remove_attunements(patron)
+
+	var/mob/living/carbon/human/devout
+	var/stored_cleric_class
+	if(ishuman(src))
+		devout = src
+		if(devout.cleric)
+			stored_cleric_class = devout.cleric.devotion_class
+			qdel(devout.cleric)
+
+	patron = new_patron
+	patron.on_gain(src)
+	mana_pool?.set_attunements(patron)
+	if(devout && stored_cleric_class)
+		var/holder = devout.patron?.devotion_holder
+		if(holder)
+			var/datum/devotion/devotion = new holder()
+			switch(stored_cleric_class)
+				if(DEVOTION_CLASS_PRIEST)
+					devotion.make_priest()
+				if(DEVOTION_CLASS_GRANDMASTER)
+					devotion.make_gmtemplar()
+				if(DEVOTION_CLASS_TEMPLAR)
+					devotion.make_templar()
+				if(DEVOTION_CLASS_ACOLYTE)
+					devotion.make_acolyte()
+				if(DEVOTION_CLASS_ABSOLVER)
+					devotion.make_absolver()
+				if(DEVOTION_CLASS_CLERIC)
+					devotion.make_cleric()
+				if(DEVOTION_CLASS_CHURCHLING)
+					devotion.make_churchling()
+			devotion.grant_to(devout)
+
+>>>>>>> upstream/main
 	return TRUE
 
-/datum/species
-	var/list/specstats = list("strength" = 0, "perception" = 0, "intelligence" = 0, "constitution" = 0, "endurance" = 0, "speed" = 0, "fortune" = 0)
-	var/list/specstats_f = list("strength" = 0, "perception" = 0, "intelligence" = 0, "constitution" = 0, "endurance" = 0, "speed" = 0, "fortune" = 0)
+///Rolls random stats base 10, +-1, for SPECIAL, and applies species stats and age stats.
+/mob/living/proc/roll_mob_stats()
+	if(has_rolled_for_stats)
+		return FALSE
 
-/mob/living/proc/roll_stats()
-	STASTR = 10
-	STAPER = 10
-	STAINT = 10
-	STACON = 10
-	STAEND = 10
-	STASPD = 10
-	STALUC = 10
-	for(var/S in MOBSTATS)
-		if(prob(33))
-			switch(pick(1,2))
-				if(1)
-					change_stat(S, 1)
-				if(2)
-					change_stat(S, -1)
+	base_strength += (prob(33) && pick(-1, 1))
+	base_perception += (prob(33) && pick(-1, 1))
+	base_endurance += (prob(33) && pick(-1, 1))
+	base_constitution += (prob(33) && pick(-1, 1))
+	base_intelligence += (prob(33) && pick(-1, 1))
+	base_speed += (prob(33) && pick(-1, 1))
+	base_fortune += (prob(33) && pick(-1, 1))
+
 	if(ishuman(src))
 		var/mob/living/carbon/human/H = src
-		if(H.dna.species)
-			if(gender == FEMALE)
-				for(var/S in H.dna.species.specstats_f)
-					change_stat(S, H.dna.species.specstats_f[S])
-			else
-				for(var/S in H.dna.species.specstats)
-					change_stat(S, H.dna.species.specstats[S])
+		if(H.dna?.species)
+			var/datum/species/species = H.dna.species
+			var/list/specstat_list = (gender == FEMALE) ? species.specstats_f : species.specstats_m
+			for(var/stat in specstat_list)
+				set_stat_modifier(STATMOD_SEX, stat, specstat_list[stat])
+
 		switch(H.age)
+			if(AGE_CHILD)
+				set_stat_modifier(STATMOD_AGE, STATKEY_STR, -2)
+				set_stat_modifier(STATMOD_AGE, STATKEY_CON, -2)
+				set_stat_modifier(STATMOD_AGE, STATKEY_PER, 1)
+				set_stat_modifier(STATMOD_AGE, STATKEY_END, 1)
+				set_stat_modifier(STATMOD_AGE, STATKEY_SPD, round(rand(1,2)))
+				H.virginity = TRUE
+			// nothing for adults/immortals,
 			if(AGE_MIDDLEAGED)
-				change_stat("speed", -1)
-				change_stat("endurance", 1)
+				set_stat_modifier(STATMOD_AGE, STATKEY_END, 1)
+				set_stat_modifier(STATMOD_AGE, STATKEY_SPD, -1)
 			if(AGE_OLD)
-				change_stat("strength", -2)
-				change_stat("speed", -1)
-				change_stat("perception", 2)
-				change_stat("constitution", -1)
-				change_stat("intelligence", 2)
-				change_stat("endurance", -1)
-				change_stat("fortune", 1)
-		if(key)
-			if(check_blacklist(ckey(key)))
-				change_stat("strength", -5)
-				change_stat("speed", -20)
-				change_stat("endurance", -2)
-				change_stat("constitution", -2)
-				change_stat("intelligence", -20)
-				change_stat("fortune", -20)
-			if(check_psychokiller(ckey(key)))
-				testing("foundpsych")
-				H.eye_color = "ff0000"
-				H.voice_color = "ff0000"
+				set_stat_modifier(STATMOD_AGE, STATKEY_STR, -2)
+				set_stat_modifier(STATMOD_AGE, STATKEY_PER, 2)
+				set_stat_modifier(STATMOD_AGE, STATKEY_END, -1)
+				set_stat_modifier(STATMOD_AGE, STATKEY_CON, -1)
+				set_stat_modifier(STATMOD_AGE, STATKEY_INT, 2)
+				set_stat_modifier(STATMOD_AGE, STATKEY_SPD, -1)
+				set_stat_modifier(STATMOD_AGE, STATKEY_LCK, 1)
 
-/mob/living/proc/change_stat(stat, amt, index)
-	if(!stat)
+		if(HAS_TRAIT(src, TRAIT_PUNISHMENT_CURSE))
+			change_stat(STATKEY_STR, -3)
+			change_stat(STATKEY_SPD, -3)
+			change_stat(STATKEY_END, -3)
+			change_stat(STATKEY_CON, -3)
+			change_stat(STATKEY_INT, -3)
+			change_stat(STATKEY_LCK, -3)
+			H.voice_color = "c71d76"
+			H.set_eye_color("#c71d76", updates_dna = TRUE) //majenta
+
+	has_rolled_for_stats = TRUE
+	return TRUE
+
+/mob/living/proc/set_stat_modifier(source, stat_key, amount)
+	if(!source || !(stat_key in MOBSTATS) || !isnum(amount))
 		return
-	if(amt == 0 && index)
-		if(statindex[index])
-			change_stat(statindex[index]["stat"], -1*statindex[index]["amt"])
-			statindex[index] = null
-			return
-	if(!amt)
-		return
-	if(index)
-		if(statindex[index])
-			return //we cannot make a new index
+
+	var/list/source_list = LAZYACCESS(stat_modifiers, source)
+
+	if(LAZYACCESS(source_list, stat_key) != amount)
+		if(!amount)
+			LAZYREMOVE(source_list, stat_key)
 		else
-			statindex[index] = list("stat" = stat, "amt" = amt)
-//			statindex[index]["stat"] = stat
-//			statindex[index]["amt"] = amt
-	var/newamt = 0
-	switch(stat)
-		if("strength")
-			newamt = STASTR + amt
-			if(BUFSTR < 0)
-				BUFSTR = BUFSTR + amt
-				if(BUFSTR > 0)
-					newamt = STASTR + BUFSTR
-					BUFSTR = 0
-			if(BUFSTR > 0)
-				BUFSTR = BUFSTR + amt
-				if(BUFSTR < 0)
-					newamt = STASTR + BUFSTR
-					BUFSTR = 0
-			while(newamt < 1)
-				newamt++
-				BUFSTR--
-			while(newamt > 20)
-				newamt--
-				BUFSTR++
-			STASTR = newamt
+			LAZYSET(source_list, stat_key, amount)
 
-		/*	var/obj/item/bodypart/armr = get_bodypart(BODY_ZONE_R_ARM)
-			if(armr)
-				if(STASTR <= 10)
-					armr.sellprice = STASTR
-				if(STASTR > 10)
-					armr.sellprice = STASTR*2
-					if(STASTR > 12)
-						armr.sellprice = STASTR*4 //generally going to be harder to sell limbs off dead bodies, since prior bloodloss will tank stat and price
-						if(STASTR > 14)
-							armr.sellprice = STASTR*6
-							if(STASTR > 16) //VL
-								armr.sellprice = STASTR*10.
+		if(!LAZYLEN(source_list))
+			LAZYREMOVE(source_list, stat_key)
+		else
+			LAZYSET(stat_modifiers, source, source_list)
 
-			var/obj/item/bodypart/arml = get_bodypart(BODY_ZONE_L_ARM)
-			if(arml)
-				if(STASTR <= 10)
-					arml.sellprice = STASTR
-				if(STASTR > 10)
-					arml.sellprice = STASTR*2
-					if(STASTR > 12)
-						arml.sellprice = STASTR*4
-						if(STASTR > 14)
-							arml.sellprice = STASTR*6
-							if(STASTR > 16)
-								arml.sellprice = STASTR*10		Commented out since no gating to fix goblins etc being farmed for truly ludicrous amounts*/
+		var/new_total = 0
+		for(var/existing_sources in stat_modifiers)
+			new_total += LAZYACCESS(stat_modifiers[existing_sources], stat_key)
 
-		if("perception")
-			newamt = STAPER + amt
-			if(BUFPER < 0)
-				BUFPER = BUFPER + amt
-				if(BUFPER > 0)
-					newamt = STAPER + BUFPER
-					BUFPER = 0
-			if(BUFPER > 0)
-				BUFPER = BUFPER + amt
-				if(BUFPER < 0)
-					newamt = STAPER + BUFPER
-					BUFPER = 0
-			while(newamt < 1)
-				newamt++
-				BUFPER--
-			while(newamt > 20)
-				newamt--
-				BUFPER++
-			STAPER = newamt
+		switch(stat_key) //I am sorry for this
+			if(STATKEY_STR)
+				modified_strength = new_total
+				UPDATE_STRENGTH()
+			if(STATKEY_PER)
+				modified_perception = new_total
+				UPDATE_PERCEPTION()
+			if(STATKEY_END)
+				modified_endurance = new_total
+				UPDATE_ENDURANCE()
+			if(STATKEY_CON)
+				modified_constitution = new_total
+				UPDATE_CONSTITUTION()
+			if(STATKEY_INT)
+				modified_intelligence = new_total
+				UPDATE_INTELLIGENCE()
+			if(STATKEY_SPD)
+				modified_speed = new_total
+				UPDATE_SPEED()
+			if(STATKEY_LCK)
+				modified_fortune = new_total
+				UPDATE_FORTUNE()
 
-		/*	var/obj/item/organ/eyes/eyes = getorganslot(ORGAN_SLOT_EYES)
-			if(eyes)
-				if(STAPER <= 10)
-					eyes.sellprice = STAPER
-				if(STAPER > 10)
-					eyes.sellprice = STAPER*2
-					if(STAPER > 12) //PER is harder to max out and buff
-						eyes.sellprice = STAPER*4
-						if(STAPER > 14) //tiefling boltslinger basically
-							eyes.sellprice = STAPER*6	*/
+/mob/living/proc/set_stat_modifier_list(source, stat_keys_values)
+	if(!source || !length(stat_keys_values))
+		return
+	for(var/stat_key in stat_keys_values)
+		if(!(stat_key in MOBSTATS))
+			continue
+		var/amount = stat_keys_values[stat_key]
+		if(!amount)
+			continue
+		set_stat_modifier(source, stat_key, amount)
 
-			update_fov_angles()
+/**
+ * Set a stat key to value via a modifier at that moment
+ * * source - Stringed source key
+ * * stat_key - Stat to adjust
+ * * value - Value to adjust to
+ */
+/mob/living/proc/modifier_set_stat_to(source, stat_key, value)
+	if(!source || !stat_key || !value)
+		return
+	var/current = get_stat(stat_key)
+	if(!current)
+		return
+	set_stat_modifier(source, stat_key, value - current)
 
-		if("intelligence")
-			newamt = STAINT + amt
-			if(BUFINT < 0)
-				BUFINT = BUFINT + amt
-				if(BUFINT > 0)
-					newamt = STAINT + BUFINT
-					BUFINT = 0
-			if(BUFINT > 0)
-				BUFINT = BUFINT + amt
-				if(BUFINT < 0)
-					newamt = STAINT + BUFINT
-					BUFINT = 0
-			while(newamt < 1)
-				newamt++
-				BUFINT--
-			while(newamt > 20)
-				newamt--
-				BUFINT++
-			STAINT = newamt
+/mob/living/proc/adjust_stat_modifier(source, stat_key, amount)
+	if(!source || !(stat_key in MOBSTATS) || !amount)
+		return
 
-		/*	var/obj/item/organ/brain/brain = getorganslot(ORGAN_SLOT_BRAIN)
-			if(brain)
-				if(STAINT <= 10)
-					brain.sellprice = STAINT
-				if(STAINT > 10)
-					brain.sellprice = STAINT*2
-					if(STAINT > 11)
-						brain.sellprice = STAINT*4
-						if(STAINT > 13)
-							brain.sellprice = STAINT*6
-							if(STAINT > 15) //15+ needs a special job - baseline old age elf is 14.
-								brain.sellprice += STAINT*10  "smartest" human npcs rn are zizombies and orcs at 10 INT - galaxy brains are player-exclusive.	*/
+	var/list/source_list = LAZYACCESS(stat_modifiers, source)
+	LAZYADDASSOC(source_list, stat_key, amount)
+	LAZYSET(stat_modifiers, source, source_list)
 
+	var/new_total = 0
+	for(var/existing_sources in stat_modifiers)
+		new_total += LAZYACCESS(stat_modifiers[existing_sources], stat_key)
 
-		if("constitution")
-			newamt = STACON + amt
-			if(BUFCON < 0)
-				BUFCON = BUFCON + amt
-				if(BUFCON > 0)
-					newamt = STACON + BUFCON
-					BUFCON = 0
-			if(BUFCON > 0)
-				BUFCON = BUFCON + amt
-				if(BUFCON < 0)
-					newamt = STACON + BUFCON
-					BUFCON = 0
-			while(newamt < 1)
-				newamt++
-				BUFCON--
-			while(newamt > 20)
-				newamt--
-				BUFCON++
-			STACON = newamt
+	switch(stat_key) //I am sorry for this
+		if(STATKEY_STR)
+			modified_strength = new_total
+			UPDATE_STRENGTH()
+		if(STATKEY_PER)
+			modified_perception = new_total
+			UPDATE_PERCEPTION()
+		if(STATKEY_END)
+			modified_endurance = new_total
+			UPDATE_ENDURANCE()
+		if(STATKEY_CON)
+			modified_constitution = new_total
+			UPDATE_CONSTITUTION()
+		if(STATKEY_INT)
+			modified_intelligence = new_total
+			UPDATE_INTELLIGENCE()
+		if(STATKEY_SPD)
+			modified_speed = new_total
+			UPDATE_SPEED()
+		if(STATKEY_LCK)
+			modified_fortune = new_total
+			UPDATE_FORTUNE()
 
-		/*	var/obj/item/organ/liver/liver = getorganslot(ORGAN_SLOT_LIVER)
-			if(liver)
-				if(STACON >= 10)
-					liver.sellprice = STACON
-				if(STACON < 10)
-					liver.sellprice = STACON*2
-					if(STACON > 11)
-						liver.sellprice = STACON*3
-						if(STACON > 13)
-							liver.sellprice = STACON*4
-							if(STACON > 15)
-								liver.sellprice += STACON*5
+/mob/living/proc/adjust_stat_modifier_list(source, stat_keys_values)
+	if(!source || !length(stat_keys_values))
+		return
+	for(var/stat_key in stat_keys_values)
+		if(!(stat_key in MOBSTATS))
+			continue
+		var/amount = stat_keys_values[stat_key]
+		if(!amount)
+			continue
+		adjust_stat_modifier(source, stat_key, amount)
 
-			var/obj/item/organ/stomach = getorganslot(ORGAN_SLOT_STOMACH)
-			if(stomach)
-				if(STACON >= 10)
-					stomach.sellprice = STACON
-				if(STACON < 10)
-					stomach.sellprice = STACON*2
-					if(STACON > 11)
-						stomach.sellprice = STACON*3
-						if(STACON > 13)
-							stomach.sellprice = STACON*4
-							if(STACON > 15)
-								stomach.sellprice += STACON*5
+/mob/living/proc/remove_stat_modifier(source)
+	if(!source)
+		return
 
-			var/obj/item/organ/guts/guts = getorganslot(ORGAN_SLOT_STOMACH_AID)
-			if(guts)
-				if(STACON >= 10)
-					guts.sellprice = STACON
-				if(STACON < 10)
-					guts.sellprice = STACON*2
-					if(STACON > 11)
-						guts.sellprice = STACON*3
-						if(STACON > 13)
-							guts.sellprice = STACON*4
-							if(STACON > 15)
-								guts.sellprice += STACON*5	Commented out since no gating to fix goblins etc being farmed for truly ludicrous amounts*/
+	var/list/old_modifications = LAZYACCESS(stat_modifiers, source)
+	LAZYREMOVE(stat_modifiers, source)
 
+	for(var/stat_key in old_modifications)
+		var/adjustment = old_modifications[stat_key]
 
-		if("endurance")
-			newamt = STAEND + amt
-			if(BUFEND < 0)
-				BUFEND = BUFEND + amt
-				if(BUFEND > 0)
-					newamt = STAEND + BUFEND
-					BUFEND = 0
-			if(BUFEND > 0)
-				BUFEND = BUFEND + amt
-				if(BUFEND < 0)
-					newamt = STAEND + BUFEND
-					BUFEND = 0
-			while(newamt < 1)
-				newamt++
-				BUFEND--
-			while(newamt > 20)
-				newamt--
-				BUFEND++
-			STAEND = newamt
+		switch(stat_key) //I am sorry for this
+			if(STATKEY_STR)
+				modified_strength -= adjustment
+				UPDATE_STRENGTH()
+			if(STATKEY_PER)
+				modified_perception -= adjustment
+				UPDATE_PERCEPTION()
+			if(STATKEY_END)
+				modified_endurance -= adjustment
+				UPDATE_ENDURANCE()
+			if(STATKEY_CON)
+				modified_constitution -= adjustment
+				UPDATE_CONSTITUTION()
+			if(STATKEY_INT)
+				modified_intelligence -= adjustment
+				UPDATE_INTELLIGENCE()
+			if(STATKEY_SPD)
+				modified_speed -= adjustment
+				UPDATE_SPEED()
+			if(STATKEY_LCK)
+				modified_fortune -= adjustment
+				UPDATE_FORTUNE()
 
-		/*	var/obj/item/organ/heart/heart = getorganslot(ORGAN_SLOT_HEART)
-			if(heart)
-				if(STAEND <= 10)
-					heart.sellprice = STAEND
-				if(STAEND > 10)
-					heart.sellprice = STAEND*2
-					if(STAEND > 12)
-						heart.sellprice = STAEND*3
-						if(STAEND > 14)
-							heart.sellprice = STAEND*5
-							if(STAEND > 16)
-								heart.sellprice += STAEND*7
+///Returns the mob's stats in an associated list
+/mob/living/proc/get_all_stats() as /list
+	RETURN_TYPE(/list)
 
-			var/obj/item/organ/lungs/lungs = getorganslot(ORGAN_SLOT_LUNGS)
-			if(lungs)
-				if(STAEND <= 10)
-					lungs.sellprice = STAEND
-				if(STAEND > 10)
-					lungs.sellprice = STAEND*2
-					if(STAEND > 12)
-						lungs.sellprice = STAEND*3
-						if(STAEND > 14)
-							lungs.sellprice = STAEND*5
-							if(STAEND > 16)
-								lungs.sellprice += STAEND*7	Commented out since no gating to fix goblins etc being farmed for truly ludicrous amounts*/
+	return list(
+		(STATKEY_STR) = STASTR,
+		(STATKEY_PER) = STAPER,
+		(STATKEY_END) = STAEND,
+		(STATKEY_CON) = STACON,
+		(STATKEY_INT) = STAINT,
+		(STATKEY_SPD) = STASPD,
+		(STATKEY_LCK) = STALUC,
+	)
 
-		if("speed")
-			newamt = STASPD + amt
-			if(BUFSPE < 0)
-				BUFSPE = BUFSPE + amt
-				if(BUFSPE > 0)
-					newamt = STASPD + BUFSPE
-					BUFSPE = 0
-			if(BUFSPE > 0)
-				BUFSPE = BUFSPE + amt
-				if(BUFSPE < 0)
-					newamt = STASPD + BUFSPE
-					BUFSPE = 0
-			while(newamt < 1)
-				newamt++
-				BUFSPE--
-			while(newamt > 20)
-				newamt--
-				BUFSPE++
-			STASPD = newamt
+/// Return mob's stat value by stat_key
+/mob/living/proc/get_stat(stat_key)
+	if(!stat_key)
+		return
 
-		/*	var/obj/item/bodypart/legr = get_bodypart(BODY_ZONE_R_LEG)
-			if(legr)
-				if(STASPD <= 10)
-					legr.sellprice = STASPD
-				if(STASPD > 10)
-					legr.sellprice = STASPD*2
-					if(STASPD > 12)
-						legr.sellprice = STASPD*4
-						if(STASPD > 15)
-							legr.sellprice = STASPD*6
-							if(STASPD > 17)
-								legr.sellprice += STASPD*8
+	return LAZYACCESS(get_all_stats(), stat_key)
 
-			var/obj/item/bodypart/legl = get_bodypart(BODY_ZONE_L_LEG)
-			if(legl)
-				if(STASPD <= 10)
-					legl.sellprice = STASPD
-				if(STASPD > 10)
-					legl.sellprice = STASPD*2
-					if(STASPD > 12)
-						legl.sellprice = STASPD*4
-						if(STASPD > 15)
-							legl.sellprice = STASPD*6
-							if(STASPD > 17)
-								legl.sellprice += STASPD*8	Commented out since no gating to fix goblins etc being farmed for truly ludicrous amounts*/
+///Returns: the difference in value between the opponents stat key and ours.
+///EG: Our endurace - opp endurance.
+/mob/living/proc/stat_difference_to(mob/living/opponent,stat_key)
+	if(!opponent || !stat_key)
+		return
+	switch(stat_key)
+		if(STATKEY_STR)
+			return STASTR - opponent.STASTR
+		if(STATKEY_PER)
+			return STAPER - opponent.STAPER
+		if(STATKEY_END)
+			return STAEND - opponent.STAEND
+		if(STATKEY_CON)
+			return STACON - opponent.STACON
+		if(STATKEY_INT)
+			return STAINT - opponent.STAINT
+		if(STATKEY_SPD)
+			return STASPD - opponent.STASPD
+		if(STATKEY_LCK)
+			return STALUC - opponent.STALUC
+	return
+///Returns: Difference betwen our_stat and opponents opp_stat.
+///EG: Our STR - opp CON
+/mob/living/proc/stat_compare(mob/living/opponent, our_stat_key, opp_stat_key)
+	if(!opponent || !opp_stat_key || !our_stat_key)
+		return
+	var/our_stat = get_stat_level(our_stat_key)
+	var/opponent_stat = opponent.get_stat_level(opp_stat_key)
 
-			update_move_intent_slowdown()
+	return our_stat - opponent_stat
 
-		if("fortune")
-			newamt = STALUC + amt
-			if(BUFLUC < 0)
-				BUFLUC = BUFLUC + amt
-				if(BUFLUC > 0)
-					newamt = STALUC + BUFLUC
-					BUFLUC = 0
-			if(BUFLUC > 0)
-				BUFLUC = BUFLUC + amt
-				if(BUFLUC < 0)
-					newamt = STALUC + BUFLUC
-					BUFLUC = 0
-			while(newamt < 1)
-				newamt++
-				BUFLUC--
-			while(newamt > 20)
-				newamt--
-				BUFLUC++
-			STALUC = newamt
-
-		/*	var/obj/item/organ/tongue/tongue = getorganslot(ORGAN_SLOT_TONGUE) //Superstition? also only really beggars and jesters can be farmed for this
-			if(tongue)
-				if(STALUC <= 10)
-					tongue.sellprice = STALUC
-				if(STALUC > 10)
-					tongue.sellprice = STALUC*2
-					if(STALUC > 12)
-						tongue.sellprice = STALUC*4
-						if(STALUC > 14)
-							tongue.sellprice = STALUC*6	Commented out since no gating to fix goblins etc being farmed for truly ludicrous amounts*/
-
-/proc/generic_stat_comparison(userstat as num, targetstat as num)
-	var/difference = userstat - targetstat
-	if(difference > 1 || difference < -1)
-		return difference * 10
+///Effectively rolls a d20, with each point in the stat being a chance_per_point% chance to succeed per point in the stat. If no stat is provided, just returns 0.
+///dee_cee is a difficulty mod, a positive value makes the check harder, a negative value makes it easier.
+///invert_dc changes it from stat - dc to dc - stat, for inverted checks.
+///EG: A person with 10 luck and a dc of -10 effectively has a 100% chance of success. Or an inverted DC with 10 means 0% chance of success.
+/mob/living/proc/stat_roll(stat_key,chance_per_point = 5, dee_cee = null, invert_dc = FALSE)
+	if(!stat_key)
+		return FALSE
+	var/tocheck
+	switch(stat_key)
+		if(STATKEY_STR)
+			tocheck = STASTR
+		if(STATKEY_PER)
+			tocheck = STAPER
+		if(STATKEY_END)
+			tocheck = STAEND
+		if(STATKEY_CON)
+			tocheck = STACON
+		if(STATKEY_INT)
+			tocheck = STAINT
+		if(STATKEY_SPD)
+			tocheck = STASPD
+		if(STATKEY_LCK)
+			tocheck = STALUC
+	if(invert_dc)
+		return isnull(dee_cee) ? prob(tocheck * chance_per_point) : prob(clamp((dee_cee - tocheck) * chance_per_point,0,100))
 	else
-		return 0
+		return isnull(dee_cee) ? prob(tocheck * chance_per_point) : prob(clamp((tocheck - dee_cee) * chance_per_point,0,100))
+
+/mob/living/proc/get_stat_level(stat_key)
+	switch(stat_key)
+		if(STATKEY_STR)
+			return STASTR
+		if(STATKEY_PER)
+			return STAPER
+		if(STATKEY_END)
+			return STAEND
+		if(STATKEY_CON)
+			return STACON
+		if(STATKEY_INT)
+			return STAINT
+		if(STATKEY_SPD)
+			return STASPD
+		if(STATKEY_LCK)
+			return STALUC
 
 /mob/living/proc/badluck(multi = 3)
 	if(STALUC < 10)
@@ -419,3 +405,92 @@
 /mob/living/proc/goodluck(multi = 3)
 	if(STALUC > 10)
 		return prob((STALUC - 10) * multi)
+
+#define LEGACY_SOURCE "do not fucking edit or remove this admins i swear to god"
+
+/// ~~Adjusts stat values of mobs. set_stat == true to set directly.~~
+/mob/living/proc/change_stat(stat_key, adjust_amount)
+	//! DEPRECATED PROC
+	if(!stat_key || !adjust_amount)
+		return
+
+	adjust_stat_modifier(LEGACY_SOURCE, stat_key, adjust_amount)
+
+#undef LEGACY_SOURCE
+
+/// Recalculates all of a mob's stats and stat modifiers. Don't use this more than you **need** to.
+/mob/living/proc/recalculate_stats(including_modifiers = TRUE)
+	if(including_modifiers)
+		// we discard all of our mods and compile them again
+		modified_strength = 0
+		modified_perception = 0
+		modified_endurance = 0
+		modified_constitution = 0
+		modified_intelligence = 0
+		modified_speed = 0
+		modified_fortune = 0
+
+		for(var/source in stat_modifiers)
+			var/sourced_modifiers = LAZYACCESS(stat_modifiers, source)
+			for(var/stat_key in sourced_modifiers)
+				var/adjustment = LAZYACCESS(sourced_modifiers, stat_key)
+				switch(stat_key) //I am sorry for this
+					if(STATKEY_STR)
+						modified_strength += adjustment
+					if(STATKEY_PER)
+						modified_perception += adjustment
+					if(STATKEY_END)
+						modified_endurance += adjustment
+					if(STATKEY_CON)
+						modified_constitution += adjustment
+					if(STATKEY_INT)
+						modified_intelligence += adjustment
+					if(STATKEY_SPD)
+						modified_speed += adjustment
+					if(STATKEY_LCK)
+						modified_fortune += adjustment
+
+	UPDATE_STRENGTH()
+	UPDATE_PERCEPTION()
+	UPDATE_ENDURANCE()
+	UPDATE_CONSTITUTION()
+	UPDATE_INTELLIGENCE()
+	UPDATE_SPEED()
+	UPDATE_FORTUNE()
+
+/mob/living/proc/reset_and_reroll_stats()
+	//Reset base stats to defaults
+	base_strength = 10
+	base_perception = 10
+	base_endurance = 10
+	base_constitution = 10
+	base_intelligence = 10
+	base_speed = 10
+	base_fortune = 10
+
+	//Clear all cached modifiers
+	modified_strength = 0
+	modified_perception = 0
+	modified_endurance = 0
+	modified_constitution = 0
+	modified_intelligence = 0
+	modified_speed = 0
+	modified_fortune = 0
+	stat_modifiers = list()
+
+	//Reset stat roll var so roll_mob_stats() will work
+	has_rolled_for_stats = FALSE
+
+	//Reroll mob stats
+	roll_mob_stats()
+
+	//recalc all modifiers to ensure final stats are up to date
+	recalculate_stats()
+
+#undef UPDATE_STRENGTH
+#undef UPDATE_PERCEPTION
+#undef UPDATE_ENDURANCE
+#undef UPDATE_CONSTITUTION
+#undef UPDATE_INTELLIGENCE
+#undef UPDATE_SPEED
+#undef UPDATE_FORTUNE

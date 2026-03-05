@@ -1,6 +1,10 @@
 /*
 CONTAINS:
 BEDSHEETS
+<<<<<<< HEAD
+=======
+LINEN BINS
+>>>>>>> upstream/main
 */
 
 /obj/item/bedsheet
@@ -11,8 +15,12 @@ BEDSHEETS
 	righthand_file = 'icons/mob/inhands/misc/bedsheet_righthand.dmi'
 	icon_state = "sheetwhite"
 	item_state = "sheetwhite"
+<<<<<<< HEAD
 	layer = OBJ_LAYER
 	plane = GAME_PLANE_UPPER
+=======
+	layer = MOB_LAYER
+>>>>>>> upstream/main
 	throwforce = 0
 	throw_speed = 1
 	throw_range = 2
@@ -20,17 +28,31 @@ BEDSHEETS
 	resistance_flags = FLAMMABLE
 	dying_key = DYE_REGISTRY_BEDSHEET
 
+<<<<<<< HEAD
 	dog_fashion = /datum/dog_fashion/head/ghost
 	var/list/dream_messages = list("white")
 	var/datum/weakref/signal_sleeper //this is our goldylocks
+=======
+	var/list/dream_messages = list("white")
+	var/datum/weakref/signal_sleeper //this is our goldylocks
+	var/bed_tucked = FALSE
+>>>>>>> upstream/main
 
 /obj/item/bedsheet/Initialize()
 	. = ..()
 	AddElement(/datum/element/bed_tuckable, 0, 0, 0)
 
+<<<<<<< HEAD
 /obj/item/bedsheet/attack_self(mob/user)
 	if(!user.CanReach(src))		//No telekenetic grabbing.
 		return
+=======
+/obj/item/bedsheet/attack_self(mob/living/user, list/modifiers)
+	if(!user.CanReach(src))		//No telekenetic grabbing.
+		return
+	if(!user.resting)
+		return
+>>>>>>> upstream/main
 	if(!user.dropItemToGround(src))
 		return
 	coverup(user)
@@ -38,12 +60,22 @@ BEDSHEETS
 
 /obj/item/bedsheet/proc/coverup(mob/living/sleeper)
 	layer = ABOVE_MOB_LAYER
+<<<<<<< HEAD
 	plane = -2
 	pixel_x = 0
 	pixel_y = 0
 	to_chat(sleeper, span_notice("I cover myself with [src]."))
 	var/angle = sleeper.lying_prev
 	dir = angle2dir(angle + 180) // 180 flips it to be the same direction as the mob
+=======
+	plane = GAME_PLANE_UPPER
+	pixel_x = base_pixel_x
+	pixel_y = base_pixel_y
+	to_chat(sleeper, "<span class='notice'>I cover myself with [src].</span>")
+	var/angle = sleeper.lying_prev
+	dir = angle2dir(angle + 180) // 180 flips it to be the same direction as the mob
+
+>>>>>>> upstream/main
 	signal_sleeper = WEAKREF(sleeper)
 	RegisterSignal(src, COMSIG_ITEM_PICKUP, PROC_REF(on_pickup))
 	RegisterSignal(sleeper, COMSIG_MOVABLE_MOVED, PROC_REF(smooth_sheets))
@@ -52,11 +84,19 @@ BEDSHEETS
 
 /obj/item/bedsheet/proc/smooth_sheets(mob/living/sleeper)
 	SIGNAL_HANDLER
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/main
 	UnregisterSignal(src, COMSIG_ITEM_PICKUP)
 	UnregisterSignal(sleeper, COMSIG_MOVABLE_MOVED)
 	UnregisterSignal(sleeper, COMSIG_LIVING_SET_RESTING)
 	UnregisterSignal(sleeper, COMSIG_PARENT_QDELETING)
+<<<<<<< HEAD
 	to_chat(sleeper, span_notice("I smooth [src] out beneath you."))
+=======
+	to_chat(sleeper, "<span class='notice'>I smooth [src] out beneath you.</span>")
+>>>>>>> upstream/main
 	layer = initial(layer)
 	plane = initial(plane)
 	signal_sleeper = null
@@ -65,48 +105,93 @@ BEDSHEETS
 // otherwise the bedsheet will disappear while in our hands if the sleeper signals get activated by moving
 /obj/item/bedsheet/proc/on_pickup(datum/source, mob/grabber)
 	SIGNAL_HANDLER
+<<<<<<< HEAD
 	var/mob/living/sleeper = signal_sleeper?.resolve()
+=======
+
+	var/mob/living/sleeper = signal_sleeper?.resolve()
+
+>>>>>>> upstream/main
 	UnregisterSignal(src, COMSIG_ITEM_PICKUP)
 	UnregisterSignal(sleeper, COMSIG_MOVABLE_MOVED)
 	UnregisterSignal(sleeper, COMSIG_LIVING_SET_RESTING)
 	UnregisterSignal(sleeper, COMSIG_PARENT_QDELETING)
 	signal_sleeper = null
 
+<<<<<<< HEAD
 /obj/item/bedsheet/rogue/cloth
+=======
+/obj/item/bedsheet/attack_hand(mob/user, list/modifiers)
+	if(!bed_tucked)
+		return ..()
+	if(do_after(user, 2 SECONDS, src))
+		var/obj/structure/bed/bed = locate() in loc
+		if(bed)
+			to_chat(user, span_notice("You start to remove \the [src] from \the [bed]."))
+			bed.sheet_tucked = FALSE
+			bed.sheet_on = FALSE
+			bed_tucked = FALSE
+		return ..()
+/obj/item/bedsheet/cloth
+>>>>>>> upstream/main
 	desc = ""
 	icon = 'icons/roguetown/misc/structure.dmi'
 	icon_state = "cloth_bedsheet"
 	item_state = "cloth_bedsheet"
+<<<<<<< HEAD
 	pixel_y = 5
 
 /obj/item/bedsheet/rogue/pelt
+=======
+
+/obj/item/bedsheet/pelt
+>>>>>>> upstream/main
 	desc = ""
 	icon = 'icons/roguetown/misc/structure.dmi'
 	icon_state = "pelt_bedsheet"
 	item_state = "pelt_bedsheet"
+<<<<<<< HEAD
 	pixel_y = 5
 
 /obj/item/bedsheet/rogue/wool
+=======
+
+/obj/item/bedsheet/wool
+>>>>>>> upstream/main
 	desc = ""
 	icon = 'icons/roguetown/misc/structure.dmi'
 	icon_state = "wool_bedsheet"
 	item_state = "wool_bedsheet"
+<<<<<<< HEAD
 	pixel_y = 5
 
 /obj/item/bedsheet/rogue/double_pelt
+=======
+
+/obj/item/bedsheet/double_pelt
+>>>>>>> upstream/main
 	desc = ""
 	icon = 'icons/roguetown/misc/structure.dmi'
 	icon_state = "double_pelt_bedsheet"
 	item_state = "double_pelt_bedsheet"
 
+<<<<<<< HEAD
 /obj/item/bedsheet/rogue/fabric
+=======
+/obj/item/bedsheet/fabric
+>>>>>>> upstream/main
 	desc = ""
 	icon = 'icons/roguetown/misc/structure.dmi'
 	icon_state = "fabric_bedsheet"
 	item_state = "fabric_bedsheet"
+<<<<<<< HEAD
 	pixel_y = 5
 
 /obj/item/bedsheet/rogue/fabric_double
+=======
+
+/obj/item/bedsheet/fabric_double
+>>>>>>> upstream/main
 	desc = ""
 	icon = 'icons/roguetown/misc/structure.dmi'
 	icon_state = "double_fabric_bedsheet"

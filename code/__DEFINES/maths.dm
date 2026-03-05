@@ -27,6 +27,8 @@
 
 #define CEILING(x, y) ( -round(-(x) / (y)) * (y) )
 
+#define ROUND_UP(x) ( -round(-(x)))
+
 // round() acts like floor(x, 1) by default but can't handle other values
 #define FLOOR(x, y) ( round((x) / (y)) * (y) )
 
@@ -38,7 +40,7 @@
 #define WRAP(val, min, max) ( min == max ? min : (val) - (round(((val) - (min))/((max) - (min))) * ((max) - (min))) )
 
 // Real modulus that handles decimals
-#define MODULUS(x, y) ( (x) - (y) * round((x) / (y)) )
+#define MODULUS(x, y) ( (x) - FLOOR(x, y))
 
 
 #define TAN(x) tan(x)
@@ -109,6 +111,10 @@
 #define TODEGREES(radians) ((radians) * 57.2957795)
 
 #define TORADIANS(degrees) ((degrees) * 0.0174532925)
+
+/// Gets shift x that would be required for the bitflag (1<<x)
+/// We need the round because log has floating-point inaccuracy, and if we undershoot at all on list indexing we'll get the wrong index.
+#define TOBITSHIFT(bit) ( round(log(2, bit), 1) )
 
 // Will filter out extra rotations and negative rotations
 // E.g: 540 becomes 180. -180 becomes 180.
@@ -211,3 +217,6 @@
 
 #define RULE_OF_THREE(a, b, x) ((a*x)/b)
 // )
+
+/// Avoids division by zero by returning 0 if the divisor is 0 or null.
+#define SAFE_DIVIDE(dividend, divisor) (!divisor ? 0 : dividend/divisor)

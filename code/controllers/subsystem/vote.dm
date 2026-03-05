@@ -29,7 +29,7 @@ SUBSYSTEM_DEF(vote)
 			var/datum/browser/noclose/client_popup
 			for(var/client/C in voting)
 				client_popup = new(C, "vote", "Voting Panel")
-				client_popup.set_window_options("can_close=0")
+				client_popup.set_window_options(can_close = FALSE)
 				client_popup.set_content(interface(C))
 				client_popup.open(FALSE)
 
@@ -144,17 +144,59 @@ SUBSYSTEM_DEF(vote)
 				SSmapping.changemap(global.config.maplist[.])
 				SSmapping.map_voted = TRUE
 			if("endround")
+				if(SSgamemode.roundvoteend)
+					log_game("LOG VOTE: END VOTE TRIGGERED RESULT AS ROUND IS ENDING")
+					return
 				if(. == "Continue Playing")
 					log_game("LOG VOTE: CONTINUE PLAYING AT [REALTIMEOFDAY]")
-					addomen("roundstart")
-					GLOB.round_timer = GLOB.round_timer + (32 MINUTES)
+					//Get total vote power and continue vote power
+					var/continue_power = choices["Continue Playing"]
+					var/end_power = choices["End Round"]
+					var/total_power = continue_power + end_power
+
+					//Safety check: avoid divide by zero
+					if(total_power <= 0)
+						total_power = 1
+
+					//Calculate ratio ONLY from actual voters
+					var/ratio = continue_power / total_power
+
+					//Define min and max extension
+					var/min_time = 15 MINUTES
+					var/max_time = 30 MINUTES
+
+					//Linear scaling
+					//If ratio is 0.5 (bare minimum win), give min_time.
+					//If ratio is 0.9 or higher, give max_time.
+					//Otherwise interpolate.
+					var/clamped_ratio = ratio
+					if(clamped_ratio < 0.5)
+						clamped_ratio = 0.5
+					if(clamped_ratio > 0.9)
+						clamped_ratio = 0.9
+
+					var/scale = (clamped_ratio - 0.5) / (0.9 - 0.5)
+					var/extra_time = min_time + round((max_time - min_time) * scale)
+
+					//Apply time
+					log_game("LOG VOTE: CONTINUE PLAYING AT [REALTIMEOFDAY] WITH RATIO=[ratio], EXTRA=[extra_time]")
+					GLOB.round_timer += extra_time
 				else
 					log_game("LOG VOTE: ELSE  [REALTIMEOFDAY]")
-					var/datum/game_mode/chaosmode/C = SSticker.mode
-					if(istype(C))
-						log_game("LOG VOTE: ROUNDVOTEEND [REALTIMEOFDAY]")
-						to_chat(world, "\n<font color='purple'>15 minutes remain.</font>")
-						C.roundvoteend = TRUE
+					log_game("LOG VOTE: ROUNDVOTEEND [REALTIMEOFDAY]")
+					to_chat(world, "\n<font color='purple'>[ROUND_END_TIME_VERBAL]</font>")
+					SSgamemode.roundvoteend = TRUE
+					SSgamemode.round_ends_at = GLOB.round_timer + ROUND_END_TIME
+			if("storyteller")
+				SSgamemode.storyteller_vote_result(.)
+
+			if("norulervote")
+				switch(.)
+					if("Start Anyway")
+						SSticker.vote_started = TRUE
+					if("Wait for Ruler")
+						SSticker.vote_started = FALSE
+						SSticker.pre_vote = 0
 	if(restart)
 		var/active_admins = 0
 		for(var/client/C in GLOB.admins)
@@ -164,9 +206,9 @@ SUBSYSTEM_DEF(vote)
 		if(!active_admins)
 			SSticker.Reboot("Restart vote successful.", "restart vote")
 		else
-			to_chat(world, "<span style='boldannounce'>Notice:Restart vote will not restart the server automatically because there are active gamemasters on.</span>")
+			to_chat(world, "<span style='boldannounce'>Notice:Restart vote will not restart the server automatically because there are active gamemasters on, if nothing is done the server will restart in 15 minutes.</span>")
 			message_admins("A restart vote has passed, but there are active admins on with +server, so it has been canceled. If you wish, you may restart the server.")
-
+			SSticker.reboot_anyway = world.time + 15 MINUTES
 	return .
 
 /datum/controller/subsystem/vote/proc/submit_vote(vote)
@@ -184,8 +226,8 @@ SUBSYSTEM_DEF(vote)
 					if(H.stat != DEAD)
 						vote_power += 3
 					if(H.job)
-						var/list/list_of_powerful = list("King", "Queen", "Priest", "Steward", "Hand")
-						if(H.job in list_of_powerful)
+						var/list/list_of_powerful = list(/datum/job/lord, /datum/job/consort, /datum/job/advclass/consort, /datum/job/priest, /datum/job/steward, /datum/job/hand, /datum/job/advclass/hand)
+						if(H.mind?.assigned_role && is_type_in_list(H.mind.assigned_role, list_of_powerful))
 							vote_power += 5
 						else
 							if(H.mind)
@@ -220,9 +262,9 @@ SUBSYSTEM_DEF(vote)
 			if("gamemode")
 				choices.Add(config.votable_modes)
 			if("map")
-				for(var/map in global.config.maplist)
+				for(var/map in config.maplist)
 					var/datum/map_config/VM = config.maplist[map]
-					if(!VM.votable)
+					if(!VM.available_for_vote())
 						continue
 					choices.Add(VM.map_name)
 			if("custom")
@@ -235,19 +277,31 @@ SUBSYSTEM_DEF(vote)
 						break
 					choices.Add(option)
 			if("endround")
-				initiator_key = pick("Zlod", "Sun King", "Gaia", "Aeon", "Gemini", "Aries")
+				var/rng = rand(1, 1000)
+				if(rng > 200) // 80%
+					initiator_key = pick("Astrata", "Noc", "Dendor", "Abyssor", "Necra", "Ravox", "Xylix", "Pestra", "Malum", "Eora")
+				else if(rng > 50) // 15%
+					initiator_key = pick("Zizo", "Graggar", "Matthios", "Baotha")
+				else
+					initiator_key = "Psydon"
 				choices.Add("Continue Playing","End Round")
+			if("storyteller")
+				choices.Add(SSgamemode.storyteller_vote_choices())
+			if("norulervote")
+				choices.Add("Start Anyway", "Wait for Ruler")
 			else
 				return 0
 		mode = vote_type
 		initiator = initiator_key
 		started_time = world.time
 		var/text = "[capitalize(mode)] vote started by [initiator]."
+		if(mode == "storyteller")
+			text = initiator
 		if(mode == "custom")
 			text += "\n[question]"
 		log_vote(text)
 		var/vp = CONFIG_GET(number/vote_period)
-		to_chat(world, "\n<font color='purple'><b>[text]</b>\nClick <a href='?src=[REF(src)]'>here</a> to place your vote.\nYou have [DisplayTimeText(vp)] to vote.</font>")
+		to_chat(world, "\n<font color='purple'><b>[text]</b>\nClick <a href='byond://?src=[REF(src)]'>here</a> to place your vote.\nYou have [DisplayTimeText(vp)] to vote.</font>")
 		time_remaining = round(vp/10)
 //		for(var/c in GLOB.clients)
 //			var/client/C = c
@@ -259,6 +313,11 @@ SUBSYSTEM_DEF(vote)
 //			generated_actions += V
 		return 1
 	return 0
+
+/datum/controller/subsystem/vote/proc/initiate_norulervote()
+	if(mode) // Already a vote in progress
+		return 0
+	return initiate_vote("norulervote", "The Gods")
 
 /datum/controller/subsystem/vote/proc/interface(client/C)
 	if(!C)
@@ -281,46 +340,46 @@ SUBSYSTEM_DEF(vote)
 			var/votes = choices[choices[i]]
 			if(!votes)
 				votes = 0
-			. += "<li><a href='?src=[REF(src)];vote=[i]'>[choices[i]]</a> ([votes] votepwr)</li>"
+			. += "<li><a href='byond://?src=[REF(src)];vote=[i]'>[choices[i]]</a> ([votes] votepwr)</li>"
 		. += "</ul><hr>"
 		if(admin)
-			. += "(<a href='?src=[REF(src)];vote=cancel'>Cancel Vote</a>) "
+			. += "(<a href='byond://?src=[REF(src)];vote=cancel'>Cancel Vote</a>) "
 	else
 		. += "<h2>Start a vote:</h2><hr><ul><li>"
 		//restart
 		var/avr = CONFIG_GET(flag/allow_vote_restart)
 		if(trialmin || avr)
-			. += "<a href='?src=[REF(src)];vote=restart'>Restart</a>"
+			. += "<a href='byond://?src=[REF(src)];vote=restart'>Restart</a>"
 		else
 			. += "<font color='grey'>Restart (Disallowed)</font>"
 		if(trialmin)
-			. += "\t(<a href='?src=[REF(src)];vote=toggle_restart'>[avr ? "Allowed" : "Disallowed"]</a>)"
+			. += "\t(<a href='byond://?src=[REF(src)];vote=toggle_restart'>[avr ? "Allowed" : "Disallowed"]</a>)"
 		. += "</li><li>"
 		//gamemode
 		var/avm = CONFIG_GET(flag/allow_vote_mode)
 		if(trialmin || avm)
-			. += "<a href='?src=[REF(src)];vote=gamemode'>GameMode</a>"
+			. += "<a href='byond://?src=[REF(src)];vote=gamemode'>GameMode</a>"
 		else
 			. += "<font color='grey'>GameMode (Disallowed)</font>"
 		if(trialmin)
-			. += "\t(<a href='?src=[REF(src)];vote=toggle_gamemode'>[avm ? "Allowed" : "Disallowed"]</a>)"
+			. += "\t(<a href='byond://?src=[REF(src)];vote=toggle_gamemode'>[avm ? "Allowed" : "Disallowed"]</a>)"
 
 		. += "</li>"
 		//map
 		var/avmap = CONFIG_GET(flag/allow_vote_map)
 		if(trialmin || avmap)
-			. += "<a href='?src=[REF(src)];vote=map'>Map</a>"
+			. += "<a href='byond://?src=[REF(src)];vote=map'>Map</a>"
 		else
 			. += "<font color='grey'>Map (Disallowed)</font>"
 		if(trialmin)
-			. += "\t(<a href='?src=[REF(src)];vote=toggle_map'>[avmap ? "Allowed" : "Disallowed"]</a>)"
+			. += "\t(<a href='byond://?src=[REF(src)];vote=toggle_map'>[avmap ? "Allowed" : "Disallowed"]</a>)"
 
 		. += "</li>"
 		//custom
 		if(trialmin)
-			. += "<li><a href='?src=[REF(src)];vote=custom'>Custom</a></li>"
+			. += "<li><a href='byond://?src=[REF(src)];vote=custom'>Custom</a></li>"
 		. += "</ul><hr>"
-	. += "<a href='?src=[REF(src)];vote=close' style='position:absolute;right:50px'>Close</a>"
+	. += "<a href='byond://?src=[REF(src)];vote=close' style='position:absolute;right:50px'>Close</a>"
 	return .
 
 
@@ -367,8 +426,7 @@ SUBSYSTEM_DEF(vote)
 	usr.vote()
 
 /datum/controller/subsystem/vote/proc/remove_action_buttons()
-	for(var/v in generated_actions)
-		var/datum/action/vote/V = v
+	for(var/datum/action/vote/V as anything in generated_actions)
 		if(!QDELETED(V))
 			V.remove_from_client()
 			V.Remove(V.owner)
@@ -379,7 +437,7 @@ SUBSYSTEM_DEF(vote)
 	set name = "Vote"
 	set hidden = 1
 	var/datum/browser/noclose/popup = new(src, "vote", "Voting Panel")
-	popup.set_window_options("can_close=0")
+	popup.set_window_options(can_close = FALSE)
 	popup.set_content(SSvote.interface(client))
 	popup.open(FALSE)
 
@@ -387,7 +445,7 @@ SUBSYSTEM_DEF(vote)
 	name = "Vote!"
 	button_icon_state = "vote"
 
-/datum/action/vote/Trigger()
+/datum/action/vote/Trigger(trigger_flags)
 	if(owner)
 		owner.vote()
 		remove_from_client()

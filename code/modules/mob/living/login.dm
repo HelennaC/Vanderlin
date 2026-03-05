@@ -3,13 +3,8 @@
 	..()
 	//Mind updates
 	sync_mind()
-	mind.show_memory(src, 0)
+	mind.show_memory(src, FALSE)
 
-	//Round specific stuff
-	if(SSticker.mode)
-		switch(SSticker.mode.name)
-			if("sandbox")
-				CanBuild()
 	update_a_intents()
 	update_damage_hud()
 	update_health_hud()
@@ -23,6 +18,7 @@
 	if (isturf(T))
 		update_z(T.z)
 
+<<<<<<< HEAD
 	//Vents
 //	if(ventcrawler)
 //		to_chat(src, "<span class='notice'>I can ventcrawl! Use alt+click on vents to quickly travel about the station.</span>")
@@ -30,6 +26,10 @@
 	if(ranged_ability)
 		ranged_ability.add_ranged_ability(src, "<span class='notice'>I currently have <b>[ranged_ability]</b> active!</span>")
 
+=======
+	if(!funeral_login())
+		log_game("[key_name(src)] on login: had an issue with funeral-checking logic.")
+>>>>>>> upstream/main
 
 /mob/living/proc/login_fade()
 	set waitfor = FALSE
@@ -42,3 +42,19 @@
 		return
 	client.screen -= F
 	do_time_change()
+
+// Handles players on login about death-related procs and notifications. Essentially a failsafe for client logouts/transfers. Called on /mob/living/Login().
+/mob/living/proc/funeral_login()
+	if(QDELETED(src) || QDELETED(mind))
+		return FALSE
+
+	if(!client)
+		return FALSE
+
+	if(stat >= DEAD)
+		if(ishuman(src))
+			var/mob/living/carbon/human/human_mob = src
+			if(human_mob.funeral)
+				to_chat(src, span_rose("My soul has found peace buried in consecrated ground."))
+
+	return TRUE

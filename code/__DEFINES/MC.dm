@@ -17,6 +17,15 @@
 #define MC_AVG_FAST_UP_SLOW_DOWN(average, current) (average > current ? MC_AVERAGE_SLOW(average, current) : MC_AVERAGE_FAST(average, current))
 #define MC_AVG_SLOW_UP_FAST_DOWN(average, current) (average < current ? MC_AVERAGE_SLOW(average, current) : MC_AVERAGE_FAST(average, current))
 
+///creates a running average of "things elapsed" per time period when you need to count via a smaller time period.
+///eg you want an average number of things happening per second but you measure the event every tick (50 milliseconds).
+///make sure both time intervals are in the same units. doesnt work if current_duration > total_duration or if total_duration == 0
+#define MC_AVG_OVER_TIME(average, current, total_duration, current_duration) (((total_duration - current_duration) / (total_duration)) * (average) + (current))
+
+#define MC_AVG_MINUTES(average, current, current_duration) (MC_AVG_OVER_TIME(average, current, 1 MINUTES, current_duration))
+
+#define MC_AVG_SECONDS(average, current, current_duration) (MC_AVG_OVER_TIME(average, current, 1 SECONDS, current_duration))
+
 #define NEW_SS_GLOBAL(varname) if(varname != src){if(istype(varname)){Recover();qdel(varname);}varname = src;}
 
 #define START_PROCESSING(Processor, Datum) if (!(Datum.datum_flags & Processor.processing_flag)) {Datum.datum_flags |= Processor.processing_flag;Processor.processing += Datum}
@@ -32,17 +41,16 @@
 /// (Requires a MC restart to change)
 #define SS_NO_FIRE 2
 
-/** subsystem only runs on spare cpu (after all non-background subsystems have ran that tick) */
-/// SS_BACKGROUND has its own priority bracket
+/** Subsystem only runs on spare cpu (after all non-background subsystems have ran that tick) */
+/// SS_BACKGROUND has its own priority bracket, this overrides SS_TICKER's priority bump
 #define SS_BACKGROUND 4
 
 /// subsystem does not tick check, and should not run unless there is enough time (or its running behind (unless background))
 #define SS_NO_TICK_CHECK 8
 
 /** Treat wait as a tick count, not DS, run every wait ticks. */
-/// (also forces it to run first in the tick, above even SS_NO_TICK_CHECK subsystems)
+/// (also forces it to run first in the tick (unless SS_BACKGROUND))
 /// (implies all runlevels because of how it works)
-/// (overrides SS_BACKGROUND)
 /// This is designed for basically anything that works as a mini-mc (like SStimer)
 #define SS_TICKER 16
 
@@ -70,9 +78,41 @@
 }\
 /datum/controller/subsystem/##X
 
+#define TIMER_SUBSYSTEM_DEF(X) GLOBAL_REAL(SS##X, /datum/controller/subsystem/timer/##X);\
+/datum/controller/subsystem/timer/##X/New(){\
+	NEW_SS_GLOBAL(SS##X);\
+	PreInit();\
+}\
+/datum/controller/subsystem/timer/##X/fire() {..() /*just so it shows up on the profiler*/} \
+/datum/controller/subsystem/timer/##X
+
+
 #define PROCESSING_SUBSYSTEM_DEF(X) GLOBAL_REAL(SS##X, /datum/controller/subsystem/processing/##X);\
 /datum/controller/subsystem/processing/##X/New(){\
 	NEW_SS_GLOBAL(SS##X);\
 	PreInit();\
 }\
 /datum/controller/subsystem/processing/##X
+
+#define MOVEMENT_SUBSYSTEM_DEF(X) GLOBAL_REAL(SS##X, /datum/controller/subsystem/movement/##X);\
+/datum/controller/subsystem/movement/##X/New(){\
+	NEW_SS_GLOBAL(SS##X);\
+	PreInit();\
+}\
+/datum/controller/subsystem/movement/##X
+
+#define VERB_MANAGER_SUBSYSTEM_DEF(X) GLOBAL_REAL(SS##X, /datum/controller/subsystem/verb_manager/##X);\
+/datum/controller/subsystem/verb_manager/##X/New(){\
+	NEW_SS_GLOBAL(SS##X);\
+	PreInit();\
+}\
+/datum/controller/subsystem/verb_manager/##X/fire() {..() /*just so it shows up on the profiler*/} \
+/datum/controller/subsystem/verb_manager/##X
+
+#define AI_CONTROLLER_SUBSYSTEM_DEF(X) GLOBAL_REAL(SS##X, /datum/controller/subsystem/ai_controllers/##X);\
+/datum/controller/subsystem/ai_controllers/##X/New(){\
+	NEW_SS_GLOBAL(SS##X);\
+	PreInit();\
+}\
+/datum/controller/subsystem/ai_controllers/##X/fire() {..() /*just so it shows up on the profiler*/} \
+/datum/controller/subsystem/ai_controllers/##X

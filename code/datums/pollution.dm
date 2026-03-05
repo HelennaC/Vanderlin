@@ -1,8 +1,12 @@
 /obj/effect/abstract/pollution
 	icon = 'icons/effects/96x96.dmi'
 	icon_state = "smoke-static"
+<<<<<<< HEAD
 	pixel_x = -32
 	pixel_y = -32
+=======
+	SET_BASE_PIXEL(-32, -32)
+>>>>>>> upstream/main
 	anchored = TRUE
 	plane = GAME_PLANE_UPPER
 	layer = AREA_LAYER-1
@@ -10,12 +14,15 @@
 	appearance_flags = KEEP_APART|RESET_TRANSFORM|RESET_COLOR
 	vis_flags = NONE
 
+<<<<<<< HEAD
 /turf/open
 	appearance_flags = LONG_GLIDE | TILE_BOUND
 	/// Pollution of this turf
 	var/datum/pollution/pollution
 
 
+=======
+>>>>>>> upstream/main
 /datum/pollution
 	/// Reference to the turf we're on
 	var/turf/open/my_turf
@@ -36,6 +43,10 @@
 	. = ..()
 	my_turf = passed_turf
 	my_turf.pollution = src
+<<<<<<< HEAD
+=======
+	my_turf.ImmediateCalculateAdjacentTurfs()
+>>>>>>> upstream/main
 	REGISTER_POLLUTION(src)
 
 /datum/pollution/Destroy()
@@ -47,8 +58,15 @@
 	REMOVE_POLLUTION_CURRENTRUN(src)
 	SET_UNACTIVE_POLLUTION(src)
 	UNREGISTER_POLLUTION(src)
+<<<<<<< HEAD
 	if(my_turf?.pollution == src)
 		my_turf.pollution = null
+=======
+	if(isopenturf(my_turf))
+		if(my_turf?.pollution == src)
+			my_turf.pollution = null
+	my_turf = null // avoid invalid references to a turf that doesn't want us
+>>>>>>> upstream/main
 	return ..()
 
 /datum/pollution/proc/touch_act(mob/living/carbon/victim)
@@ -69,11 +87,19 @@
 		if(!(pollutant.pollutant_flags & POLLUTANT_BREATHE_ACT))
 			continue
 		var/amount = pollutants[type]
+<<<<<<< HEAD
 		pollutant.breathe_act(victim, amount)
 
 /// When a user smells this pollution
 /datum/pollution/proc/smell_act(mob/living/sniffer)
 	if(HAS_TRAIT(sniffer, TRAIT_AGEUSIA)) // can't taste, can't smell.
+=======
+		pollutant.breathe_act(victim, amount, total_amount)
+
+/// When a user smells this pollution
+/datum/pollution/proc/smell_act(mob/living/sniffer)
+	if(!sniffer.can_smell())
+>>>>>>> upstream/main
 		return
 	var/list/singleton_cache = SSpollution.singletons
 	var/datum/pollutant/dominant_pollutant
@@ -112,14 +138,24 @@
 	if(dominant_pollutant.descriptor == SCENT_DESC_ODOR)
 		to_chat(sniffer, span_warning(smell_string))
 	else
+<<<<<<< HEAD
 		to_chat(sniffer, span_notice(smell_string))
+=======
+		to_chat(sniffer, span_info(smell_string))
+
+	dominant_pollutant.on_smell(sniffer)
+>>>>>>> upstream/main
 
 /datum/pollution/proc/scrub_amount(amount_to_scrub, update_active = TRUE)
 	if(amount_to_scrub >= total_amount || !isopenturf(my_turf) || QDELING(my_turf))
 		qdel(src)
 		return
 	for(var/type in pollutants)
+<<<<<<< HEAD
 		pollutants[type] -= amount_to_scrub * pollutants[type] / total_amount
+=======
+		pollutants[type] -= max(floor(amount_to_scrub * (pollutants[type] / total_amount)), 1)
+>>>>>>> upstream/main
 	total_amount -= amount_to_scrub
 	update_height()
 	handle_overlay()
@@ -177,7 +213,13 @@
 		if(!isopenturf(open_turf) || QDELING(open_turf) || QDELETED(open_turf.pollution))
 			continue
 		var/datum/pollution/cached_pollution = open_turf.pollution
+<<<<<<< HEAD
 		for(var/type in cached_pollution.pollutants)
+=======
+		for(var/datum/pollutant/type as anything in cached_pollution.pollutants)
+			if(initial(type.pollutant_flags) & POLLUTION_DO_NOT_SPREAD)
+				continue
+>>>>>>> upstream/main
 			if(!total_share_pollutants[type])
 				total_share_pollutants[type] = 0
 			total_share_pollutants[type] += cached_pollution.pollutants[type]

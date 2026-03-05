@@ -58,6 +58,144 @@
 		zone = pickweight(list(BODY_ZONE_HEAD = 1, BODY_ZONE_CHEST = 1, BODY_ZONE_L_ARM = 4, BODY_ZONE_R_ARM = 4, BODY_ZONE_L_LEG = 4, BODY_ZONE_R_LEG = 4))
 	return zone
 
+
+/proc/zone_ace_mod(zone)
+	var/zone_ace_mod = 1
+	switch(zone)
+		if(BODY_ZONE_PRECISE_R_EYE)
+			zone_ace_mod = 0.25
+		if(BODY_ZONE_PRECISE_L_EYE)
+			zone_ace_mod = 0.25
+		if(BODY_ZONE_PRECISE_NOSE)
+			zone_ace_mod = 0.3
+		if(BODY_ZONE_PRECISE_MOUTH)
+			zone_ace_mod = 0.7
+		if(BODY_ZONE_PRECISE_SKULL)
+			zone_ace_mod = 0.85
+		if(BODY_ZONE_PRECISE_EARS)
+			zone_ace_mod = 0.15
+		if(BODY_ZONE_PRECISE_NECK)
+			zone_ace_mod = 0.65
+		if(BODY_ZONE_PRECISE_L_HAND)
+			zone_ace_mod = 0.6
+		if(BODY_ZONE_PRECISE_R_HAND)
+			zone_ace_mod = 0.6
+		if(BODY_ZONE_PRECISE_L_FOOT)
+			zone_ace_mod = 0.45
+		if(BODY_ZONE_PRECISE_R_FOOT)
+			zone_ace_mod = 0.45
+		if(BODY_ZONE_PRECISE_GROIN)
+			zone_ace_mod = 0.65
+		if(BODY_ZONE_PRECISE_STOMACH)
+			zone_ace_mod = 0.9
+		if(BODY_ZONE_PRECISE_R_INHAND)
+			zone_ace_mod = 0.7
+		if(BODY_ZONE_PRECISE_L_INHAND)
+			zone_ace_mod = 0.7
+		if(BODY_ZONE_HEAD, BODY_ZONE_CHEST, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG)
+			zone_ace_mod = 1
+	return zone_ace_mod
+
+/proc/zone_simpmob_target(zone)
+	zone = pickweight(list(
+		BODY_ZONE_HEAD = 3,
+		BODY_ZONE_CHEST = 5,
+		BODY_ZONE_L_ARM = 2,
+		BODY_ZONE_R_ARM = 2,
+		BODY_ZONE_L_LEG = 4,
+		BODY_ZONE_R_LEG = 4,
+		BODY_ZONE_PRECISE_MOUTH = 1,
+		BODY_ZONE_PRECISE_NECK = 2,
+		BODY_ZONE_PRECISE_STOMACH = 3,
+		BODY_ZONE_PRECISE_GROIN = 3,
+		BODY_ZONE_PRECISE_L_HAND = 1,
+		BODY_ZONE_PRECISE_R_HAND = 1,
+		BODY_ZONE_PRECISE_L_FOOT = 3,
+		BODY_ZONE_PRECISE_R_FOOT = 3,
+		))
+	return zone
+
+/proc/relative_angular_facing(mob/living/user, mob/living/target)
+	var/target_facing = dir2angle(target.dir)
+	var/abs_angle = get_angle(target, user)
+	target_facing = 360 + (abs_angle - target_facing)
+	if(target_facing > 360)
+		target_facing -= 360
+	return angle2dir(target_facing)
+
+/proc/facing_zone(zone)
+	if(!zone)
+		return BODY_ZONE_CHEST
+	var/facing_zone
+	switch(zone)
+		if(BODY_ZONE_PRECISE_R_EYE)
+			facing_zone = BODY_ZONE_FACING_FRONT
+		if(BODY_ZONE_PRECISE_L_EYE)
+			facing_zone = BODY_ZONE_FACING_FRONT
+		if(BODY_ZONE_PRECISE_NOSE)
+			facing_zone = BODY_ZONE_FACING_FRONT
+		if(BODY_ZONE_PRECISE_MOUTH)
+			facing_zone = BODY_ZONE_FACING_FRONT
+		if(BODY_ZONE_L_ARM)
+			facing_zone = BODY_ZONE_FACING_L_ARM
+		if(BODY_ZONE_PRECISE_L_HAND)
+			facing_zone = BODY_ZONE_FACING_L_ARM
+		if(BODY_ZONE_R_ARM)
+			facing_zone = BODY_ZONE_FACING_R_ARM
+		if(BODY_ZONE_PRECISE_R_HAND)
+			facing_zone = BODY_ZONE_FACING_R_ARM
+		if(BODY_ZONE_L_LEG)
+			facing_zone = BODY_ZONE_FACING_L_LEG
+		if(BODY_ZONE_PRECISE_L_FOOT)
+			facing_zone = BODY_ZONE_FACING_L_LEG
+		if(BODY_ZONE_R_LEG)
+			facing_zone = BODY_ZONE_FACING_R_LEG
+		if(BODY_ZONE_PRECISE_R_FOOT)
+			facing_zone = BODY_ZONE_FACING_R_LEG
+		if(BODY_ZONE_PRECISE_GROIN)
+			facing_zone = BODY_ZONE_FACING_FRONT
+		if(BODY_ZONE_PRECISE_STOMACH)
+			facing_zone = BODY_ZONE_FACING_FRONT
+		if(BODY_ZONE_PRECISE_R_INHAND)
+			facing_zone = BODY_ZONE_FACING_R_ARM
+		if(BODY_ZONE_PRECISE_L_INHAND)
+			facing_zone = BODY_ZONE_FACING_L_ARM
+	return facing_zone
+
+///Check whether a zone is a PRECISE ZONE
+/proc/check_subzone(zone)
+	if(!zone)
+		return FALSE
+	switch(zone)
+		if(BODY_ZONE_PRECISE_R_EYE)
+			return TRUE
+		if(BODY_ZONE_PRECISE_L_EYE)
+			return TRUE
+		if(BODY_ZONE_PRECISE_NOSE)
+			return TRUE
+		if(BODY_ZONE_PRECISE_MOUTH)
+			return TRUE
+		if(BODY_ZONE_PRECISE_SKULL)
+			return TRUE
+		if(BODY_ZONE_PRECISE_EARS)
+			return TRUE
+		if(BODY_ZONE_PRECISE_NECK)
+			return TRUE
+		if(BODY_ZONE_PRECISE_L_HAND)
+			return TRUE
+		if(BODY_ZONE_PRECISE_R_HAND)
+			return TRUE
+		if(BODY_ZONE_PRECISE_L_FOOT)
+			return TRUE
+		if(BODY_ZONE_PRECISE_R_FOOT)
+			return TRUE
+		if(BODY_ZONE_PRECISE_GROIN)
+			return TRUE
+		if(BODY_ZONE_PRECISE_STOMACH)
+			return TRUE
+		else
+			return FALSE
+
 ///Would this zone be above the neck
 /proc/above_neck(zone)
 	var/list/zones = list(BODY_ZONE_HEAD, BODY_ZONE_PRECISE_MOUTH, BODY_ZONE_PRECISE_R_EYE, BODY_ZONE_PRECISE_L_EYE)
@@ -235,39 +373,6 @@
 				letter += pick("#","@","*","&","%","$","/", "<", ">", ";","*","*","*","*","*","*","*")
 		. += letter
 
-
-/**
- * Convert a message into leet non gaijin speak
- *
- * The difference with stutter is that this proc can stutter more than 1 letter
- *
- * The issue here is that anything that does not have a space is treated as one word (in many instances). For instance, "LOOKING," is a word, including the comma.
- *
- * It's fairly easy to fix if dealing with single letters but not so much with compounds of letters./N
- */
-/proc/ninjaspeak(n) //NINJACODE
-	var/te = html_decode(n)
-	var/t = ""
-	n = length(n)
-	var/p = 1
-	while(p <= n)
-		var/n_letter
-		var/n_mod = rand(1,4)
-		if(p+n_mod>n+1)
-			n_letter = copytext(te, p, n+1)
-		else
-			n_letter = copytext(te, p, p+n_mod)
-		if (prob(50))
-			if (prob(30))
-				n_letter = text("[n_letter]-[n_letter]-[n_letter]")
-			else
-				n_letter = text("[n_letter]-[n_letter]")
-		else
-			n_letter = text("[n_letter]")
-		t = text("[t][n_letter]")
-		p=p+n_mod
-	return copytext(sanitize(t),1,MAX_MESSAGE_LEN)
-
 ///Shake the camera of the person viewing the mob SO REAL!
 /proc/shake_camera(mob/M, duration, strength=1)
 	if(!M || !M.client || duration < 1)
@@ -290,8 +395,7 @@
 /proc/findname(msg)
 	if(!istext(msg))
 		msg = "[msg]"
-	for(var/i in GLOB.mob_list)
-		var/mob/M = i
+	for(var/mob/M as anything in GLOB.mob_list)
 		if(M.real_name == msg)
 			return M
 	return 0
@@ -355,7 +459,9 @@
 			else
 				to_examine = possible_a_intents[numb]
 	if(to_examine)
-		to_examine.examine(src)
+		var/list/result = to_examine.examine(src)
+		result += "<br>----------------------"
+		to_chat(src, "[result.Join()]")
 
 /mob/verb/rog_intent_change(numb as num,offhand as num)
 	set name = "intent-change"
@@ -408,8 +514,9 @@
 		if(a_intent)
 			a_intent.afterchange()
 		used_intent = a_intent
+		cast_move = 0
 	if(hud_used?.action_intent)
-		hud_used.action_intent.switch_intent(r_index,l_index,oactive)
+		hud_used.action_intent.switch_intent(r_index,l_index)
 
 /mob/proc/update_a_intents()
 	possible_a_intents.Cut()
@@ -418,7 +525,7 @@
 	var/obj/item/Masteritem = get_active_held_item()
 	if(Masteritem)
 		intents = Masteritem.possible_item_intents
-		if(Masteritem.wielded)
+		if(HAS_TRAIT(Masteritem, TRAIT_WIELDED) && LAZYLEN(Masteritem.gripped_intents))
 			intents = Masteritem.gripped_intents
 		if(Masteritem.altgripped)
 			intents = Masteritem.alt_intents
@@ -436,7 +543,7 @@
 	Masteritem = get_inactive_held_item()
 	if(Masteritem)
 		intents = Masteritem.possible_item_intents
-		if(Masteritem.wielded)
+		if(HAS_TRAIT(Masteritem, TRAIT_WIELDED))
 			intents = Masteritem.gripped_intents
 		if(Masteritem.altgripped)
 			intents = Masteritem.alt_intents
@@ -453,9 +560,9 @@
 			possible_offhand_intents += new defintent(src)
 	if(hud_used?.action_intent)
 		if(active_hand_index == 1)
-			hud_used.action_intent.update_icon(possible_a_intents,possible_offhand_intents,oactive)
+			hud_used.action_intent.update(possible_a_intents, possible_offhand_intents)
 		else
-			hud_used.action_intent.update_icon(possible_offhand_intents,possible_a_intents,oactive)
+			hud_used.action_intent.update(possible_offhand_intents, possible_a_intents)
 	if(active_hand_index == 1)
 		if(l_index <= possible_a_intents.len)
 			rog_intent_change(l_index)
@@ -476,12 +583,10 @@
 		return
 	if(atkswinging)
 		stop_attack()
+
 	if(!input)
 		qdel(mmb_intent)
 		mmb_intent = null
-	if(input != QINTENT_SPELL)
-		if(ranged_ability)
-			ranged_ability.deactivate()
 	switch(input)
 		if(QINTENT_KICK)
 			if(mmb_intent?.type == INTENT_KICK)
@@ -534,25 +639,9 @@
 				mmb_intent = null
 			else
 				mmb_intent = new INTENT_GIVE(src)
-		if(QINTENT_SPELL)
-			if(mmb_intent)
-				qdel(mmb_intent)
-			testing("spellselect [ranged_ability]")
-			mmb_intent = new INTENT_SPELL(src)
-			mmb_intent.releasedrain = ranged_ability.get_fatigue_drain()
-			mmb_intent.chargedrain = ranged_ability.chargedrain
-			mmb_intent.chargetime = ranged_ability.get_chargetime()
-			mmb_intent.warnie = ranged_ability.warnie
-			mmb_intent.charge_invocation = ranged_ability.charge_invocation
-			mmb_intent.no_early_release = ranged_ability.no_early_release
-			mmb_intent.movement_interrupt = ranged_ability.movement_interrupt
-			mmb_intent.charging_slowdown = ranged_ability.charging_slowdown
-			mmb_intent.chargedloop = ranged_ability.chargedloop
-			mmb_intent.update_chargeloop()
 
-	hud_used.quad_intents.switch_intent(input)
-	hud_used.give_intent.switch_intent(input)
-	givingto = null
+	hud_used.quad_intents?.switch_intent(input)
+	hud_used.give_intent?.switch_intent(input)
 
 /mob/verb/def_intent_change(input as num)
 	set name = "def-change"
@@ -564,7 +653,7 @@
 	playsound_local(src, 'sound/misc/click.ogg', 100)
 	if(hud_used)
 		if(hud_used.def_intent)
-			hud_used.def_intent.update_icon()
+			hud_used.def_intent.update_appearance(UPDATE_ICON_STATE)
 	update_inv_hands()
 
 
@@ -576,41 +665,42 @@
 	if(isliving(src))
 		L = src
 	var/client/client = L.client
-	if(L.IsSleeping())
+	if(L.IsSleeping() || L.surrendering)
 		if(cmode)
-			playsound_local(src, 'sound/misc/comboff.ogg', 100)
-			SSdroning.play_area_sound(get_area(src), client)
 			cmode = FALSE
-		if(hud_used)
-			if(hud_used.cmode_button)
-				hud_used.cmode_button.update_icon()
+		refresh_looping_ambience()
+		hud_used?.cmode_button?.update_appearance(UPDATE_ICON_STATE)
 		return
+
 	if(cmode)
 		playsound_local(src, 'sound/misc/comboff.ogg', 100)
-		SSdroning.play_area_sound(get_area(src), client)
 		cmode = FALSE
+		if(client && HAS_TRAIT(src, TRAIT_SCHIZO_AMBIENCE) && !HAS_TRAIT(src, TRAIT_SCREENSHAKE))
+			animate(client, pixel_y) // stops screenshake if you're not on 4th wonder yet.
+		cmode_timer = addtimer(TRAIT_CALLBACK_REMOVE(src, TRAIT_BLOCKED_DIAGONAL, "combat"), 10 SECONDS, TIMER_STOPPABLE | TIMER_OVERRIDE | TIMER_UNIQUE)
 	else
 		cmode = TRUE
 		playsound_local(src, 'sound/misc/combon.ogg', 100)
-		if(L.cmode_music)
-			SSdroning.play_combat_music(L.cmode_music, client)
-	if(hud_used)
-		if(hud_used.cmode_button)
-			hud_used.cmode_button.update_icon()
+		ADD_TRAIT(src, TRAIT_BLOCKED_DIAGONAL, "combat")
+		deltimer(cmode_timer)
 
-/mob
-	var/last_aimhchange = 0
-	var/aimheight = 11
-	var/cmode_music = 'sound/music/combat.ogg'
+	refresh_looping_ambience()
+	hud_used?.cmode_button?.update_appearance(UPDATE_ICON_STATE)
 
 /mob/proc/aimheight_change(input)
 	var/old_zone = zone_selected
 	if(isnum(input))
 		aimheight = input
-	if(input == "up")
-		aimheight = min(aimheight+1, 19)
-	if(input == "down")
-		aimheight = max(aimheight-1, 1)
+	else
+		if(input == "up")
+			aimheight++
+		else if(input == "down")
+			aimheight--
+		//im too stupid to get the modular division to make this not an if statement
+		if(aimheight < 1)
+			aimheight = 19
+		else if(aimheight > 19)
+			aimheight = 1
 
 	switch(aimheight)
 		if(19)
@@ -656,7 +746,7 @@
 		playsound_local(src, 'sound/misc/click.ogg', 50, TRUE)
 		if(hud_used)
 			if(hud_used.zone_select)
-				hud_used.zone_select.update_icon()
+				hud_used.zone_select.update_appearance(UPDATE_OVERLAYS)
 
 /mob/proc/select_organ_slot(choice)
 	organ_slot_selected = choice
@@ -703,20 +793,6 @@
 		if(BODY_ZONE_PRECISE_L_FOOT)
 			aimheight = 1
 
-///Checks if passed through item is blind
-/proc/is_blind(A)
-	if(ismob(A))
-		var/mob/B = A
-		if(HAS_TRAIT(B, TRAIT_BLIND))
-			return TRUE
-		return B.eye_blind
-	return FALSE
-
-///Is the mob hallucinating?
-/mob/proc/hallucinating()
-	return FALSE
-
-
 // moved out of admins.dm because things other than admin procs were calling this.
 /**
  * Is this mob special to the gamemode?
@@ -730,6 +806,7 @@
 	if(!istype(M))
 		return FALSE
 	if(M.mind && M.mind.special_role)//If they have a mind and special role, they are some type of traitor or antagonist.
+<<<<<<< HEAD
 		switch(SSticker.mode.config_tag)
 			if("wizard")
 				if(iswizard(M))
@@ -742,6 +819,8 @@
 					var/mob/living/L = M
 					if(L.diseases && (locate(/datum/disease/transformation/jungle_fever) in L.diseases))
 						return 2
+=======
+>>>>>>> upstream/main
 		return TRUE
 	if(M.mind && LAZYLEN(M.mind.antag_datums)) //they have an antag datum!
 		return TRUE
@@ -780,7 +859,7 @@
 			continue
 		var/orbit_link
 		if (source && action == NOTIFY_ORBIT)
-			orbit_link = " <a href='?src=[REF(O)];follow=[REF(source)]'>(Orbit)</a>"
+			orbit_link = " <a href='byond://?src=[REF(O)];follow=[REF(source)]'>(Orbit)</a>"
 		to_chat(O, "<span class='ghostalert'>[message][(enter_link) ? " [enter_link]" : ""][orbit_link]</span>")
 		if(ghost_sound)
 			SEND_SOUND(O, sound(ghost_sound, volume = notify_volume))
@@ -798,7 +877,6 @@
 				A.target = source
 				if(!alert_overlay)
 					alert_overlay = new(source)
-				alert_overlay.layer = FLOAT_LAYER
 				alert_overlay.plane = FLOAT_PLANE
 				A.add_overlay(alert_overlay)
 
@@ -832,8 +910,6 @@
 		return
 	if(!check_rights_for(user.client, R_ADMIN)) // Are they allowed?
 		return
-	if(!user.client.AI_Interact) // Do they have it enabled?
-		return
 	return TRUE
 
 /**
@@ -847,15 +923,15 @@
 		log_admin("[key_name(usr)] has offered control of ([key_name(M)]) to ghosts.")
 		message_admins("[key_name_admin(usr)] has offered control of ([ADMIN_LOOKUPFLW(M)]) to ghosts")
 	var/poll_message = "Do you want to play as [M.real_name]?"
-	if(M.mind && M.mind.assigned_role)
-		poll_message = "[poll_message] Job:[M.mind.assigned_role]."
-	if(M.mind && M.mind.special_role)
+	if(M.mind?.assigned_role)
+		poll_message = "[poll_message] Job:[M.mind.assigned_role.title]."
+	if(M.mind?.special_role)
 		poll_message = "[poll_message] Status:[M.mind.special_role]."
 	else if(M.mind)
 		var/datum/antagonist/A = M.mind.has_antag_datum(/datum/antagonist/)
 		if(A)
 			poll_message = "[poll_message] Status:[A.name]."
-	var/list/mob/dead/observer/candidates = pollCandidatesForMob(poll_message, ROLE_PAI, null, FALSE, 100, M)
+	var/list/mob/dead/observer/candidates = pollCandidatesForMob(poll_message, ROLE_ASPIRANT, null, FALSE, 100, M)
 
 	if(LAZYLEN(candidates))
 		var/mob/dead/observer/C = pick(candidates)
@@ -868,13 +944,6 @@
 		to_chat(M, "There were no ghosts willing to take control.")
 		message_admins("No ghosts were willing to take control of [ADMIN_LOOKUPFLW(M)])")
 		return FALSE
-
-///Is the mob a flying mob
-/mob/proc/is_flying(mob/M = src)
-	if(M.movement_type & FLYING)
-		return 1
-	else
-		return 0
 
 ///Clicks a random nearby mob with the source from this mob
 /mob/proc/click_random_mob()
@@ -909,7 +978,7 @@
 		else
 			colored_message = "<font color='[color]'>[message]</font>"
 
-	var/list/timestamped_message = list("[LAZYLEN(logging[smessage_type]) + 1]\[[time_stamp()]\] [key_name(src)] [loc_name(src)]" = colored_message)
+	var/list/timestamped_message = list("\[[time_stamp(format = "YYYY-MM-DD hh:mm:ss")]\] [key_name(src)] [loc_name(src)] (Event #[LAZYLEN(logging[smessage_type])])" = colored_message)
 
 	logging[smessage_type] += timestamped_message
 
@@ -948,7 +1017,7 @@
 	. = list()
 	. += "[type]"
 	if(mind)
-		. += mind.assigned_role
+		. += mind.assigned_role.title
 		. += mind.special_role //In case there's something special leftover, try to avoid
 		for(var/datum/antagonist/A in mind.antag_datums)
 			. += "[A.type]"
@@ -957,6 +1026,7 @@
 /mob/proc/can_see_reagents()
 	return stat == DEAD || has_unlimited_silicon_privilege //Dead guys and silicons can always see reagents
 
+<<<<<<< HEAD
 /mob/proc/get_role_title()
 	var/used_title
 	if(job)
@@ -966,4 +1036,21 @@
 		used_title = J.title
 		if((gender == FEMALE) && J.f_title)
 			used_title = J.f_title
+=======
+/mob/living/carbon/human/proc/get_role_title(ignore_pronouns = FALSE, steward_check = FALSE)
+	var/used_title
+	if(is_apprentice())
+		used_title = return_our_apprentice_name()
+	else if(job)
+		var/datum/job/job_datum = SSjob.GetJob(job)
+		if(!job_datum)
+			return job
+		var/datum/job/used_job = job_datum?.parent_job ? job_datum.parent_job : job_datum
+		if(!used_job)
+			return job
+		if(steward_check && (used_job.department_flag == OUTSIDERS))
+			return "Visitor"
+		used_title = used_job.get_informed_title(src, ignore_pronouns)
+
+>>>>>>> upstream/main
 	return used_title

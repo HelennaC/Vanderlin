@@ -5,21 +5,38 @@
 /datum/ai_behavior/targeted_mob_ability
 
 /datum/ai_behavior/targeted_mob_ability/perform(seconds_per_tick, datum/ai_controller/controller, ability_key, target_key)
+<<<<<<< HEAD
 	var/obj/effect/proc_holder/spell/ability = controller.blackboard[ability_key]
+=======
+	. = ..()
+	var/datum/action/cooldown/ability = controller.blackboard[ability_key]
+>>>>>>> upstream/main
 	var/mob/living/target = controller.blackboard[target_key]
 	if(QDELETED(ability) || QDELETED(target))
 		finish_action(controller, FALSE, ability_key, target_key)
 		return
 	var/mob/pawn = controller.pawn
 	pawn.face_atom(target)
+<<<<<<< HEAD
 	var/result = ability.perform(targets = list(target), user = controller.pawn)
+=======
+	var/result = ability.Activate(target = target)
+>>>>>>> upstream/main
 	finish_action(controller, result, ability_key, target_key)
 
 /datum/ai_behavior/targeted_mob_ability/finish_action(datum/ai_controller/controller, succeeded, ability_key, target_key)
 	. = ..()
 	var/atom/target = controller.blackboard[target_key]
+<<<<<<< HEAD
 	if (QDELETED(target))
 		controller.clear_blackboard_key(target_key)
+=======
+	if(QDELETED(target))
+		controller.clear_blackboard_key(target_key)
+	var/datum/action/cooldown/ability = controller.blackboard[ability_key]
+	if(QDELETED(ability))
+		controller.clear_blackboard_key(ability_key)
+>>>>>>> upstream/main
 
 /**
  * # Try Mob Ability and clear target

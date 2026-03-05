@@ -6,11 +6,14 @@
 	var/bloodiness = 0 //0-100, amount of blood in this decal, used for making footprints and affecting the alpha of bloody footprints
 	var/mergeable_decal = TRUE //when two of these are on a same tile or do we need to merge them into just one?
 	var/beauty = 0
-	obj_flags = CAN_BE_HIT
+	///The type of cleaning required to clean the decal. See __DEFINES/cleaning.dm for the options
+	var/clean_type = CLEAN_TYPE_LIGHT_DECAL
+	var/wash_precent = 0
+	COOLDOWN_DECLARE(wash_cooldown)
 
-/obj/effect/decal/cleanable/Initialize(mapload, list/datum/disease/diseases)
+/obj/effect/decal/cleanable/Initialize(mapload)
 	. = ..()
-	if (random_icon_states && (icon_state == initial(icon_state)) && length(random_icon_states) > 0)
+	if(random_icon_states && (icon_state == initial(icon_state)) && length(random_icon_states) > 0)
 		icon_state = pick(random_icon_states)
 	create_reagents(300)
 	if(loc && isturf(loc))
@@ -19,13 +22,6 @@
 				if (replace_decal(C))
 					return INITIALIZE_HINT_QDEL
 
-	if(LAZYLEN(diseases))
-		var/list/datum/disease/diseases_to_add = list()
-		for(var/datum/disease/D in diseases)
-			if(D.spread_flags & DISEASE_SPREAD_CONTACT_FLUIDS)
-				diseases_to_add += D
-		if(LAZYLEN(diseases_to_add))
-			AddComponent(/datum/component/infective, diseases_to_add)
 
 //	addtimer(CALLBACK(src, TYPE_PROC_REF(/datum, AddComponent), /datum/component/beauty, beauty), 0)
 
@@ -39,12 +35,18 @@
 		SSblackbox.record_feedback("tally", "station_mess_destroyed", 1, name)
 	return ..()
 
+/obj/effect/decal/cleanable/proc/lazy_init_reagents()
+	return
+
 /obj/effect/decal/cleanable/proc/replace_decal(obj/effect/decal/cleanable/C) // Returns true if we should give up in favor of the pre-existing decal
 	if(mergeable_decal)
 		return TRUE
 
-/obj/effect/decal/cleanable/attackby(obj/item/W, mob/user, params)
-	if(istype(W, /obj/item/reagent_containers/glass) || istype(W, /obj/item/reagent_containers/food/drinks))
+/obj/effect/decal/cleanable/attackby(obj/item/W, mob/user, list/modifiers)
+	lazy_init_reagents()
+	if(!reagents)
+		return ..()
+	if(istype(W, /obj/item/reagent_containers/glass))
 		if(src.reagents && W.reagents)
 			. = 1 //so the containers don't splash their content on the src while scooping.
 			if(!src.reagents.total_volume)
@@ -59,7 +61,7 @@
 				qdel(src)
 				return
 	if(W.get_temperature()) //todo: make heating a reagent holder proc
-		if(istype(W, /obj/item/clothing/mask/cigarette))
+		if(istype(W, /obj/item/clothing/face/cigarette))
 			return
 		else
 			var/hotness = W.get_temperature()
@@ -86,7 +88,7 @@
 	..()
 	if(ishuman(O))
 		var/mob/living/carbon/human/H = O
-		if(H.shoes && blood_state && bloodiness && !HAS_TRAIT(H, TRAIT_LIGHT_STEP))
+		if(H.shoes && blood_state && bloodiness)
 			var/obj/item/clothing/shoes/S = H.shoes
 			if(!S.can_be_bloody)
 				return
@@ -97,9 +99,9 @@
 				add_blood = bloodiness
 			bloodiness -= add_blood
 			S.bloody_shoes[blood_state] = min(MAX_SHOE_BLOODINESS,S.bloody_shoes[blood_state]+add_blood)
-			S.add_blood_DNA(return_blood_DNA())
+			S.add_blood_DNA(GET_ATOM_BLOOD_DNA(src))
 			S.blood_state = blood_state
-			update_icon()
+			update_appearance(UPDATE_ICON)
 			H.update_inv_shoes()
 
 /obj/effect/decal/cleanable/proc/can_bloodcrawl_in()
@@ -107,3 +109,19 @@
 		return bloodiness
 	else
 		return 0
+
+/obj/effect/decal/cleanable/wash(clean_types)
+	. = ..()
+	if (. || (clean_types & clean_type))
+		qdel(src)
+		return TRUE
+	return .
+
+/obj/effect/decal/cleanable/weather_act_on(weather_trait, severity)
+	if(weather_trait != PARTICLEWEATHER_RAIN || !COOLDOWN_FINISHED(src, wash_cooldown))
+		return
+	COOLDOWN_START(src, wash_cooldown, 7.5 SECONDS)
+	wash_precent += min(25, severity / 2)
+	alpha = 255 *((100 - wash_precent) * 0.01)
+	if(wash_precent >= 100)
+		wash(CLEAN_WASH)

@@ -48,35 +48,33 @@
 	/// Does this step allow self surgery?
 	var/self_operable = TRUE
 	/// Acceptable mob types for this surgery
-	var/list/target_mobtypes = list(/mob/living/carbon)
+	var/list/target_mobtypes = list(/mob/living/carbon, /mob/living/simple_animal)
 
 	/// Skill used to perform this surgery step
-	var/skill_used = /datum/skill/misc/medicine
+	var/datum/skill/skill_used = /datum/skill/misc/medicine
 	/// Necessary skill MINIMUM to perform this surgery step, of skill_used
 	var/skill_min = SKILL_LEVEL_NOVICE
 	/// Skill median used to apply success and speed bonuses
 	var/skill_median = SKILL_LEVEL_JOURNEYMAN
 	/// Modifiers to success chance when you're above the median
 	var/list/skill_bonuses = list(
-		1 = 0.2,
-		2 = 0.4,
-		3 = 0.6,
-		4 = 0.8,
-		5 = 1,
-		6 = 2,
+		0.2,
+		0.4,
+		0.6,
+		0.8,
+		1,
+		2,
 	)
 	/// Modifiers to success chance when you're below the median
 	var/list/skill_maluses = list(
-		1 = -0.2,
-		2 = -0.4,
-		3 = -0.6,
-		4 = -0.8,
-		5 = -1,
-		6 = -2,
+		-0.2,
+		-0.4,
+		-0.6,
+		-0.8,
+		-1,
+		-2,
 	)
 
-	/// Handles techweb-oriented surgeries
-	var/requires_tech = FALSE
 	/**
 	 * type; doesn't show up if this type exists.
 	 * Set to /datum/surgery_step if you want to hide a "base" surgery  (useful for typing parents IE healing.dm just make sure to null it out again)
@@ -84,6 +82,9 @@
 	var/replaced_by
 	/// Repeatable surgery steps will repeat until failure
 	var/repeating = FALSE
+	var/preop_sound //Sound played when the step is started
+	var/success_sound //Sound played if the step succeeded
+	var/failure_sound //Sound played if the step fails
 
 /datum/surgery_step/proc/can_do_step(mob/user, mob/living/target, target_zone, obj/item/tool, datum/intent/intent, try_to_fail = FALSE)
 	if(!user || !target)
@@ -92,8 +93,6 @@
 		return FALSE
 	if(!tool_check(user, tool))
 		return FALSE
-	if(!validate_tech(user, target, target_zone, intent))
-		return FALSE
 	if(!validate_user(user, target, target_zone, intent))
 		return FALSE
 	if(!validate_target(user, target, target_zone, intent))
@@ -101,6 +100,7 @@
 
 	return TRUE
 
+<<<<<<< HEAD
 /datum/surgery_step/proc/validate_tech(mob/user, mob/living/target, target_zone, datum/intent/intent)
 	SHOULD_CALL_PARENT(TRUE)
 	// Always return false in this case
@@ -119,6 +119,8 @@
 
 	return TRUE
 
+=======
+>>>>>>> upstream/main
 /datum/surgery_step/proc/validate_user(mob/user, mob/living/target, target_zone, datum/intent/intent)
 	SHOULD_CALL_PARENT(TRUE)
 	if(possible_locs && !(target_zone in possible_locs))
@@ -131,7 +133,7 @@
 				break
 		if(!found_intent)
 			return FALSE
-	if(skill_used && skill_min && (user.mind?.get_skill_level(skill_used) < skill_min))
+	if(skill_used && skill_min && (user.get_skill_level(skill_used) < skill_min))
 		return FALSE
 	return TRUE
 
@@ -149,7 +151,7 @@
 		if(!valid_mobtype)
 			return FALSE
 
-	if(lying_required && (target.mobility_flags & MOBILITY_STAND))
+	if(lying_required && target.body_position != LYING_DOWN)
 		return FALSE
 
 	if(iscarbon(target))
@@ -220,7 +222,7 @@
 			if((key == TOOL_SHARP) && tool.get_sharpness())
 				implement_type = key
 				break
-			if((key == TOOL_HOT) && (tool.get_temperature() >= FIRE_MINIMUM_TEMPERATURE_TO_EXIST))
+			if((key == TOOL_HOT) && (tool.get_temperature() >= 100+T0C))
 				implement_type = key
 				break
 
@@ -235,12 +237,12 @@
 
 	if(require_all_chems)
 		for(var/reagent_needed in chems_needed)
-			if(!target.reagents.has_reagent(reagent_needed))
+			if(!target.has_reagent(reagent_needed))
 				return FALSE
 		return TRUE
 
 	for(var/reagent_needed in chems_needed)
-		if(target.reagents.has_reagent(reagent_needed))
+		if(target.has_reagent(reagent_needed))
 			return TRUE
 
 	return FALSE
@@ -258,7 +260,6 @@
 	return english_list(chems, and_text = require_all_chems ? " and " : " or ")
 
 /datum/surgery_step/proc/try_op(mob/user, mob/living/target, target_zone, obj/item/tool, datum/intent/intent, try_to_fail = FALSE)
-	testing("[user] doing surgery step [name] on [target] [target_zone || "body"] with tool [tool || "hands"] and [intent || "none"] intent")
 	if(!can_do_step(user, target, target_zone, tool, intent, try_to_fail))
 		return FALSE
 
@@ -271,26 +272,35 @@
 		LAZYREMOVE(target.surgeries, target_zone)
 		return FALSE
 
+	play_preop_sound(user, target, target_zone, tool) // Here because most steps overwrite preop
+
 	var/speed_mod = get_speed_modifier(user, target, target_zone, tool, intent)
 	var/success_prob = max(get_success_probability(user, target, target_zone, tool, intent), 0)
 
 	var/modded_time = round(time * speed_mod, 1)
-	if(!do_after(user, modded_time, target = target))
+	if(!do_after(user, modded_time, target))
 		LAZYREMOVE(target.surgeries, target_zone)
 		return FALSE
 
 	LAZYREMOVE(target.surgeries, target_zone)
 	var/success = !try_to_fail && (prob(success_prob)) && chem_check(target)
 	if(success && success(user, target, target_zone, tool, intent))
+		if(ishuman(user))
+			var/mob/living/carbon/human/doctor = user
+			user.mind.add_sleep_experience(/datum/skill/misc/medicine, doctor.STAINT * (skill_min/3))
+		play_success_sound(user, target, target_zone, tool)
 		if(repeating && can_do_step(user, target, target_zone, tool, intent, try_to_fail))
 			initiate(user, target, target_zone, tool, intent, try_to_fail)
 		return TRUE
 	else if(failure(user, target, target_zone, tool, intent, success_prob))
+		play_failure_sound(user, target, target_zone, tool)
 		if(user.client?.prefs.showrolls)
 			if(try_to_fail)
-				to_chat(user, "<span class='warning'>Intentional surgery fail... [success_prob]%</span>")
+				to_chat(user, span_warning("Intentional surgery fail, the chance to succeed was [success_prob]%"))
 			else
-				to_chat(user, "<span class='warning'>Surgery fail... [success_prob]%</span>")
+				to_chat(user, span_warning("Surgery fail, the chance to succeed was [success_prob]%"))
+		if(repeating && can_do_step(user, target, target_zone, tool, intent, try_to_fail))
+			initiate(user, target, target_zone, tool, intent, try_to_fail)
 		return FALSE
 
 	return FALSE
@@ -301,17 +311,40 @@
 		"<span class='notice'>[user] begins to perform surgery on [target].</span>")
 	return TRUE
 
+/datum/surgery_step/proc/play_preop_sound(mob/user, mob/living/carbon/target, target_zone, obj/item/tool, datum/surgery/surgery)
+	if(!preop_sound)
+		return
+	var/sound_file_use
+	if(islist(preop_sound))
+		for(var/typepath in preop_sound)//iterate and assign subtype to a list, works best if list is arranged from subtype first and parent last
+			if(istype(tool, typepath))
+				sound_file_use = preop_sound[typepath]
+				break
+	else
+		sound_file_use = preop_sound
+	playsound(target, sound_file_use, 75, TRUE, -2)
+
 /datum/surgery_step/proc/success(mob/user, mob/living/target, target_zone, obj/item/tool, datum/intent/intent)
 	display_results(user, target, "<span class='notice'>I succeed.</span>",
 		"<span class='notice'>[user] succeeds!</span>",
 		"<span class='notice'>[user] finishes.</span>")
 	return TRUE
 
+/datum/surgery_step/proc/play_success_sound(mob/user, mob/living/carbon/target, target_zone, obj/item/tool, datum/surgery/surgery)
+	if(!success_sound)
+		return
+	playsound(target, success_sound, 75, TRUE, -2)
+
 /datum/surgery_step/proc/failure(mob/user, mob/living/target, target_zone, obj/item/tool, datum/intent/intent, success_prob)
 	display_results(user, target, "<span class='warning'>I screw up!</span>",
 		"<span class='warning'>[user] screws up!</span>",
 		"<span class='notice'>[user] finishes.</span>", TRUE) //By default the patient will notice if the wrong thing has been cut
 	return TRUE
+
+/datum/surgery_step/proc/play_failure_sound(mob/user, mob/living/carbon/target, target_zone, obj/item/tool, datum/surgery/surgery)
+	if(!failure_sound)
+		return
+	playsound(target, failure_sound, 75, TRUE, -2)
 
 /// Replaces visible_message during operations so only people looking over the surgeon can tell what they're doing, allowing for shenanigans.
 /datum/surgery_step/proc/display_results(mob/user, mob/living/carbon/target, self_message, detailed_message, vague_message, target_detailed = FALSE)
@@ -349,7 +382,7 @@
 	if(!skill_used)
 		return 1
 	var/modifier = 1
-	var/skill_level = user.mind?.get_skill_level(skill_used) || 0
+	var/skill_level = user.get_skill_level(skill_used) || 0
 	var/skill_difference = skill_level - skill_median
 	if((skill_difference > 0) && length(skill_bonuses))
 		skill_difference = clamp(abs(skill_difference), 0, skill_bonuses.len)
@@ -361,7 +394,7 @@
 
 /datum/surgery_step/proc/get_location_modifier(mob/living/target)
 	var/turf/patient_turf = get_turf(target)
-	var/is_lying = !(target.mobility_flags & MOBILITY_STAND)
+	var/is_lying = (target.body_position == LYING_DOWN)
 	if(!is_lying)
 		return 0.6
 	if(locate(/obj/structure/table/optable) in patient_turf)

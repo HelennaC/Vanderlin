@@ -13,11 +13,16 @@
 		var/atom/movable/movable_pawn = controller.pawn
 		var/can_move = TRUE
 
+<<<<<<< HEAD
 		if(controller.ai_traits & STOP_MOVING_WHEN_PULLED && movable_pawn.pulledby)
 			can_move = FALSE
 
 		if(!isturf(movable_pawn.loc)) //No moving if not on a turf
 			can_move = FALSE
+=======
+		if(!controller.can_move())
+			continue
+>>>>>>> upstream/main
 
 		var/current_loc = get_turf(movable_pawn)
 

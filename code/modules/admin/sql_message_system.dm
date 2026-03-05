@@ -104,6 +104,27 @@
 		message_admins("[header]:<br>[text]")
 		admin_ticket_log(target_ckey, "<font color='blue'>[header]</font>")
 		admin_ticket_log(target_ckey, text)
+
+		var/datum/client_interface/mock_player = new(target_ckey)
+		mock_player.prefs = new /datum/preferences(mock_player)
+
+		var/list/plexora_note = list(
+			"ckey" = target_ckey,
+			"type" = type,
+			"text" = text,
+			"secret" = secret,
+			"expiration_time" = expiry || null,
+			"note_severity" = note_severity,
+			"admin_ckey" = admin_ckey,
+			"admin_key_name" = key_name(usr),
+			"round_id" = GLOB.round_id,
+			"round_timer" = ROUND_TIME(),
+			"world_time" = world.time,
+		)
+
+		plexora_note["total_playtime"] = mock_player.get_exp_living()
+		SSplexora.new_note(plexora_note)
+
 		if(browse)
 			browse_messages("[type]")
 		else
@@ -502,7 +523,7 @@
 					alphatext = "filter: alpha(opacity=[alpha]); opacity: [alpha/100];"
 			var/list/data = list("<div style='margin:0px;[alphatext]'><p class='severity'>")
 			if(severity)
-				data += "<img src='[severity]_button.png' height='24' width='24'></img> "
+				data += "<img src='[SSassets.transport.get_asset_url("[severity]_button.png")]' height='24' width='24'></img> "
 			data += "<b>[timestamp] | [server] | [admin_key][secret ? " | <i>- Secret</i>" : ""]"
 			if(expire_timestamp)
 				data += " | Expires [expire_timestamp]"
@@ -559,7 +580,7 @@
 		if(messagedata)
 			output += "<h2>Messages</h2>"
 			output += messagedata
-		if(watchdata)
+		if(watchdata && usr.client.holder)
 			output += "<h2>Watchlist</h2>"
 			output += watchdata
 		if(notedata)
@@ -610,9 +631,7 @@
 	else if(!type && !target_ckey && !index)
 		output += "<center><a href='?_src_=holder;[HrefToken()];addmessageempty=1'>Add message</a><a href='?_src_=holder;[HrefToken()];addwatchempty=1'>Add watchlist entry</a><a href='?_src_=holder;[HrefToken()];addnoteempty=1'>Add note</a></center>"
 		output += ruler
-	var/datum/browser/browser = new(usr, "Note panel", "Manage player notes", 1000, 500)
-	var/datum/asset/notes_assets = get_asset_datum(/datum/asset/simple/notes)
-	notes_assets.send(usr.client)
+	var/datum/browser/browser = new(usr, "Note panel", "Player notes", 1000, 500)
 	browser.set_content(jointext(output, ""))
 	browser.open()
 
@@ -647,8 +666,8 @@
 		var/editor_key = query_get_message_output.item[5]
 		switch(type)
 			if("message")
-				output += "<font color='red' size='3'><b>Admin message left by <span class='prefix'>[admin_key]</span> on [timestamp]</b></font>"
-				output += "<br><font color='red'>[text]</font><br>"
+				output += span_adminsay("Admin message left by [span_prefix("[admin_key]")], on [timestamp]")
+				output += span_adminsay("\n[text]\n")
 				var/datum/DBQuery/query_message_read = SSdbcore.NewQuery(
 					"UPDATE [format_table_name("messages")] SET type = 'message sent' WHERE id = :id",
 					list("id" = message_id)
@@ -659,12 +678,14 @@
 					return
 				qdel(query_message_read)
 			if("watchlist entry")
-				message_admins("<font color='red'><B>Notice: </B></font><font color='blue'>[key_name_admin(target_ckey)] has been on the watchlist since [timestamp] and has just connected - Reason: [text]</font>")
-//				send2tgs_adminless_only("Watchlist", "[key_name(target_ckey)] is on the watchlist and has just connected - Reason: [text]")
+				message_admins("[span_adminsay("Watchlist:")], \
+					[span_admin("[key_name_admin(target_ckey)] \
+					[ADMIN_PP(get_mob_by_key(target_ckey))] has been on the watchlist since \
+					[timestamp] and has just connected - Reason: [text]")]")
 			if("memo")
-				output += "<span class='memo'>Memo by <span class='prefix'>[admin_key]</span> on [timestamp]"
+				output += "<span class='memo'>Memo by [span_prefix("[admin_key]")] on [timestamp]"
 				if(editor_key)
-					output += "<br><span class='memoedit'>Last edit by [editor_key] <A href='?_src_=holder;[HrefToken()];messageedits=[message_id]'>(Click here to see edit log)</A></span>"
+					output += "<br>[span_memoedit("Last edit by [editor_key] <A href='?_src_=holder;[HrefToken()];messageedits=[message_id]'>(Click here to see edit log)</A>")]"
 				output += "<br>[text]</span><br>"
 	qdel(query_get_message_output)
 	return output

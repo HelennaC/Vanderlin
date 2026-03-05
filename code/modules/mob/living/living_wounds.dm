@@ -45,7 +45,7 @@
 			continue
 		woundies += wound
 	return woundies
-	
+
 /// Loops through our list of wounds and returns the first wound that is of the type specified by the path
 /mob/living/proc/has_wound(path, specific = FALSE)
 	if(!path)
@@ -84,6 +84,7 @@
 	if(!wound.apply_to_mob(src, silent, crit_message))
 		qdel(wound)
 		return
+	SEND_SIGNAL(src, COMSIG_LIVING_WOUND_GAINED, wound)
 	return wound
 
 /// Simple version for removing a wound - DO NOT CALL THIS ON CARBON MOBS!
@@ -101,17 +102,18 @@
 /// Simple version of crit rolling, attempts to do a critical hit on a mob that uses simple wounds - DO NOT CALL THIS ON CARBON MOBS, THEY HAVE BODYPARTS!
 /mob/living/proc/simple_woundcritroll(bclass, dam, mob/living/user, zone_precise, silent = FALSE, crit_message = FALSE)
 	if(!bclass || !dam || (status_flags & GODMODE) || !HAS_TRAIT(src, TRAIT_SIMPLE_WOUNDS))
-		return FALSE
+		return
+
 	var/do_crit = TRUE
 	if(user)
-		if(user.goodluck(2))
+		if(user.stat_roll(STATKEY_LCK,2,10))
 			dam += 10
 		if(istype(user.rmb_intent, /datum/rmb_intent/weak))
 			do_crit = FALSE
-	testing("simple_woundcritroll() dam [dam]")
+
 	var/added_wound
 	switch(bclass) //do stuff but only when we are a blade that adds wounds
-		if(BCLASS_SMASH, BCLASS_BLUNT)
+		if(BCLASS_SMASH, BCLASS_BLUNT, BCLASS_PUNCH)
 			switch(dam)
 				if(20 to INFINITY)
 					added_wound = /datum/wound/bruise/large
@@ -119,6 +121,7 @@
 					added_wound = /datum/wound/bruise
 				if(1 to 10)
 					added_wound = /datum/wound/bruise/small
+
 		if(BCLASS_CUT, BCLASS_CHOP)
 			switch(dam)
 				if(20 to INFINITY)
@@ -127,6 +130,7 @@
 					added_wound = /datum/wound/slash
 				if(1 to 10)
 					added_wound = /datum/wound/slash/small
+<<<<<<< HEAD
 		if(BCLASS_LASHING)
 			switch(dam)
 				if(20 to INFINITY)
@@ -136,6 +140,10 @@
 				if(1 to 10)
 					added_wound = /datum/wound/lashing/small
 		if(BCLASS_STAB, BCLASS_PICK)
+=======
+
+		if(BCLASS_STAB, BCLASS_PICK, BCLASS_SHOT, BCLASS_PIERCE)
+>>>>>>> upstream/main
 			switch(dam)
 				if(20 to INFINITY)
 					added_wound = /datum/wound/puncture/large
@@ -143,6 +151,16 @@
 					added_wound = /datum/wound/puncture
 				if(1 to 10)
 					added_wound = /datum/wound/puncture/small
+
+		if(BCLASS_LASHING)
+			switch(dam)
+				if(20 to INFINITY)
+					added_wound = /datum/wound/lashing/large
+				if(10 to 20)
+					added_wound = /datum/wound/lashing
+				if(1 to 10)
+					added_wound = /datum/wound/lashing/small
+
 		if(BCLASS_BITE)
 			switch(dam)
 				if(20 to INFINITY)
@@ -151,56 +169,76 @@
 					added_wound = /datum/wound/bite
 				if(1 to 10)
 					added_wound = /datum/wound/bite/small
+
 	if(added_wound)
 		added_wound = simple_add_wound(added_wound, silent, crit_message)
+
 	if(do_crit)
 		var/crit_attempt = simple_try_crit(bclass, dam, user, zone_precise, silent, crit_message)
 		if(crit_attempt)
 			return crit_attempt
+
 	return added_wound
 
 /// Tries to do a critical hit on a mob that uses simple wounds - DO NOT CALL THIS ON CARBON MOBS, THEY HAVE BODYPARTS!
 /mob/living/proc/simple_try_crit(bclass, dam, mob/living/user, zone_precise, silent = FALSE, crit_message = FALSE)
 	if(!bclass || !dam || (status_flags & GODMODE) || !HAS_TRAIT(src, TRAIT_SIMPLE_WOUNDS))
 		return FALSE
-	var/list/attempted_wounds = list()
 	var/used
 	if(user)
-		if(user.goodluck(2))
+		if(user.stat_roll(STATKEY_LCK,2,10))
 			dam += 10
+
+	var/list/crit_classes
 	if(bclass in GLOB.fracture_bclasses)
-		var/fracture_type = /datum/wound/fracture/chest
-		if(check_zone(zone_precise) == BODY_ZONE_HEAD)
-			fracture_type = /datum/wound/fracture/head
-		used = round((health / maxHealth) * 20 + (dam / 3), 1)
-		if(user && istype(user.rmb_intent, /datum/rmb_intent/strong))
-			used += 10
-		if(prob(used))
-			attempted_wounds += fracture_type
+		LAZYADD(crit_classes, "fracture")
 	if(bclass in GLOB.artery_bclasses)
-		if(user)
-			if((bclass in GLOB.artery_strong_bclasses) && istype(user.rmb_intent, /datum/rmb_intent/strong))
-				dam += 30
-			else if(istype(user.rmb_intent, /datum/rmb_intent/aimed))
-				dam += 30
-		used = round(max(dam / 3, 1), 1)
-		if(prob(used))
-			attempted_wounds += /datum/wound/artery/chest
-		
+		LAZYADD(crit_classes, "artery")
+
+	if(!LAZYLEN(crit_classes))
+		return FALSE
+
+	var/list/attempted_wounds
+	switch(pick(crit_classes))
+		if("fracture")
+			if(user && istype(user.rmb_intent, /datum/rmb_intent/strong))
+				dam += 10
+			used = round((health / maxHealth) * 20 + (dam / 3), 1)
+			if(prob(used))
+				var/fracture_type = /datum/wound/fracture/chest
+				if(check_zone(zone_precise) == BODY_ZONE_HEAD)
+					fracture_type = /datum/wound/fracture/head
+				LAZYADD(attempted_wounds, fracture_type)
+		if("artery")
+			if(user)
+				if((bclass in GLOB.artery_strong_bclasses) && istype(user.rmb_intent, /datum/rmb_intent/strong))
+					dam += 30
+				else if(istype(user.rmb_intent, /datum/rmb_intent/aimed))
+					dam += 30
+			used = round(max(dam / 3, 1), 1)
+			if(prob(used))
+				LAZYADD(attempted_wounds, /datum/wound/artery/chest)
+
+	if(!LAZYLEN(attempted_wounds))
+		return FALSE
+
 	for(var/wound_type in shuffle(attempted_wounds))
 		var/datum/wound/applied = simple_add_wound(wound_type, silent, crit_message)
 		if(applied)
+			if(user?.client)
+				record_round_statistic(STATS_CRITS_MADE)
 			return applied
 	return FALSE
 
 /// Simple version for adding an embedded object - DO NOT CALL THIS ON CARBON MOBS!
 /mob/living/proc/simple_add_embedded_object(obj/item/embedder, silent = FALSE, crit_message = FALSE)
-	if(!embedder || !can_embed(embedder) || (status_flags & GODMODE) || !HAS_TRAIT(src, TRAIT_SIMPLE_WOUNDS) || HAS_TRAIT(src, TRAIT_PIERCEIMMUNE))
+	if(!embedder || !embedder.can_embed() || (status_flags & GODMODE) || !HAS_TRAIT(src, TRAIT_SIMPLE_WOUNDS) || HAS_TRAIT(src, TRAIT_PIERCEIMMUNE))
 		return FALSE
 	LAZYADD(simple_embedded_objects, embedder)
 	embedder.is_embedded = TRUE
 	embedder.forceMove(src)
 	embedder.add_mob_blood(src)
+	embedder.embedded(src)
 	if(!silent)
 		emote("embed")
 	if(crit_message)
@@ -217,12 +255,11 @@
 		return FALSE
 	LAZYREMOVE(simple_embedded_objects, embedder)
 	embedder.is_embedded = FALSE
-	var/drop_location = drop_location()
-	if(drop_location)
-		embedder.forceMove(drop_location)
-	else
-		qdel(embedder)
-	if(!has_embedded_objects())
-		clear_alert("embeddedobject")
-		SEND_SIGNAL(src, COMSIG_CLEAR_MOOD_EVENT, "embedded")
+	embedder.unembedded(src)
+	if(!QDELETED(embedder))
+		var/drop_location = drop_location()
+		if(drop_location)
+			embedder.forceMove(drop_location)
+		else
+			qdel(embedder)
 	return TRUE

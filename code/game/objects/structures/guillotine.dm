@@ -1,5 +1,5 @@
-#define GUILLOTINE_BLADE_MAX_SHARP  10 // This is maxiumum sharpness and will decapitate without failure
-#define GUILLOTINE_DECAP_MIN_SHARP  7  // Minimum amount of sharpness for decapitation. Any less and it will just do severe brute damage
+#define GUILLOTINE_BLADE_MAX_SHARP  5 // This is maxiumum sharpness and will decapitate without failure
+#define GUILLOTINE_DECAP_MIN_SHARP  4 // Minimum amount of sharpness for decapitation. Any less and it will just do severe brute damage. 2 executions before it needs to be sharpened.
 #define GUILLOTINE_ANIMATION_LENGTH 5 // How many deciseconds the animation is
 #define GUILLOTINE_ANIMATION_RAISE_LENGTH 36
 #define GUILLOTINE_BLADE_RAISED     1
@@ -22,7 +22,7 @@
 	anchored = TRUE
 	density = TRUE
 	max_buckled_mobs = 1
-	buckle_lying = FALSE
+	buckle_lying = 0
 	buckle_prevents_pull = TRUE
 	layer = ABOVE_MOB_LAYER
 	plane = GAME_PLANE_UPPER
@@ -35,31 +35,20 @@
 	LAZYINITLIST(buckled_mobs)
 	. = ..()
 
-/obj/structure/guillotine/attackby(obj/item/I, mob/user)
-	if(istype(I, /obj/item/stack/sheet/plasteel))
-		to_chat(user, "<span class='notice'>I start repairing the guillotine with the plasteel...</span>")
-		if(blade_sharpness<10)
-			if(do_after(user,100,target=user))
-				blade_sharpness = min(10,blade_sharpness+3)
-				I.use(1)
-				to_chat(user, "<span class='notice'>I repair the guillotine with the plasteel.</span>")
-			else
-				to_chat(user, "<span class='notice'>I stop repairing the guillotine with the plasteel.</span>")
-		else
-			to_chat(user, "<span class='warning'>The guillotine is already fully repaired!</span>")
-
 /obj/structure/guillotine/examine(mob/user)
 	. = ..()
 
-	var/msg = "It is [anchored ? "wrenched to the floor." : "unsecured. A wrench should fix that."]<br/>"
+	var/msg = "The blade "
 
 	if (blade_status == GUILLOTINE_BLADE_RAISED)
-		msg += "The blade is raised, ready to fall, and"
+		msg += "is raised, ready to fall, and"
 
 		if (blade_sharpness >= GUILLOTINE_DECAP_MIN_SHARP)
 			msg += " looks sharp enough to decapitate without any resistance."
 		else
-			msg += " doesn't look particularly sharp. Perhaps a whetstone can be used to sharpen it."
+			msg += " doesn't look particularly sharp. Perhaps some kind of stone can be used to sharpen it."
+	else
+		msg += "has fallen already."
 
 	. += msg
 
@@ -81,9 +70,12 @@
 
 		unbuckle_all_mobs()
 
-/obj/structure/guillotine/attack_right(mob/user)
-	if(.)
+/obj/structure/guillotine/attack_hand_secondary(mob/user, list/modifiers)
+	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
 		return
+	. = SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+
 	user.changeNext_move(CLICK_CD_MELEE)
 	add_fingerprint(user)
 
@@ -105,7 +97,7 @@
 									"<span class='warning'>I begin to pull the lever!</span>")
 				current_action = GUILLOTINE_ACTION_INUSE
 
-				if (do_after(user, GUILLOTINE_ACTIVATE_DELAY, target = src) && blade_status == GUILLOTINE_BLADE_RAISED)
+				if (do_after(user, GUILLOTINE_ACTIVATE_DELAY, src) && blade_status == GUILLOTINE_BLADE_RAISED)
 					current_action = 0
 					blade_status = GUILLOTINE_BLADE_MOVING
 					playsound(src, 'sound/misc/wood_saw.ogg', 100, TRUE)
@@ -147,8 +139,6 @@
 			unbuckle_all_mobs()
 			kill_count += 1
 
-//			H.adjust_triumphs(-1)
-
 			var/blood_overlay = "bloody"
 
 			if (kill_count == 2)
@@ -161,18 +151,17 @@
 			add_overlay(mutable_appearance(icon, blood_overlay))
 
 			// The crowd is pleased
-			// The delay is to making large crowds have a longer laster applause
-			var/delay_offset = 0
 			for(var/mob/M in viewers(src, 7))
-				var/mob/living/carbon/C = M
-				if (iscarbon(C))
-					M.add_stress(/datum/stressevent/viewexecution)
-					addtimer(CALLBACK(C, TYPE_PROC_REF(/mob, emote), "clap"), delay_offset * 0.3)
-					delay_offset++
+				M.add_stress(/datum/stress_event/viewexecution)
 		else
-			H.apply_damage(15 * blade_sharpness, BRUTE, head)
+			H.apply_damage(30 * blade_sharpness, BRUTE, head)
 			log_combat(user, H, "dropped the blade on", src, " non-fatally")
 			H.emote("scream")
+			// Executor has failed and was ashamed
+			user.add_stress(/datum/stress_event/guillotineexecutorfail)
+			// The crowd is unpleased
+			for(var/mob/M in viewers(src, 7))
+				M.add_stress(/datum/stress_event/guillotinefail)
 
 		if (blade_sharpness > 1)
 			blade_sharpness -= 1
@@ -180,7 +169,7 @@
 	blade_status = GUILLOTINE_BLADE_DROPPED
 	icon_state = "guillotine"
 
-/obj/structure/guillotine/attackby(obj/item/W, mob/user, params)
+/obj/structure/guillotine/attackby(obj/item/W, mob/user, list/modifiers)
 	if (istype(W, /obj/item/natural/stone))
 		add_fingerprint(user)
 		if (blade_status == GUILLOTINE_BLADE_SHARPENING)
@@ -189,10 +178,10 @@
 		if (blade_status == GUILLOTINE_BLADE_RAISED)
 			if (blade_sharpness < GUILLOTINE_BLADE_MAX_SHARP)
 				blade_status = GUILLOTINE_BLADE_SHARPENING
-				if(do_after(user, 7, target = src))
+				if(do_after(user, 7 DECISECONDS, src))
 					blade_status = GUILLOTINE_BLADE_RAISED
-					user.visible_message("<span class='notice'>[user] sharpens the large blade of the guillotine.</span>",
-						              "<span class='notice'>I sharpen the large blade of the guillotine.</span>")
+					user.visible_message(span_notice("[user] sharpens the large blade of the guillotine."),
+						              span_notice("I sharpen the large blade of the guillotine."))
 					blade_sharpness += 1
 					playsound(src, 'sound/items/sharpen_long1.ogg', 100, TRUE)
 					return
@@ -200,10 +189,10 @@
 					blade_status = GUILLOTINE_BLADE_RAISED
 					return
 			else
-				to_chat(user, "<span class='warning'>The blade is sharp enough!</span>")
+				to_chat(user, span_warning("The blade is sharp enough!"))
 				return
 		else
-			to_chat(user, "<span class='warning'>I need to raise the blade in order to sharpen it!</span>")
+			to_chat(user, span_warning("I need to raise the blade in order to sharpen it!"))
 			return
 	else
 		return ..()
@@ -220,7 +209,17 @@
 		to_chat(usr, "<span class='warning'>I need to raise the blade before placing someone!</span>")
 		return FALSE
 
-	return ..(M, force, FALSE)
+	if(iscarbon(M))
+		var/mob/living/carbon/carbon = M
+		if(carbon.handcuffed)
+			return ..(carbon, force, FALSE)
+
+	for(var/obj/item/grabbing/G in M.grabbedby)
+		if(G.grab_state == GRAB_AGGRESSIVE)
+			return ..(M, force, FALSE)
+
+	to_chat(usr, span_warning("I must grab them more forcefully to put them in [src]."))
+	return FALSE
 
 /obj/structure/guillotine/post_buckle_mob(mob/living/M)
 	if (!istype(M, /mob/living/carbon/human))
@@ -270,7 +269,7 @@
 
 	current_action = GUILLOTINE_ACTION_WRENCH
 
-	if (do_after(user, GUILLOTINE_WRENCH_DELAY, target = src))
+	if (do_after(user, GUILLOTINE_WRENCH_DELAY, src))
 		current_action = 0
 		default_unfasten_wrench(user, I, 0)
 		setDir(SOUTH)
@@ -281,6 +280,7 @@
 #undef GUILLOTINE_BLADE_MAX_SHARP
 #undef GUILLOTINE_DECAP_MIN_SHARP
 #undef GUILLOTINE_ANIMATION_LENGTH
+#undef GUILLOTINE_ANIMATION_RAISE_LENGTH
 #undef GUILLOTINE_BLADE_RAISED
 #undef GUILLOTINE_BLADE_MOVING
 #undef GUILLOTINE_BLADE_DROPPED

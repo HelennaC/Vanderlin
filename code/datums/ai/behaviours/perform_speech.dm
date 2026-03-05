@@ -1,6 +1,10 @@
 /datum/ai_behavior/perform_speech
 
 /datum/ai_behavior/perform_speech/perform(delta_time, datum/ai_controller/controller, speech)
+<<<<<<< HEAD
+=======
+	. = ..()
+>>>>>>> upstream/main
 	var/mob/living/living_pawn = controller.pawn
 	if(!istype(living_pawn))
 		return

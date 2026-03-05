@@ -1,19 +1,17 @@
-combat_maniac2.ogg: Thomas Bangalter - Stress
+combat_maniac.ogg: Thomas Bangalter - Stress
+combat_vamp1.ogg: Vampire The Masquerade: Bloodlines - Dangerous Places Combat
 combat_vamp2.ogg: Filmmaker - Mystic Circles
-combat_merchant.ogg: Neospherix Project - Hava Nagila (Psychedelic Trance)
 combat_desertrider.ogg: Two Fingers- You Ain't Down
-combat_grenzelhoft.ogg: Helbrede - Sons of Tyr
 combat_jester.ogg: OFF - Pepper Steak
 combat_bandit.ogg: Deus Ex - Battery Park Combat
-combat_bandit2.ogg: Cruelty Squad  - Rent DUe
-combat_werewolf.ogg: Filmmaker - Federal Bestiary
-combat_guard.ogg: Deus Ex - Desolation Combat
-combat_guard2.ogg: Deus Ex - NYC Streets Combat
+combat_bandit2.ogg: Cruelty Squad  - Rent Due
 combat_physician.ogg: Pathologic (Classic) - Utroba Aggression
-combat_bum.ogg: Pathologic (Classic) - Most Combat Theme
-
 combat_dwarf.ogg: Filip Lackovic - Drums of the Horde
-title.ogg: Kings Field IV - Dark Reality
+combat_assassin2.ogg: Fear & Hunger 2: Termina - Monologue With The Moon
+combat_noble.ogg: Aram Khachaturian - Masquerade Suite - Waltz
+combatskeleton.ogg: Storkrieg - Genocide Of The Fittest
+combat_evilwizard.ogg: Burialgoods - Low Income Barony
+
 roundend.ogg: Fear & Hunger 2: Termina - Dark Outside Extended
 accord (8).ogg: Tchaikovsky - Dance of the Sugar Plum Fairy. Cover by Amy Turk
 lute (8).ogg: Oblivion - Harvest Dawn. Cover by Daniel Estrem
@@ -22,11 +20,9 @@ guitar (15).ogg: Fear & Hunger - Prelude to Darkness Guitar Part Only
 flute (8).ogg: Elden Ring - Scribe Flute Song
 manor2.ogg: Fear & Hunger 2: Termina - Midnight Hour
 night.ogg: Vampire The Masquerade: Bloodlines - Hollywood
-crazycombat.ogg: Vampire The Masquerade: Bloodlines - Disturbed And Twisted Combat
 spice2.ogg: The Appolo Stars - Power Of The Source
-combat_rg.ogg: USAF Band - Cyrus The Great
-combat_noble.ogg: Aram Khachaturian - Masquerade Suite - Waltz
 churchnight.ogg: Fear & Hunger 2: Termina - Cathedral Whispers
+<<<<<<< HEAD
 combat_bandit3.ogg: Manhunt - White Trash
 combat_assassin2.ogg: Fear & Hunger 2: Termina - Monologue With The Moon
 PIG.ogg: Manhunt - Deliverance
@@ -41,3 +37,78 @@ combat_emperor.ogg: shadow warrior 2 - Steel and Carbon.ogg
 combat_traditional.ogg: Tenchu Z - Spinning Lantern.ogg
 combat_navalretainers.ogg: Total_Luck - Tenchu Z.ogg
 combat_kyudo.ogg: Yuyan archers, AVATAR
+=======
+
+CombatRogueMage.ogg : (APAB) All Paladins Are Bastards - Burialgoods (He gave us permission, god bless you Burialgoods - https://www.youtube.com/watch?v=3Z_cOxF1o48)
+CombatBeest.ogg : Last Day As A Man (First Night As A Beast) - Burialgoods - https://youtu.be/zznEa8EhpuQ
+
+
+TRACKS MADE FOR VANDERLIN:
+
+    T87-Sulfurhead (https://www.youtube.com/@T87-Sulfurhead)
+Slums202 - Title2
+DURANDAL - Royal Knight
+The Reckoning - Bulwark
+Ninth Circle - Outlander (Zaladin)
+Manasurge - Court Wizard
+Manasurge (Original) - Sorcerer
+How Sausage is Made - Captain
+Burning Hovel - Guard
+Metamorphosis - Forest Warden
+Catharsis - Towner Combat
+Formerly Known as Toulouse Lautrec - Gravetender / Necran Theme
+God is Dead - Inquisition
+Age of Degeneration - Forest (Day)
+Further Below - Sewers
+Murderers Providence - Bog
+abinadab3 - Forest (Night)
+Damocles - Manor Day
+RATEATER - Dungeoneer
+Men at War - Outlander (Barbarian)
+Cutpurse - Bandit
+STOLEN SKY - Vampire
+MORTEM OBIRE - Outlander (Assassin)
+Snicker Snacker - Warrior
+Family Melts Away - Eoran Theme
+Amontillado - Prisoner
+Hellions - Servant (Cook, Innkeeper, etc)
+ABedOfMoss - Matron
+Archetype of the Dark Star - Werewolf
+heliotrix - Priest / Astratan Theme
+DEMESNE - Lich
+Ready or Not - Man-at-Arms
+OZYMANDIAS - Dungeon Track 3
+Black Powder - Grenzelhoft
+mechadh - Gaffer
+TRINITY (You Cant Kill Me) - Sacresants
+Good Men Die Young - Gaffer
+(BRASS) - Sling Blade - Xylixian theme
+(BRASS) - Triumph Over Evil - Ravoxian theme
+(BRASS) - Phases of the moon - Noccite theme
+(BRASS) - Four-Man Party - Town Elder (other than Mayor & Acolyte)
+(BRASS) - Thread Softly - Veteran
+(BRASS) - Turncoat - Abyssorian theme
+SALON (BETA) - Combat Dream
+Meeting Ravox In Two Minutes - Grandmaster Ult
+
+
+    SeanPhillips (https://youtube.com/@seanphillipsmusic / www.seanphillipsmusic.co.uk)
+    Dungeon Track 1 - Unnamed(?)
+    Dungeon Track 2 - Unnamed (?)
+
+    YourLocalShadow (https://www.youtube.com/@YourLocalShadow)
+Bewildered Magic - Wizard Tower
+
+    flleeppyy / fleepy (https://flleeppyy.bandcamp.com/ / https://fleepy.tv/)
+Neglection - Title1
+Veil of Heresy - Cultist Theme
+Retina - Title3
+
+INSTRUMENTS
+
+Sea Shanty 2 Runescape Arrangements:
+lute (b1).ogg: https://www.youtube.com/watch?v=n-wlB48Sq94
+harp (b1).ogg: https://www.youtube.com/watch?v=DaGdjI4HGTg
+flute (b1).ogg: https://www.youtube.com/watch?v=_bhiGbnfMT4
+viola (b1): https://www.youtube.com/watch?v=qmS-rX0_qRQ
+>>>>>>> upstream/main

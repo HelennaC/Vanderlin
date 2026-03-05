@@ -16,6 +16,7 @@
 /datum/chemical_reaction/reagent_explosion/on_reaction(datum/reagents/holder, created_volume)
 	do_explosion()
 
+<<<<<<< HEAD
 /datum/chemical_reaction/reagent_explosion/nitroglycerin
 	name = "Nitroglycerin"
 	id = /datum/reagent/nitroglycerin
@@ -485,3 +486,5 @@
 	required_reagents = list(/datum/reagent/stabilizing_agent = 1,/datum/reagent/fluorosurfactant = 1,/datum/reagent/carbon = 1)
 	required_temp = 200
 	is_cold_recipe = 1
+=======
+>>>>>>> upstream/main

@@ -20,14 +20,11 @@
 
 		testing("Ruin \"[name]\" placed at ([central_turf.x], [central_turf.y], [central_turf.z])")
 
-		for(var/i in get_affected_turfs(central_turf, 1))
-			var/turf/T = i
+		for(var/turf/T as anything in get_affected_turfs(central_turf, 1))
 			for(var/obj/structure/spawner/nest in T)
 				qdel(nest)
 			for(var/mob/living/simple_animal/monster in T)
 				qdel(monster)
-			for(var/obj/structure/flora/ash/plant in T)
-				qdel(plant)
 
 		load(central_turf,centered = TRUE)
 		loaded++
@@ -52,7 +49,7 @@
 	return center
 
 
-/proc/seedRuins(list/z_levels = null, budget = 0, whitelist = /area/space, list/potentialRuins)
+/proc/seedRuins(list/z_levels = null, budget = 0, whitelist = null, list/potentialRuins)
 	if(!z_levels || !z_levels.len)
 		WARNING("No Z levels provided - Not generating ruins")
 		return
@@ -96,7 +93,7 @@
 				break
 		else //Otherwise just pick random one
 			current_pick = pickweight(ruins_availible)
-		
+
 		var/placement_tries = forced_turf ? 1 : PLACEMENT_TRIES //Only try once if we target specific turf
 		var/failed_to_place = TRUE
 		var/target_z = 0
@@ -110,8 +107,7 @@
 				if(current_pick.always_spawn_with) //If the ruin has part below, make sure that z exists.
 					for(var/v in current_pick.always_spawn_with)
 						if(current_pick.always_spawn_with[v] == PLACE_BELOW)
-							var/turf/T = locate(1,1,target_z)
-							if(!SSmapping.get_turf_below(T))
+							if(!SSmapping.multiz_levels[target_z][Z_LEVEL_DOWN])
 								if(forced_z)
 									continue outer
 								else
@@ -161,7 +157,7 @@
 								if(PLACE_DEFAULT)
 									forced_ruins[linked] = -1
 								if(PLACE_BELOW)
-									forced_ruins[linked] = SSmapping.get_turf_below(placed_turf)
+									forced_ruins[linked] = GET_TURF_BELOW(placed_turf)
 								if(PLACE_ISOLATED)
 									forced_ruins[linked] = SSmapping.get_isolated_ruin_z()
 
@@ -169,5 +165,5 @@
 		for(var/datum/map_template/ruin/R in ruins_availible)
 			if(R.cost > budget)
 				ruins_availible -= R
-	
+
 	log_world("Ruin loader finished with [budget] left to spend.")

@@ -6,6 +6,11 @@
 	var/time_string = time2text(world.timeofday, format)
 	return show_ds ? "[time_string]:[world.timeofday % 10]" : time_string
 
+/proc/time_stamp_metric()
+	var/date_portion = time2text(world.timeofday, "YYYY-MM-DD")
+	var/time_portion = time2text(world.timeofday, "hh:mm:ss")
+	return "[date_portion]T[time_portion]"
+
 /proc/gameTimestamp(format = "hh:mm:ss", wtime=null)
 	if(!wtime)
 		wtime = world.time
@@ -20,6 +25,7 @@
 GLOBAL_VAR_INIT(tod, FALSE)
 GLOBAL_VAR_INIT(forecast, FALSE)
 GLOBAL_VAR_INIT(todoverride, FALSE)
+/// The current day of the week, range from 1-7 (Moon's Dae - Sun's Dae)
 GLOBAL_VAR_INIT(dayspassed, FALSE)
 
 /proc/settod()
@@ -27,19 +33,16 @@ GLOBAL_VAR_INIT(dayspassed, FALSE)
 	var/oldtod = GLOB.tod
 	if(time >= SSnightshift.nightshift_start_time || time <= SSnightshift.nightshift_dawn_start)
 		GLOB.tod = "night"
-//		testing("set [tod]")
 	if(time > SSnightshift.nightshift_dawn_start && time <= SSnightshift.nightshift_day_start)
 		GLOB.tod = "dawn"
-//		testing("set [tod]")
 	if(time > SSnightshift.nightshift_day_start && time <= SSnightshift.nightshift_dusk_start)
 		GLOB.tod = "day"
-//		testing("set [tod]")
 	if(time > SSnightshift.nightshift_dusk_start && time <= SSnightshift.nightshift_start_time)
 		GLOB.tod = "dusk"
-//		testing("set [tod]")
 	if(GLOB.todoverride)
 		GLOB.tod = GLOB.todoverride
 	if((GLOB.tod != oldtod) && !GLOB.todoverride && (GLOB.dayspassed>1)) //weather check on tod changes
+<<<<<<< HEAD
 		if(!GLOB.forecast)
 			switch(GLOB.tod)
 				if("dawn")
@@ -81,21 +84,22 @@ GLOBAL_VAR_INIT(dayspassed, FALSE)
 					GLOB.forecast = null
 				if("fog")
 					GLOB.forecast = null
+=======
+		SSParticleWeather.check_forecast(GLOB.tod)
+>>>>>>> upstream/main
 
 	if(GLOB.tod != oldtod)
 		if(GLOB.tod == "dawn")
 			GLOB.dayspassed++
 			if(GLOB.dayspassed == 8)
 				GLOB.dayspassed = 1
+			SStreasury.distribute_estate_incomes()
 		for(var/mob/living/player in GLOB.mob_list)
 			if(player.stat != DEAD && player.client)
 				player.do_time_change()
 
 	if(GLOB.tod)
 		return GLOB.tod
-	else
-		testing("COULDNT FIND TOD [GLOB.tod] .. [time]")
-		return null
 
 /mob/living/proc/do_time_change()
 	if(!mind)
@@ -124,22 +128,26 @@ GLOBAL_VAR_INIT(dayspassed, FALSE)
 		mind.areas_entered += text_to_show
 		var/atom/movable/screen/area_text/T = new()
 		client.screen += T
-		T.maptext = {"<span style='vertical-align:top; text-align:center;
-					color: #7c5b10; font-size: 150%;
-					text-shadow: 1px 1px 2px black, 0 0 1em black, 0 0 0.2em black;
-					font-family: "Nosfer", "Pterra";'>[text_to_show]</span>"}
+		T.maptext = MAPTEXT_CENTER({"<span style='vertical-align:top;color: #7c5b10; font-size: 150%;
+					text-shadow: 1px 1px 2px black, 0 0 1em black, 0 0 0.2em black;'>[text_to_show]</span>"})
 		T.maptext_width = 205
 		T.maptext_height = 209
 		T.maptext_x = 12
 		T.maptext_y = -120
-		playsound_local(src, 'sound/misc/newday.ogg', 70, FALSE)
+		playsound_local(src, 'sound/misc/newday.ogg', 60, FALSE)
 		animate(T, alpha = 255, time = 10, easing = EASE_IN)
 		addtimer(CALLBACK(src, PROC_REF(clear_area_text), T), 35)
+	else if(GLOB.tod == "day")
+		playsound_local(src, 'sound/misc/midday.ogg', 100, FALSE)
+	else if(GLOB.tod == "night")
+		playsound_local(src, 'sound/misc/nightfall.ogg', 100, FALSE)
+
 	var/atom/movable/screen/daynight/D = new()
 	D.alpha = 0
 	client.screen += D
 	animate(D, alpha = 255, time = 20, easing = EASE_IN)
 	addtimer(CALLBACK(src, PROC_REF(clear_time_icon), D), 30)
+
 
 /proc/station_time_debug(force_set)
 	if(isnum(force_set))
@@ -206,6 +214,23 @@ GLOBAL_VAR_INIT(rollovercheck_last_timeofday, 0)
 		hourT = " and [hour] hour[(hour != 1)? "s":""]"
 	return "[day] day[(day != 1)? "s":""][hourT][minuteT][secondT]"
 
-
 /proc/daysSince(realtimev)
 	return round((world.realtime - realtimev) / (24 HOURS))
+
+//returns time diff of two times normalized to time_rate_multiplier
+/proc/daytimeDiff(timeA, timeB)
+
+	//if the time is less than station time, add 24 hours (MIDNIGHT_ROLLOVER)
+	var/time_diff = timeA > timeB ? (timeB + 24 HOURS) - timeA : timeB - timeA
+	return time_diff / SSticker.station_time_rate_multiplier // normalise with the time rate multiplier
+
+/// Until a condition is true, sleep, or until a certain amount of time has passed.
+/// Basically, UNTIL() but with a timeout.
+#define UNTIL_OR_TIMEOUT(Condition, Timeout) \
+	do { \
+		var/__end_time = REALTIMEOFDAY + (Timeout); \
+		UNTIL((Condition) || (REALTIMEOFDAY > __end_time)); \
+	} while(0)
+
+///displays the current time into the round, with a lot of extra code just there for ensuring it looks okay after an entire day passes
+#define ROUND_TIME(...) ( "[world.time - SSticker.round_start_time > MIDNIGHT_ROLLOVER ? "[round((world.time - SSticker.round_start_time)/MIDNIGHT_ROLLOVER)]:[worldtime2text()]" : worldtime2text()]" )

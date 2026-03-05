@@ -42,7 +42,6 @@ WALK_DELAY 3
 ##MULTIPLICATIVE_MOVESPEED /mob/living/carbon/human 0
 ##MULTIPLICATIVE_MOVESPEED /mob/living/silicon/robot 0
 ##MULTIPLICATIVE_MOVESPEED /mob/living/carbon/monkey 0
-##MULTIPLICATIVE_MOVESPEED /mob/living/carbon/alien 0
 ##MULTIPLICATIVE_MOVESPEED /mob/living/simple_animal/slime 0
 ##MULTIPLICATIVE_MOVESPEED /mob/living/simple_animal 1
 
@@ -432,6 +431,7 @@ SILICON_MAX_LAW_AMOUNT 12
 ## You probably want humans on your space station, but technically speaking you can turn them off without any ill effect
 ROUNDSTART_RACES humann
 ROUNDSTART_RACES dwarfm
+ROUNDSTART_RACES rakshari
 ROUNDSTART_RACES tiefling
 ROUNDSTART_RACES humans
 ROUNDSTART_RACES halfelf
@@ -573,3 +573,15 @@ MONKEYCAP 64
 
 ## Enable the capitalist agenda on your server.
 ECONOMY
+
+## Enable death by starvation
+#STARVATION_DEATH
+
+## Damage per tick for starving to death
+STARVATION_DAMAGE_PER_TICK 0.1
+
+## Enable death by dehydration
+#DEHYDRATION_DEATH
+
+## Damage per tick for dying of dehydration
+DEHYDRATION_DAMAGE_PER_TICK 0.1

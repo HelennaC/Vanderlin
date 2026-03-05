@@ -73,7 +73,7 @@
 	return null
 
 /proc/is_human_part_visible(mob/living/carbon/human/human, flags_inv)
-	if(!human)
+	if(!istype(human))
 		return TRUE
 	if(flags_inv == NONE)
 		return TRUE
@@ -84,9 +84,8 @@
 	return TRUE
 
 /proc/get_all_worn_items(mob/living/carbon/human/human)
-	var/static/list/all_item_slots = ALL_ITEM_SLOTS
 	var/list/worn_items = list()
-	for(var/slot in all_item_slots)
+	for(var/slot in DEFAULT_SLOT_PRIORITY)
 		var/obj/item/item = human.get_item_by_slot(slot)
 		if(!item)
 			continue

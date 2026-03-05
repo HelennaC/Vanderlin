@@ -7,6 +7,10 @@
 
 	var/omnitongue = FALSE
 	var/owner
+	/// Lazyassoclist of all other mutual understanding this holder has in addition to what they understand from their understood languages.
+	/// This is primarily for adding mutual understanding from other sources at runtime.
+	/// Format: list(language_type = list(source = % of understanding))
+	var/list/other_mutual_understanding
 
 /datum/language_holder/New(owner)
 	src.owner = owner
@@ -50,6 +54,13 @@
 		possible += dt
 	. = safepick(possible)
 
+/// Grants partial understanding of the passed language.
+/// Giving 100 understanding is basically equivalent to knowning the language, just with butchered punctuation.
+/datum/language_holder/proc/grant_partial_language(language, amount = 50)
+	LAZYINITLIST(other_mutual_understanding)
+	other_mutual_understanding[language] = amount
+	return TRUE
+
 /datum/language_holder/proc/remove_language(datum/language/dt, shadow = FALSE)
 	if(shadow)
 		shadow_languages -= dt
@@ -58,6 +69,20 @@
 
 /datum/language_holder/proc/remove_all_languages()
 	languages.Cut()
+
+
+/// Removes partial understanding of the passed language.
+/datum/language_holder/proc/remove_partial_language(language)
+	other_mutual_understanding -= language
+	ASSOC_UNSETEMPTY(other_mutual_understanding, language)
+	UNSETEMPTY(other_mutual_understanding)
+	return TRUE
+
+/// Removes all partial understandings of all languages.
+/datum/language_holder/proc/remove_all_partial_languages()
+	for(var/language in other_mutual_understanding)
+		remove_partial_language(language)
+	return TRUE
 
 /datum/language_holder/proc/has_language(datum/language/dt)
 	if(is_type_in_typecache(dt, languages))
@@ -101,36 +126,28 @@
 		if(M.current)
 			. = M.current
 
-/datum/language_holder/alien
-	languages = list(/datum/language/xenocommon)
+
+/// Gets a list of all mutually understood languages.
+/datum/language_holder/proc/get_partially_understood_languages()
+	var/list/mutual_languages = list()
+	for(var/language_type in languages)
+		var/datum/language/language_instance = GLOB.language_datum_instances[language_type]
+		for(var/mutual_language_type in language_instance.mutual_understanding)
+			// add it to the list OR override it if it's a stronger mutual understanding
+			if(mutual_languages[mutual_language_type] < language_instance.mutual_understanding[mutual_language_type])
+				mutual_languages[mutual_language_type] = language_instance.mutual_understanding[mutual_language_type]
+
+	for(var/language_type in other_mutual_understanding)
+		for(var/language_source in other_mutual_understanding[language_type])
+			var/understanding_for_type_by_source = other_mutual_understanding[language_type][language_source]
+			if(mutual_languages[language_type] < understanding_for_type_by_source)
+				mutual_languages[language_type] = understanding_for_type_by_source
+
+	return mutual_languages
 
 /datum/language_holder/monkey
-	languages = list(/datum/language/monkey)
-
-/datum/language_holder/swarmer
-	languages = list(/datum/language/swarmer)
-
-/datum/language_holder/construct
-	languages = list(/datum/language/common, /datum/language/narsie)
-
-/datum/language_holder/drone
-	languages = list(/datum/language/common, /datum/language/drone, /datum/language/machine)
-	only_speaks_language = /datum/language/drone
-
-/datum/language_holder/drone/syndicate
-	only_speaks_language = null
-
-/datum/language_holder/slime
-	languages = list(/datum/language/common, /datum/language/slime)
-	only_speaks_language = /datum/language/slime
-
-/datum/language_holder/lightbringer
-	// TODO change to a lightbringer specific sign language
-	languages = list(/datum/language/slime)
-
-/datum/language_holder/synthetic
 	languages = list(/datum/language/common)
-	shadow_languages = list(/datum/language/common, /datum/language/machine, /datum/language/draconic)
+
 
 /datum/language_holder/empty
 	languages = list()

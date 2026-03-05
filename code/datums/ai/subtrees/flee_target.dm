@@ -1,3 +1,9 @@
+<<<<<<< HEAD
+=======
+/datum/ai_planning_subtree/flee_target/saiga
+	flee_behaviour = /datum/ai_behavior/run_away_from_target/saiga
+
+>>>>>>> upstream/main
 /// Try to escape from your current target, without performing any other actions.
 /datum/ai_planning_subtree/flee_target
 	/// Behaviour to execute in order to flee

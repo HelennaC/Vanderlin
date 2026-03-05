@@ -33,7 +33,7 @@
 								"<span class='danger'>[M] punches you!</span>", "<span class='hear'>I hear a sickening sound of flesh hitting flesh!</span>", COMBAT_MESSAGE_RANGE, M)
 				to_chat(M, "<span class='danger'>I punch [name]!</span>")
 
-				playsound(loc, "punch", 25, TRUE, -1)
+				playsound(src, "punch", 25, TRUE, -1)
 				var/damage = rand(5, 10)
 				if(prob(40))
 					damage = rand(10, 15)
@@ -49,16 +49,16 @@
 				log_combat(M, src, "attacked")
 
 			else
-				playsound(loc, 'sound/blank.ogg', 25, TRUE, -1)
+				playsound(src, 'sound/blank.ogg', 25, TRUE, -1)
 				visible_message("<span class='danger'>[M]'s punch misses [name]!</span>", \
 								"<span class='danger'>I avoid [M]'s punch!</span>", "<span class='hear'>I hear a swoosh!</span>", COMBAT_MESSAGE_RANGE, M)
 				to_chat(M, "<span class='warning'>My punch misses [name]!</span>")
 		if(INTENT_DISARM)
-			if(!IsUnconscious())
+			if(stat < UNCONSCIOUS)
 				M.do_attack_animation(src, ATTACK_EFFECT_DISARM)
 				if (prob(25))
 					Paralyze(40)
-					playsound(loc, 'sound/blank.ogg', 50, TRUE, -1)
+					playsound(src, 'sound/blank.ogg', 50, TRUE, -1)
 					log_combat(M, src, "pushed")
 					visible_message("<span class='danger'>[M] pushes [src] down!</span>", \
 									"<span class='danger'>[M] pushes you down!</span>", "<span class='hear'>I hear aggressive shuffling followed by a loud thud!</span>", null, M)
@@ -82,19 +82,6 @@
 			affecting = get_bodypart(BODY_ZONE_CHEST)
 		apply_damage(damage, M.melee_damage_type, affecting)
 
-/mob/living/carbon/monkey/attack_slime(mob/living/simple_animal/slime/M)
-	if(..()) //successful slime attack
-		var/damage = rand(5, 35)
-		if(M.is_adult)
-			damage = rand(20, 40)
-		var/dam_zone = dismembering_strike(M, pick(BODY_ZONE_HEAD, BODY_ZONE_CHEST, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG))
-		if(!dam_zone) //Dismemberment successful
-			return 1
-		var/obj/item/bodypart/affecting = get_bodypart(ran_zone(dam_zone))
-		if(!affecting)
-			affecting = get_bodypart(BODY_ZONE_CHEST)
-		apply_damage(damage, BRUTE, affecting)
-
 /mob/living/carbon/monkey/acid_act(acidpwr, acid_volume, bodyzone_hit)
 	. = 1
 	if(!bodyzone_hit || bodyzone_hit == BODY_ZONE_HEAD)
@@ -114,7 +101,7 @@
 
 
 /mob/living/carbon/monkey/ex_act(severity, target, origin)
-	if(origin && istype(origin, /datum/spacevine_mutation) && isvineimmune(src))
+	if(origin && istype(origin, /datum/vine_mutation) && isvineimmune(src))
 		return
 	..()
 
@@ -125,14 +112,14 @@
 
 		if (EXPLODE_HEAVY)
 			take_overall_damage(60, 60)
-			damage_clothes(200, BRUTE, "bomb")
+			damage_clothes(200, BRUTE, "blunt")
 			adjustEarDamage(30, 120)
 			if(prob(70))
 				Unconscious(200)
 
 		if(EXPLODE_LIGHT)
 			take_overall_damage(30, 0)
-			damage_clothes(50, BRUTE, "bomb")
+			damage_clothes(50, BRUTE, "blunt")
 			adjustEarDamage(15,60)
 			if (prob(50))
 				Unconscious(160)
@@ -141,8 +128,7 @@
 	//attempt to dismember bodyparts
 	if(severity <= 2)
 		var/max_limb_loss = round(4/severity) //so you don't lose four limbs at severity 3.
-		for(var/X in bodyparts)
-			var/obj/item/bodypart/BP = X
+		for(var/obj/item/bodypart/BP as anything in bodyparts)
 			if(prob(50/severity) && BP.body_zone != BODY_ZONE_CHEST)
 				BP.brute_dam = BP.max_damage
 				BP.dismember()

@@ -1,0 +1,43 @@
+/mob/living/carbon/human/species/dwarf
+	race = /datum/species/dwarf
+
+/datum/species/dwarf
+	name = "Dwarfb"
+<<<<<<< HEAD:code/modules/mob/living/carbon/human/species_types/roguetown/dwarf/_dwarf.dm
+	id = "dwarf"
+	max_age = 200
+	changesource_flags = MIRROR_BADMIN | WABBAJACK | MIRROR_MAGIC | MIRROR_PRIDE | RACE_SWAP | SLIME_EXTRACT
+=======
+	id = SPEC_ID_DWARF
+	changesource_flags = WABBAJACK
+	native_language = "Dwarfish"
+	exotic_bloodtype = /datum/blood_type/human/dwarf
+	meat = list(/obj/item/reagent_containers/food/snacks/meat/fatty/dwarf = 1, /obj/item/reagent_containers/food/snacks/fat = 0.25, /obj/item/reagent_containers/food/snacks/meat/steak/human = 0.5)
+
+	bodypart_features = list(
+		/datum/bodypart_feature/hair/head,
+		/datum/bodypart_feature/hair/facial,
+	)
+>>>>>>> upstream/main:code/modules/mob/living/carbon/human/species_types/dwarf/_dwarf.dm
+
+/datum/species/dwarf/on_species_gain(mob/living/carbon/C, datum/species/old_species)
+	..()
+	RegisterSignal(C, COMSIG_MOB_SAY, PROC_REF(handle_speech))
+	C.grant_language(/datum/language/common)
+	C.grant_language(/datum/language/dwarvish)
+
+/datum/species/dwarf/check_roundstart_eligible()
+	return FALSE
+
+/datum/species/dwarf/after_creation(mob/living/carbon/C)
+	..()
+	C.grant_language(/datum/language/dwarvish)
+	to_chat(C, "<span class='info'>I can speak Dwarfish with ,d before my speech.</span>")
+
+/datum/species/dwarf/on_species_loss(mob/living/carbon/C)
+	. = ..()
+	UnregisterSignal(C, COMSIG_MOB_SAY)
+	C.remove_language(/datum/language/dwarvish)
+
+/datum/species/dwarf/qualifies_for_rank(rank, list/features)
+	return TRUE

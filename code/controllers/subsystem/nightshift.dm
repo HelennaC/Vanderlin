@@ -8,10 +8,17 @@ SUBSYSTEM_DEF(nightshift)
 	var/current_tod = null
 
 	var/nightshift_active = FALSE
+	var/nightshift_start_time = 576000	//4pm	//702000=7:30 PM, station time
+	var/nightshift_dawn_start = 288000		//198000=    530am
+	var/nightshift_day_start = 360000		//270000=    730am
+	var/nightshift_dusk_start = 504000		//630000=    530pm
+
+	/* Default STONEKEEP config.
 	var/nightshift_start_time = 756000	//9:00 PM - 2100 hrs
 	var/nightshift_dawn_start = 216000	//6:00 AM - 0600 hrs
 	var/nightshift_day_start = 324000	//9:00 AM - 0900 hrs
 	var/nightshift_dusk_start = 648000	//6:00 PM - 1800 hrs
+	*/
 
 	//1hr = 36000
 	//30m = 18000
@@ -35,32 +42,14 @@ SUBSYSTEM_DEF(nightshift)
 	priority_announce(message, sound='sound/misc/bell.ogg', sender_override="Automated Lighting System Announcement")
 
 /datum/controller/subsystem/nightshift/proc/check_nightshift()
-//	var/emergency = GLOB.security_level >= SEC_LEVEL_RED
-//	var/announcing = FALSE
-//	var/time = station_time()
-/*	var/night_time = (time < nightshift_day_start) || (time > nightshift_dusk_start) || (settod() in list("night", "dawn", "dusk"))
-	if(high_security_mode != emergency)
-		high_security_mode = emergency
-		if(night_time)
-			announcing = FALSE
-			if(!emergency)
-				announce("Restoring night lighting configuration to normal operation.")
-			else
-				announce("Disabling night lighting: Station is in a state of emergency.")
-	if(emergency)
-		night_time = FALSE
-	if(nightshift_active != night_time)
-		update_nightshift(night_time, announcing)*/
 	var/curtod = settod()
 	if(current_tod != curtod)
-		testing("curtod [curtod] current_tod [current_tod] globtod [GLOB.tod]")
+		SSParticleWeather.selected_forecast.set_ambient_temperature(curtod)
 		current_tod = GLOB.tod
 		update_nightshift()
 
 /datum/controller/subsystem/nightshift/proc/update_nightshift()
 	set waitfor = FALSE
-	for(var/obj/effect/sunlight/L in GLOB.sunlights)
-		START_PROCESSING(SStodchange, L)
 	for(var/obj/A in GLOB.TodUpdate)
 		A.update_tod(GLOB.tod)
 	for(var/mob/living/M in GLOB.mob_list)
@@ -74,14 +63,20 @@ SUBSYSTEM_DEF(nightshift)
 
 /mob/living/carbon/human/update_tod(todd)
 	if(client)
-		var/area/areal = get_area(src)
-		if(!cmode)
-			SSdroning.play_area_sound(areal, src.client)
-		SSdroning.play_loop(areal, src.client)
+		refresh_looping_ambience()
+	if(todd == "dawn")
+		if(HAS_TRAIT(src, TRAIT_VAMP_DREAMS))
+			apply_status_effect(/datum/status_effect/debuff/vamp_dreams)
+		if(HAS_TRAIT(src, TRAIT_NIGHT_OWL))
+			add_stress(/datum/stress_event/night_owl_dawn)
+
 	if(todd == "night")
-		if(HAS_TRAIT(src, TRAIT_NOROGSTAM))
+		if(HAS_TRAIT(src, TRAIT_NIGHT_OWL))
+			add_stress(/datum/stress_event/night_owl_night)
+		if(HAS_TRAIT(src, TRAIT_NOSTAMINA))
 			return ..()
 		if(HAS_TRAIT(src, TRAIT_NOSLEEP))
 			return ..()
 		if(tiredness >= 100)
 			apply_status_effect(/datum/status_effect/debuff/sleepytime)
+		apply_status_effect(/datum/status_effect/debuff/dreamytime)

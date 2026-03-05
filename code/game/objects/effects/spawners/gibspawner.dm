@@ -9,7 +9,7 @@
 	var/list/gibamounts = list() //amount to spawn for each gib decal type we'll spawn.
 	var/list/gibdirections = list() //of lists of possible directions to spread each gib decal type towards.
 
-/obj/effect/gibspawner/Initialize(mapload, mob/living/source_mob, list/datum/disease/diseases)
+/obj/effect/gibspawner/Initialize(mapload, mob/living/source_mob)
 	. = ..()
 
 	if(gibtypes.len != gibamounts.len)
@@ -38,14 +38,14 @@
 		dna_to_add = temp_mob.get_blood_dna_list()
 		qdel(temp_mob)
 	else
-		dna_to_add = list("Non-human DNA" = random_blood_type()) //else, generate a random bloodtype for it.
+		dna_to_add = list("Non-human DNA" = random_human_blood_type()) //else, generate a random bloodtype for it.
 
 
 	for(var/i = 1, i<= gibtypes.len, i++)
 		if(gibamounts[i])
 			for(var/j = 1, j<= gibamounts[i], j++)
 				var/gibType = gibtypes[i]
-				gib = new gibType(loc, diseases)
+				gib = new gibType(loc)
 
 				gib.add_blood_DNA(dna_to_add)
 
@@ -92,6 +92,7 @@
 	if(!gibdirections.len)
 		gibdirections = list(list(NORTH, NORTHEAST, NORTHWEST),list(SOUTH, SOUTHEAST, SOUTHWEST),list(WEST, NORTHWEST, SOUTHWEST),list(EAST, NORTHEAST, SOUTHEAST), GLOB.alldirs, list())
 	return ..()
+<<<<<<< HEAD
 
 /obj/effect/gibspawner/robot
 	sparks = 1
@@ -104,3 +105,5 @@
 		gibdirections = list(list(NORTH, NORTHEAST, NORTHWEST),list(SOUTH, SOUTHEAST, SOUTHWEST),list(WEST, NORTHWEST, SOUTHWEST),list(EAST, NORTHEAST, SOUTHEAST), GLOB.alldirs, GLOB.alldirs)
 	gibamounts[6] = pick(0, 1, 2)
 	return ..()
+=======
+>>>>>>> upstream/main

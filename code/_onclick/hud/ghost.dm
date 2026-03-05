@@ -1,18 +1,3 @@
-/atom/movable/screen/ghost
-	icon = 'icons/mob/screen_ghost.dmi'
-
-/atom/movable/screen/ghost/MouseEntered()
-//	flick(icon_state + "_anim", src)
-	..()
-
-/atom/movable/screen/ghost/jumptomob
-	name = "Jump to mob"
-	icon_state = "jumptomob"
-
-/atom/movable/screen/ghost/jumptomob/Click()
-	var/mob/dead/observer/G = usr
-	G.jumptomob()
-
 /atom/movable/screen/ghost/orbit
 	name = "Orbit"
 	icon_state = "orbit"
@@ -23,24 +8,25 @@
 //skull
 /atom/movable/screen/ghost/orbit/rogue
 	name = "AFTER LIFE"
-	icon = 'icons/mob/ghostspin.dmi'
-	icon_state = ""
+	icon = 'icons/mob/afterlife.dmi'
+	icon_state = "skull"
 	screen_loc = "WEST-4,SOUTH+6"
-	nomouseover = FALSE
+	no_over_text = FALSE
 
 /atom/movable/screen/ghost/orbit/rogue/Click(location, control, params)
-	var/mob/dead/observer/G = usr
-	var/paramslist = params2list(params)
-	if(paramslist["right"]) // screen objects don't do the normal Click() stuff so we'll cheat
-		if(G.client?.holder)
-			G.follow()
+	var/mob/dead/observer/ghost = usr
+	var/list/modifiers = params2list(params)
+	if(LAZYACCESS(modifiers, RIGHT_CLICK)) // screen objects don't do the normal Click() stuff so we'll cheat
+		if(ghost.client?.holder)
+			ghost.follow()
 	else
-		if(G.isinhell)
+		if(ghost.isinhell)
 			return
-		if(G.client)
-			if(G.client.holder)
-				if(istype(G, /mob/dead/observer/rogue/arcaneeye))
+		if(ghost.client)
+			if(ghost.client.holder)
+				if(istype(ghost, /mob/dead/observer/rogue/arcaneeye))
 					return
+<<<<<<< HEAD
 				if(istype(G, /mob/dead/observer/profane)) // Souls trapped by a dagger can return to lobby if they want, at the cost of a triumph.
 					if(alert("Return to the lobby? This will cost a triumph!", "", "Yes", "No") == "Yes")
 						G.returntolobby()
@@ -100,23 +86,39 @@
 /atom/movable/screen/ghost/teleport/Click()
 	var/mob/dead/observer/G = usr
 	G.dead_tele()
+=======
+				if(istype(ghost, /mob/dead/observer/profane)) // Souls trapped by a dagger can return to lobby if they want
+					if(alert("Return to the lobby?", "", "Yes", "No") == "Yes")
+						ghost.returntolobby()
+				ghost.descend_to_underworld()
+				return
+
+		if(has_world_trait(/datum/world_trait/skeleton_siege) || has_world_trait(/datum/world_trait/rousman_siege) || has_world_trait(/datum/world_trait/goblin_siege))
+			ghost.returntolobby()
+			return
+
+		ghost.descend_to_underworld()
+>>>>>>> upstream/main
 
 /datum/hud/ghost/New(mob/owner)
 	..()
 	var/atom/movable/screen/using
 
-	using =  new /atom/movable/screen/backhudl/ghost()
-	using.hud = src
-	static_inventory += using
+	if(!GLOB.admin_datums[owner.ckey]) // If you are adminned, you will not get the dead hud obstruction.
+		using =  new /atom/movable/screen/backhudl/ghost(null, src)
+		static_inventory += using
 
+<<<<<<< HEAD
 	scannies = new /atom/movable/screen/scannies
 	scannies.hud = src
+=======
+	scannies = new /atom/movable/screen/scannies(null, src)
+>>>>>>> upstream/main
 	static_inventory += scannies
 	if(owner.client?.prefs?.crt == TRUE)
 		scannies.alpha = 70
 
-	using = new /atom/movable/screen/ghost/orbit/rogue()
-	using.hud = src
+	using = new /atom/movable/screen/ghost/orbit/rogue(null, src)
 	static_inventory += using
 
 /datum/hud/ghost/show_hud(version = 0, mob/viewmob)
@@ -139,12 +141,15 @@
 	..()
 	var/atom/movable/screen/using
 
-	using =  new /atom/movable/screen/backhudl/ghost()
-	using.hud = src
+	using =  new /atom/movable/screen/backhudl/ghost(null, src)
 	static_inventory += using
 
+<<<<<<< HEAD
 	scannies = new /atom/movable/screen/scannies
 	scannies.hud = src
+=======
+	scannies = new /atom/movable/screen/scannies(null, src)
+>>>>>>> upstream/main
 	static_inventory += scannies
 	if(owner.client?.prefs?.crt == TRUE)
 		scannies.alpha = 70
@@ -169,12 +174,15 @@
 	..()
 	var/atom/movable/screen/using
 
-	using =  new /atom/movable/screen/backhudl/obs()
-	using.hud = src
+	using =  new /atom/movable/screen/backhudl/obs(null, src)
 	static_inventory += using
 
+<<<<<<< HEAD
 	scannies = new /atom/movable/screen/scannies
 	scannies.hud = src
+=======
+	scannies = new /atom/movable/screen/scannies(null, src)
+>>>>>>> upstream/main
 	static_inventory += scannies
 	if(owner.client?.prefs?.crt == TRUE)
 		scannies.alpha = 70

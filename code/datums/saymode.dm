@@ -21,6 +21,7 @@
 			V.handle_speech(message) //message
 			V.speak_with(message) //action
 	return FALSE
+<<<<<<< HEAD
 
 /datum/saymode/monkey
 	key = "k"
@@ -43,3 +44,5 @@
 			if((is_monkey_leader(M.mind) || ismonkey(M)) && (M.mind in SSticker.mode.ape_infectees))
 				to_chat(M, msg)
 		return FALSE
+=======
+>>>>>>> upstream/main

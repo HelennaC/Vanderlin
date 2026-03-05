@@ -3,23 +3,23 @@
 	name = "ladder"
 	desc = ""
 	icon = 'icons/roguetown/misc/structure.dmi'
-	icon_state = "ladder11"
+	icon_state = "ladder01"
 	anchored = TRUE
 	var/obj/structure/ladder/down   //the ladder below this one
 	var/obj/structure/ladder/up     //the ladder above this one
 	obj_flags = BLOCK_Z_OUT_DOWN
-	max_integrity = 0
+	resistance_flags = INDESTRUCTIBLE
 
 /obj/structure/ladder/Initialize(mapload, obj/structure/ladder/up, obj/structure/ladder/down)
 	..()
 	if (up)
 		src.up = up
 		up.down = src
-		up.update_icon()
+		up.update_appearance(UPDATE_ICON_STATE)
 	if (down)
 		src.down = down
 		down.up = src
-		down.update_icon()
+		down.update_appearance(UPDATE_ICON_STATE)
 	return INITIALIZE_HINT_LATELOAD
 
 /obj/structure/ladder/Destroy(force)
@@ -34,46 +34,39 @@
 	var/obj/structure/ladder/L
 
 	if (!down)
-		L = locate() in SSmapping.get_turf_below(T)
+		L = locate() in GET_TURF_BELOW(T)
 		if (L)
 			down = L
 			L.up = src  // Don't waste effort looping the other way
-			L.update_icon()
+			L.update_appearance(UPDATE_ICON_STATE)
 	if (!up)
-		L = locate() in SSmapping.get_turf_above(T)
+		L = locate() in GET_TURF_ABOVE(T)
 		if (L)
 			up = L
 			L.down = src  // Don't waste effort looping the other way
-			L.update_icon()
+			L.update_appearance(UPDATE_ICON_STATE)
 
-	update_icon()
+	update_appearance(UPDATE_ICON_STATE)
 
 /obj/structure/ladder/proc/disconnect()
 	if(up && up.down == src)
 		up.down = null
-		up.update_icon()
+		up.update_appearance(UPDATE_ICON_STATE)
 	if(down && down.up == src)
 		down.up = null
-		down.update_icon()
+		down.update_appearance(UPDATE_ICON_STATE)
 	up = down = null
 
-/obj/structure/ladder/update_icon()
+/obj/structure/ladder/update_icon_state()
+	. = ..()
 	if(up && down)
 		icon_state = "ladder11"
-
 	else if(up)
 		icon_state = "ladder10"
-
 	else if(down)
-		icon_state = "ladder01"
-
-	else	//wtf make your ladders properly assholes
+		icon_state = initial(icon_state)
+	else
 		icon_state = "ladder00"
-
-/obj/structure/ladder/singularity_pull()
-	if (!(resistance_flags & INDESTRUCTIBLE))
-		visible_message("<span class='danger'>[src] is torn to pieces by the gravitational pull!</span>")
-		qdel(src)
 
 /obj/structure/ladder/proc/travel(going_up, mob/user, is_ghost, obj/structure/ladder/ladder)
 	if(is_ghost)
@@ -81,7 +74,7 @@
 
 	if(!is_ghost)
 		playsound(src, 'sound/foley/ladder.ogg', 100, FALSE)
-		if(!do_after(user, 30, TRUE, src))
+		if(!do_after(user, 3 SECONDS, src))
 			return
 
 	if(!is_ghost)
@@ -89,7 +82,7 @@
 		ladder.add_fingerprint(user)
 	var/turf/T = get_turf(ladder)
 	if(isliving(user))
-		mob_move_travel_z_level(user, T)
+		movable_travel_z_level(user, T)
 	else
 		user.forceMove(T)
 
@@ -130,7 +123,7 @@
 /obj/structure/ladder/attack_paw(mob/user)
 	return use(user)
 
-/obj/structure/ladder/attackby(obj/item/W, mob/user, params)
+/obj/structure/ladder/attackby(obj/item/W, mob/user, list/modifiers)
 	return use(user)
 
 //ATTACK GHOST IGNORING PARENT RETURN VALUE
@@ -165,43 +158,29 @@
 /obj/structure/ladder/unbreakable/LateInitialize()
 	// Override the parent to find ladders based on being height-linked
 	if (!id || (up && down))
-		update_icon()
+		update_appearance(UPDATE_ICON_STATE)
 		return
 
-	for (var/O in GLOB.ladders)
-		var/obj/structure/ladder/unbreakable/L = O
+	for(var/obj/structure/ladder/unbreakable/L as anything in GLOB.ladders)
 		if (L.id != id)
 			continue  // not one of our pals
 		if (!down && L.height == height - 1)
 			down = L
 			L.up = src
-			L.update_icon()
+			L.update_appearance(UPDATE_ICON_STATE)
 			if (up)
 				break  // break if both our connections are filled
 		else if (!up && L.height == height + 1)
 			up = L
 			L.down = src
-			L.update_icon()
+			L.update_appearance(UPDATE_ICON_STATE)
 			if (down)
 				break  // break if both our connections are filled
 
-	update_icon()
+	update_appearance(UPDATE_ICON_STATE)
 
 /obj/structure/ladder/earth
 	icon_state = "ladderearth"
-
-/obj/structure/ladder/earth/update_icon()
-	if(up && down)
-		icon_state = "ladder11"
-
-	else if(up)
-		icon_state = "ladder10"
-
-	else if(down)
-		icon_state = "ladderearth"
-
-	else	//wtf make your ladders properly assholes
-		icon_state = "ladder00"
 
 /obj/structure/wallladder
 	name = "wall ladder"
@@ -215,17 +194,16 @@
 	max_integrity = 200
 	blade_dulling = DULLING_BASHCHOP
 
-
-
-/obj/structure/wallladder/OnCrafted(dirin)
+/obj/structure/wallladder/OnCrafted(dirin, mob/user)
 	dir = dirin
 	layer = BELOW_MOB_LAYER
 	switch(dir)
 		if(NORTH)
-			pixel_y = 16
+			pixel_y = base_pixel_y + 16
 		if(SOUTH)
 			layer = ABOVE_MOB_LAYER
 		if(WEST)
-			pixel_x = -4
+			pixel_x = base_pixel_x - 4
 		if(EAST)
-			pixel_x = 4
+			pixel_x = base_pixel_x + 4
+	return ..()

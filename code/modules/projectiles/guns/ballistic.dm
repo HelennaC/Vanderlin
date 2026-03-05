@@ -1,3 +1,8 @@
+/obj/item/proc/can_trigger_gun(mob/living/user)
+	if(!user.can_use_guns(src))
+		return FALSE
+	return TRUE
+
 ///Subtype for any kind of ballistic gun
 ///This has a shitload of vars on it, and I'm sorry for that, but it does make making new subtypes really easy
 /obj/item/gun/ballistic
@@ -48,7 +53,7 @@
 	///Whether the gun will spawn loaded with a magazine
 	var/spawnwithmagazine = TRUE
 	///Compatible magazines with the gun
-	var/mag_type = /obj/item/ammo_box/magazine/m10mm //Removes the need for max_ammo and caliber info
+	var/mag_type =/obj/item/ammo_box/magazine/internal/shot/xbow //Removes the need for max_ammo and caliber info
 	///Whether the sprite has a visible magazine or not
 	var/mag_display = FALSE
 	///Whether the sprite has a visible ammo display or not
@@ -83,60 +88,51 @@
 	var/recent_rack = 0
 	///Whether the gun can be tacloaded by slapping a fresh magazine directly on it
 	var/tac_reloads = TRUE //Snowflake mechanic no more.
-	///Whether the gun can be sawn off by sawing tools
-	var/can_be_sawn_off  = FALSE
 	var/verbage = "load"
 
 /obj/item/gun/ballistic/Initialize()
 	. = ..()
 	if (!spawnwithmagazine)
 		bolt_locked = TRUE
-		update_icon()
+		update_appearance(UPDATE_ICON)
 		return
 	if (!magazine)
 		magazine = new mag_type(src)
 	chamber_round()
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
-/obj/item/gun/ballistic/update_icon()
-	if (QDELETED(src))
-		return
-	..()
-	if(current_skin)
-		icon_state = "[unique_reskin[current_skin]][sawn_off ? "_sawn" : ""]"
-	else
-		icon_state = "[initial(icon_state)][sawn_off ? "_sawn" : ""]"
-	cut_overlays()
-	if (bolt_type == BOLT_TYPE_LOCKING)
-		add_overlay("[icon_state]_bolt[bolt_locked ? "_locked" : ""]")
-	if (bolt_type == BOLT_TYPE_OPEN && bolt_locked)
-		add_overlay("[icon_state]_bolt")
-	if (suppressed)
-		add_overlay("[icon_state]_suppressor")
-	if(!chambered && empty_indicator)
-		add_overlay("[icon_state]_empty")
-	if (magazine)
-		if (special_mags)
-			add_overlay("[icon_state]_mag_[initial(magazine.icon_state)]")
-			if (!magazine.ammo_count())
-				add_overlay("[icon_state]_mag_empty")
-		else
-			add_overlay("[icon_state]_mag")
-			var/capacity_number = 0
-			switch(get_ammo() / magazine.max_ammo)
-				if(0.2 to 0.39)
-					capacity_number = 20
-				if(0.4 to 0.59)
-					capacity_number = 40
-				if(0.6 to 0.79)
-					capacity_number = 60
-				if(0.8 to 0.99)
-					capacity_number = 80
-				if(1.0)
-					capacity_number = 100
-			if (capacity_number)
-				add_overlay("[icon_state]_mag_[capacity_number]")
-
+/obj/item/gun/ballistic/update_overlays()
+	. = ..()
+	// if (QDELETED(src))
+	// 	return
+	// var/used_state = initial(icon_state)
+	// if (bolt_type == BOLT_TYPE_LOCKING)
+	// 	. += "[used_state]_bolt[bolt_locked ? "_locked" : ""]"
+	// if (bolt_type == BOLT_TYPE_OPEN && bolt_locked)
+	// 	. += "[used_state]_bolt"
+	// if(!chambered && empty_indicator)
+	// 	. += "[used_state]_empty"
+	// if (magazine)
+	// 	if (special_mags)
+	// 		. += "[used_state]_mag_[initial(magazine.icon_state)]"
+	// 		if (!magazine.ammo_count())
+	// 			. += "[used_state]_mag_empty"
+	// 	else
+	// 		. += "[used_state]_mag"
+	// 		var/capacity_number = 0
+	// 		switch(get_ammo() / magazine.max_ammo)
+	// 			if(0.2 to 0.39)
+	// 				capacity_number = 20
+	// 			if(0.4 to 0.59)
+	// 				capacity_number = 40
+	// 			if(0.6 to 0.79)
+	// 				capacity_number = 60
+	// 			if(0.8 to 0.99)
+	// 				capacity_number = 80
+	// 			if(1.0)
+	// 				capacity_number = 100
+	// 		if (capacity_number)
+	// 			. += "[used_state]_mag_[capacity_number]"
 
 /obj/item/gun/ballistic/process_chamber(empty_chamber = TRUE, from_firing = TRUE, chamber_next_round = TRUE)
 	if(!semi_auto && from_firing)
@@ -179,7 +175,7 @@
 		playsound(src, lock_back_sound, lock_back_sound_volume, lock_back_sound_vary)
 	else
 		playsound(src, rack_sound, rack_sound_volume, rack_sound_vary)
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
 ///Drops the bolt from a locked position
 /obj/item/gun/ballistic/proc/drop_bolt(mob/user = null)
@@ -188,7 +184,7 @@
 		to_chat(user, "<span class='notice'>I drop the [bolt_wording] of \the [src].</span>")
 	chamber_round()
 	bolt_locked = FALSE
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
 ///Handles all the logic needed for magazine insertion
 /obj/item/gun/ballistic/proc/insert_magazine(mob/user, obj/item/ammo_box/magazine/AM, display_message = TRUE)
@@ -202,7 +198,7 @@
 		playsound(src, load_empty_sound, load_sound_volume, load_sound_vary)
 		if (bolt_type == BOLT_TYPE_OPEN && !bolt_locked)
 			chamber_round(TRUE)
-		update_icon()
+		update_appearance(UPDATE_ICON)
 		return TRUE
 	else
 		to_chat(user, "<span class='warning'>I cannot seem to get \the [src] out of your hands!</span>")
@@ -222,20 +218,20 @@
 		if (insert_magazine(user, tac_load, FALSE))
 			to_chat(user, "<span class='notice'>I perform a tactical reload on \the [src].</span>")
 		else
-			to_chat(user, "<span class='warning'>I dropped the old [magazine_wording], but the new one doesn't fit. How embarassing.</span>")
+			to_chat(user, "<span class='warning'>I dropped the old [magazine_wording], but the new one doesn't fit. How embarrassing.</span>")
 			magazine = null
 	else
 		magazine = null
 	user.put_in_hands(old_mag)
-	old_mag.update_icon()
+	old_mag.update_appearance()
 	if (display_message)
 		to_chat(user, "<span class='notice'>I pull the [magazine_wording] out of \the [src].</span>")
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
 /obj/item/gun/ballistic/can_shoot()
 	return chambered
 
-/obj/item/gun/ballistic/attackby(obj/item/A, mob/user, params)
+/obj/item/gun/ballistic/attackby(obj/item/A, mob/user, list/modifiers)
 	. = ..()
 	if (.)
 		return
@@ -247,69 +243,30 @@
 			if (tac_reloads)
 				eject_magazine(user, FALSE, AM)
 			else
-				to_chat(user, "<span class='notice'>There's already a [magazine_wording] in \the [src].</span>")
+				to_chat(user, "<span class='notice'>There's already \a [magazine_wording] in \the [src].</span>")
 		return
 	if (istype(A, /obj/item/ammo_casing) || istype(A, /obj/item/ammo_box))
 		if (bolt_type == BOLT_TYPE_NO_BOLT || internal_magazine)
 			if (chambered && !chambered.BB)
 				chambered.forceMove(drop_location())
 				chambered = null
-			var/num_loaded = magazine.attackby(A, user, params, TRUE)
+			var/num_loaded = magazine.attackby(A, user, modifiers, TRUE)
 			if (num_loaded)
-				to_chat(user, "<span class='notice'>I [verbage] a [cartridge_wording]\s on \the [src].</span>")
+				to_chat(user, "<span class='notice'>I [verbage] \a [cartridge_wording]\s on \the [src].</span>")
 				playsound(src, load_sound, load_sound_volume, load_sound_vary)
 				if (chambered == null && bolt_type == BOLT_TYPE_NO_BOLT)
 					chamber_round()
-				A.update_icon()
-				update_icon()
-			return
-	if(istype(A, /obj/item/suppressor))
-		var/obj/item/suppressor/S = A
-		if(!can_suppress)
-			to_chat(user, "<span class='warning'>I can't seem to figure out how to fit [S] on [src]!</span>")
-			return
-		if(!user.is_holding(src))
-			to_chat(user, "<span class='warning'>I need be holding [src] to fit [S] to it!</span>")
-			return
-		if(suppressed)
-			to_chat(user, "<span class='warning'>[src] already has a suppressor!</span>")
-			return
-		if(user.transferItemToLoc(A, src))
-			to_chat(user, "<span class='notice'>I screw \the [S] onto \the [src].</span>")
-			install_suppressor(A)
-			return
-	if (can_be_sawn_off)
-		if (sawoff(user, A))
+				A.update_appearance()
+				update_appearance(UPDATE_ICON)
 			return
 	user.update_inv_hands()
 	return FALSE
 
-/obj/item/gun/ballistic/process_fire(atom/target, mob/living/user, message = TRUE, params = null, zone_override = "", bonus_spread = 0)
-	if (sawn_off)
-		bonus_spread += SAWN_OFF_ACC_PENALTY
-	. = ..()
 
-///Installs a new suppressor, assumes that the suppressor is already in the contents of src
-/obj/item/gun/ballistic/proc/install_suppressor(obj/item/suppressor/S)
-	suppressed = S
-	w_class += S.w_class //so pistols do not fit in pockets when suppressed
-	update_icon()
-
-/obj/item/gun/ballistic/AltClick(mob/user)
-	if (unique_reskin && !current_skin && user.canUseTopic(src, BE_CLOSE, NO_DEXTERITY))
+/obj/item/gun/ballistic/AltClick(mob/user, list/modifiers)
+	if (unique_reskin && !current_skin && user.can_perform_action(src, FORBID_TELEKINESIS_REACH))
 		reskin_obj(user)
 		return
-	if(loc == user)
-		if(suppressed && can_unsuppress)
-			var/obj/item/suppressor/S = suppressed
-			if(!user.is_holding(src))
-				return ..()
-			to_chat(user, "<span class='notice'>I unscrew \the [suppressed] from \the [src].</span>")
-			user.put_in_hands(suppressed)
-			w_class -= S.w_class
-			suppressed = null
-			update_icon()
-			return
 
 ///Prefire empty checks for the bolt drop
 /obj/item/gun/ballistic/proc/prefire_empty_checks()
@@ -317,19 +274,19 @@
 		if (bolt_type == BOLT_TYPE_OPEN && !bolt_locked)
 			bolt_locked = TRUE
 			playsound(src, bolt_drop_sound, bolt_drop_sound_volume)
-			update_icon()
+			update_appearance(UPDATE_ICON)
 
 ///postfire empty checks for bolt locking and sound alarms
 /obj/item/gun/ballistic/proc/postfire_empty_checks(last_shot_succeeded)
 	if (!chambered && !get_ammo())
 		if (empty_alarm && last_shot_succeeded)
 			playsound(src, empty_alarm_sound, empty_alarm_volume, empty_alarm_vary)
-			update_icon()
+			update_appearance(UPDATE_ICON)
 		if (last_shot_succeeded && bolt_type == BOLT_TYPE_LOCKING)
 			bolt_locked = TRUE
-			update_icon()
+			update_appearance(UPDATE_ICON)
 
-/obj/item/gun/ballistic/afterattack()
+/obj/item/gun/ballistic/afterattack(atom/target, mob/living/user, proximity_flag, list/modifiers)
 	prefire_empty_checks()
 	. = ..() //The gun actually firing
 	postfire_empty_checks(.)
@@ -341,7 +298,7 @@
 		return
 	return ..()
 
-/obj/item/gun/ballistic/attack_self(mob/living/user)
+/obj/item/gun/ballistic/attack_self(mob/living/user, list/modifiers)
 	if(!internal_magazine && magazine)
 		if(!magazine.ammo_count())
 			eject_magazine(user)
@@ -359,7 +316,7 @@
 		if (num_unloaded)
 			to_chat(user, "<span class='notice'>I remove [(num_unloaded == 1) ? "the" : "[num_unloaded]"] [cartridge_wording]\s from [src].</span>")
 			playsound(user, eject_sound, eject_sound_volume, eject_sound_vary)
-			update_icon()
+			update_appearance(UPDATE_ICON)
 		else
 			to_chat(user, "<span class='warning'>[src] is empty!</span>")
 		return
@@ -370,19 +327,6 @@
 		return
 	recent_rack = world.time + rack_delay
 	rack(user)
-	return
-
-
-/obj/item/gun/ballistic/examine(mob/user)
-	. = ..()
-//	var/count_chambered = !(bolt_type == BOLT_TYPE_NO_BOLT || bolt_type == BOLT_TYPE_OPEN)
-//	. += "It has [get_ammo(count_chambered)] round\s remaining."
-//	if (!chambered)
-//		. += "It does not seem to have a round chambered."
-//	if (bolt_locked)
-//		. += "The [bolt_wording] is locked back and needs to be released before firing."
-//	if (suppressed)
-//		. += "It has a suppressor attached that can be removed with <b>alt+click</b>."
 
 ///Gets the number of bullets in the gun
 /obj/item/gun/ballistic/proc/get_ammo(countchambered = TRUE)
@@ -429,6 +373,7 @@
 		return (OXYLOSS)
 #undef BRAINS_BLOWN_THROW_SPEED
 #undef BRAINS_BLOWN_THROW_RANGE
+<<<<<<< HEAD
 
 GLOBAL_LIST_INIT(gun_saw_types, typecacheof(list(
 
@@ -487,3 +432,5 @@ GLOBAL_LIST_INIT(gun_saw_types, typecacheof(list(
 /obj/item/suppressor/specialoffer
 	name = "cheap suppressor"
 	desc = ""
+=======
+>>>>>>> upstream/main

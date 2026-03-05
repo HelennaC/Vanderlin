@@ -6,8 +6,7 @@
 	name = "smoke"
 	icon = 'icons/effects/96x96.dmi'
 	icon_state = "smoke"
-	pixel_x = -32
-	pixel_y = -32
+	SET_BASE_PIXEL(-32, -32)
 	opacity = 1
 	layer = FLY_LAYER
 	plane = GAME_PLANE_UPPER
@@ -34,8 +33,9 @@
 /obj/effect/particle_effect/smoke/Initialize()
 	. = ..()
 	create_reagents(500)
+	var/turf/T = get_turf(src)
+	T.ImmediateCalculateAdjacentTurfs()
 	START_PROCESSING(SSobj, src)
-
 
 /obj/effect/particle_effect/smoke/Destroy()
 	STOP_PROCESSING(SSobj, src)
@@ -60,9 +60,9 @@
 		return 0
 	if(lifetime<1)
 		return 0
-	if(C.internal != null || C.has_smoke_protection())
-		return 0
 	if(C.smoke_delay)
+		return 0
+	if(istype(C.wear_mask, /obj/item/clothing/face/facemask/steel/confessor))
 		return 0
 	C.smoke_delay++
 	addtimer(CALLBACK(src, PROC_REF(remove_smoke_delay), C), 10)
@@ -133,74 +133,33 @@
 		M.emote("cough")
 		return 1
 
-/obj/effect/particle_effect/smoke/bad/CanPass(atom/movable/mover, turf/target)
-	if(istype(mover, /obj/projectile/beam))
-		var/obj/projectile/beam/B = mover
-		B.damage = (B.damage/2)
-	return 1
-
-
 
 /datum/effect_system/smoke_spread/bad
 	effect_type = /obj/effect/particle_effect/smoke/bad
 
+
 /////////////////////////////////////////////
-// Nanofrost smoke
+// Poison smoke
 /////////////////////////////////////////////
 
-/obj/effect/particle_effect/smoke/freezing
-	name = "nanofrost smoke"
-	color = "#B2FFFF"
-	opaque = 0
+/obj/effect/particle_effect/smoke/poison
+	color = "#23462d"
+	lifetime = 10
 
-/datum/effect_system/smoke_spread/freezing
-	effect_type = /obj/effect/particle_effect/smoke/freezing
-	var/blast = 0
-	var/temperature = 2
-	var/weldvents = TRUE
-	var/distcheck = TRUE
+/obj/effect/particle_effect/smoke/poison/smoke_mob(mob/living/carbon/M)
+	if(..())
+		if(!istype(M.wear_mask, /obj/item/clothing/face/phys/plaguebearer))
+			M.adjustToxLoss(5)
+			M.add_nausea(5)
+			M.reagents.add_reagent(/datum/reagent/miasmagas, 1)
+			M.emote("cough")
+			if(prob(5))
+				to_chat(M, span_warning("You feel numbness spreading through your body..."))
+			return 1
 
-/datum/effect_system/smoke_spread/freezing/proc/Chilled(atom/A)
-	if(isopenturf(A))
-		var/turf/open/T = A
-		if(T.air)
-			var/datum/gas_mixture/G = T.air
-			if(!distcheck || get_dist(T, location) < blast) // Otherwise we'll get silliness like people using Nanofrost to kill people through walls with cold air
-				G.temperature = temperature
-			T.air_update_turf()
-			for(var/obj/effect/hotspot/H in T)
-				qdel(H)
-			var/list/G_gases = G.gases
-			if(G_gases[/datum/gas/plasma])
-				G.assert_gas(/datum/gas/nitrogen)
-				G_gases[/datum/gas/nitrogen][MOLES] += (G_gases[/datum/gas/plasma][MOLES])
-				G_gases[/datum/gas/plasma][MOLES] = 0
-				G.garbage_collect()
-		if (weldvents)
-			for(var/obj/machinery/atmospherics/components/unary/U in T)
-				if(!isnull(U.welded) && !U.welded) //must be an unwelded vent pump or vent scrubber.
-					U.welded = TRUE
-					U.update_icon()
-					U.visible_message("<span class='danger'>[U] was frozen shut!</span>")
-		for(var/mob/living/L in T)
-			L.ExtinguishMob()
-		for(var/obj/item/Item in T)
-			Item.extinguish()
 
-/datum/effect_system/smoke_spread/freezing/set_up(radius = 5, loca, blast_radius = 0)
-	..()
-	blast = blast_radius
-
-/datum/effect_system/smoke_spread/freezing/start()
-	if(blast)
-		for(var/turf/T in RANGE_TURFS(blast, location))
-			Chilled(T)
-	..()
-
-/datum/effect_system/smoke_spread/freezing/decon
-	temperature = 293.15
-	distcheck = FALSE
-	weldvents = FALSE
+/datum/effect_system/smoke_spread/poison
+	effect_type = /obj/effect/particle_effect/smoke/poison
 
 
 /////////////////////////////////////////////
@@ -247,11 +206,8 @@
 		return 0
 	if(!istype(M))
 		return 0
-	var/mob/living/carbon/C = M
-	if(C.internal != null || C.has_smoke_protection())
-		return 0
 	var/fraction = 1/initial(lifetime)
-	reagents.copy_to(C, fraction*reagents.total_volume)
+	reagents.copy_to(M, fraction*reagents.total_volume)
 	reagents.reaction(M, INGEST, fraction)
 	return 1
 
@@ -290,6 +246,7 @@
 
 		var/where = "[AREACOORD(location)]"
 		if(carry.my_atom.fingerprintslast)
+<<<<<<< HEAD
 			var/mob/M = get_mob_by_key(carry.my_atom.fingerprintslast)
 			var/more = ""
 			if(M)
@@ -298,6 +255,10 @@
 			log_game("A chemical smoke reaction has taken place in ([where])[contained]. Last touched by [carry.my_atom.fingerprintslast].")
 		else
 			message_admins("Smoke: ([ADMIN_VERBOSEJMP(location)])[contained]. No associated key.")
+=======
+			log_game("A chemical smoke reaction has taken place in ([where])[contained]. Last touched by [carry.my_atom.fingerprintslast].")
+		else
+>>>>>>> upstream/main
 			log_game("A chemical smoke reaction has taken place in ([where])[contained]. No associated key.")
 
 
@@ -326,6 +287,16 @@
 	effect_type = /obj/effect/particle_effect/smoke/transparent
 
 /obj/effect/particle_effect/smoke/transparent
+	opaque = FALSE
+	alpha = 50
+	opacity = FALSE
+	lifetime = 3
+
+//Same as the base type, but the smoke produced is not opaque
+/datum/effect_system/smoke_spread/chem/transparent
+	effect_type = /obj/effect/particle_effect/smoke/chem/transparent
+
+/obj/effect/particle_effect/smoke/chem/transparent
 	opaque = FALSE
 	alpha = 50
 	opacity = FALSE

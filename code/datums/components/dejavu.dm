@@ -44,26 +44,20 @@
 		brain_loss = L.getOrganLoss(ORGAN_SLOT_BRAIN)
 		rewind_type = PROC_REF(rewind_living)
 
-	if(iscarbon(parent))
-		var/mob/living/carbon/C = parent
-		saved_bodyparts = C.save_bodyparts()
-		rewind_type = PROC_REF(rewind_carbon)
-
-	else if(isanimal(parent))
+	if(isanimal(parent))
 		var/mob/living/simple_animal/M = parent
 		brute_loss = M.bruteloss
 		rewind_type = PROC_REF(rewind_animal)
 
 	else if(isobj(parent))
 		var/obj/O = parent
-		integrity = O.obj_integrity
+		integrity = O.get_integrity()
 		rewind_type = PROC_REF(rewind_obj)
 
 	addtimer(CALLBACK(src, rewind_type), rewind_interval)
 
 /datum/component/dejavu/Destroy()
 	starting_turf = null
-	saved_bodyparts = null
 	return ..()
 
 /datum/component/dejavu/proc/rewind()
@@ -90,9 +84,6 @@
 	rewind()
 
 /datum/component/dejavu/proc/rewind_carbon()
-	if(saved_bodyparts)
-		var/mob/living/carbon/master = parent
-		master.apply_saved_bodyparts(saved_bodyparts)
 	rewind_living()
 
 /datum/component/dejavu/proc/rewind_animal()
@@ -103,5 +94,5 @@
 
 /datum/component/dejavu/proc/rewind_obj()
 	var/obj/master = parent
-	master.obj_integrity = integrity
+	master.update_integrity(integrity)
 	rewind()

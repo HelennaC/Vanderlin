@@ -1,39 +1,11 @@
 // Verbs
-/client/proc/descend()
-	set name = "Journey to the Underworld"
-	set category = "Spirit"
 
-	switch(alert("Begin the long walk in the underworld to your judgement....",,"Yes","No"))
-		if("Yes")
-			if(istype(mob, /mob/living/carbon/human))
-				var/mob/living/carbon/human/D = mob
-				if(D.buried && D.funeral)
-					D.returntolobby()
-					return
-
-				// Check if the player's job is hiv+
-				var/datum/job/target_job = SSjob.GetJob(D.mind.assigned_role)
-				if(target_job)
-					if(target_job.job_reopens_slots_on_death)
-						target_job.current_positions = max(0, target_job.current_positions - 1)
-					if(target_job.same_job_respawn_delay)
-						// Store the current time for the player
-						GLOB.job_respawn_delays[src.ckey] = world.time + target_job.same_job_respawn_delay
-
-			for(var/turf/spawn_loc in GLOB.underworldcoinspawns)
-				var/mob/living/carbon/spirit/O = new /mob/living/carbon/spirit(spawn_loc)
-				O.livingname = mob.name
-				O.ckey = ckey
-				O.patron = prefs.selected_patron
-				SSdroning.area_entered(get_area(O), O.client)
-			verbs -= /client/proc/descend
-		if("No")
-			usr << "You have second thoughts."
-
-/mob/verb/returntolobby()
+/mob/proc/returntolobby()
 	set name = "{RETURN TO LOBBY}"
-	set category = "Options"
+	set category = "Preferences.Options"
 	set hidden = 1
+
+	GLOB.actors_list -= mobid // admin removed - get him outta here.
 
 	if(key)
 		GLOB.respawntimes[key] = world.time
@@ -47,10 +19,6 @@
 		return
 	client.screen.Cut()
 	client.screen += client.void
-//	stop_all_loops()
-	SSdroning.kill_rain(src.client)
-	SSdroning.kill_loop(src.client)
-	SSdroning.kill_droning(src.client)
 	remove_client_colour(/datum/client_colour/monochrome)
 	if(!client)
 		log_game("[key_name(usr)] AM failed due to disconnect.")
@@ -63,29 +31,20 @@
 		return
 
 	M.key = key
-	client.verbs -= /client/proc/descend
 	qdel(src)
 	return
-/*	Commented out. Resource intensive and not actually needed with the timer to put in hands and maze setup
-/proc/coin_upkeep()
-	if(length(GLOB.underworldcoins) >= 3)
-		return
-	for(var/turf/spawn_loc in GLOB.underworldcoinspawns)
-		if(locate(/obj/item/underworld/coin) in spawn_loc)
-			continue
-		new /obj/item/underworld/coin(spawn_loc)
-		if(length(GLOB.underworldcoins) >= 3)
-			break
-*/
+
 
 // shit that eventually will need moved elsewhere
-/obj/item/flashlight/lantern/shrunken
+/obj/item/flashlight/flare/torch/lantern/shrunken
 	name = "shrunken lamp"
+	icon = 'icons/obj/lighting.dmi'
 	icon_state = "shrunkenlamp"
 	item_state = "shrunkenlamp"
 	lefthand_file = 'icons/mob/inhands/equipment/mining_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/equipment/mining_righthand.dmi'
 	desc = "A beacon."
+<<<<<<< HEAD
 	light_outer_range = 2			// luminosity when on
 	light_color = LIGHT_COLOR_BLOOD_MAGIC
 
@@ -96,17 +55,23 @@
 	else
 		icon_state = initial(icon_state)
 		set_light(0)
+=======
+	light_outer_range = 3.5			// luminosity when on
+	light_power = 20
+	light_color = LIGHT_COLOR_LIGHT_CYAN
+>>>>>>> upstream/main
 
 
 /obj/structure/underworld/carriageman
 	name = "The Carriageman"
-	desc = "They will take the reigns and lead the way. But only if the price I can pay."
+	desc = "They will take the reins and lead the way. But only if the price I can pay."
 	icon = 'icons/roguetown/underworld/enigma_carriageman.dmi'
 	icon_state = "carriageman"
 	layer = ABOVE_MOB_LAYER
 	plane = GAME_PLANE_UPPER
 	anchored = TRUE
 	density = TRUE
+	resistance_flags = INDESTRUCTIBLE
 
 /obj/structure/underworld/carriageman/Initialize()
 	. = ..()
@@ -120,7 +85,7 @@
 		to_chat(user, "<br><font color=purple><span class='bold'>HANDS EXCHANGE PAY, BE ON YOUR WAY</span></font>")
 		user << sound(pick('sound/misc/carriage1.ogg', 'sound/misc/carriage2.ogg', 'sound/misc/carriage3.ogg', 'sound/misc/carriage4.ogg'), 0, 0 ,0, 50)
 
-/obj/structure/underworld/carriageman/attackby(obj/item/W, mob/living/user)
+/obj/structure/underworld/carriageman/attackby(obj/item/W, mob/living/user, list/modifiers)
 	var/mob/living/carbon/spirit/ghost = user
 	if(istype(W, /obj/item/underworld/coin))
 		if(!ghost.paid)
@@ -128,6 +93,7 @@
 			to_chat(ghost, "<br><font color=purple><span class='bold'>THE TOLL IS PAID, THROUGH THE CARRIAGE THE UNDERMAIDEN WAITS.</span></font>")
 			user << sound(pick('sound/misc/carriage1.ogg', 'sound/misc/carriage2.ogg', 'sound/misc/carriage3.ogg', 'sound/misc/carriage4.ogg'), 0, 0 ,0, 50)
 			ghost.paid = TRUE
+			SSdeath_arena.remove_fighter(ghost)
 			return
 		if(ghost.paid)
 			to_chat(ghost, "<br><font color=purple><span class='bold'>FURTHER PAYMENT WILL NOT CHANGE HER JUDGEMENT.</span></font>")
@@ -143,6 +109,7 @@
 	icon_state = "spiritpart"
 	density = TRUE
 	anchored = TRUE
+	resistance_flags = INDESTRUCTIBLE
 
 /obj/structure/underworld/carriage
 	name = "Carriage"
@@ -153,6 +120,7 @@
 	plane = GAME_PLANE_UPPER
 	anchored = TRUE
 	density = TRUE
+	resistance_flags = INDESTRUCTIBLE
 
 
 /obj/structure/underworld/carriage/Initialize()
@@ -164,25 +132,72 @@
 		switch(alert("Are you ready to be judged?",,"Yes","No"))
 			if("Yes")
 				playsound(user, 'sound/misc/deadbell.ogg', 50, TRUE, -2, ignore_walls = TRUE)
+				add_abstract_elastic_data(ELASCAT_COMBAT, ELASDATA_COIN_REVIVES, 1)
+				record_round_statistic(STATS_SOULS_REINCARNATED)
 				user.returntolobby()
 			if("No")
-				usr << "You delay fate."
+				to_chat(user,span_notice("You delay fate."))
 	else
 		to_chat(user, "<B><font size=3 color=red>It's LOCKED.</font></B>")
+
+
+/obj/structure/underworld/coinspawner
+	name = "The Hand"
+	desc = "A coin?"
+	icon = 'icons/roguetown/underworld/enigma_husks.dmi'
+	icon_state = "the_hand_c"
+	anchored = TRUE
+	resistance_flags = INDESTRUCTIBLE
+	var/has_coin = TRUE
+
+/obj/structure/underworld/coinspawner/attack_hand(mob/user)
+	. = ..()
+	if(has_coin && isroguespirit(user))
+		on_activation(user)
+
+/obj/structure/underworld/coinspawner/Crossed(atom/movable/AM)
+	. = ..()
+	if(has_coin && isroguespirit(AM))
+		on_activation(AM)
+
+/obj/structure/underworld/coinspawner/proc/on_activation(mob/living/carbon/spirit/fool)
+	/* Re-enable if you ever make them respawn
+	if(SSdeath_arena.tollless_clients[fool.client] <= (world.time + 5 MINUTES))
+		to_chat(fool,span_notice("You can't seem to interact with \the [src] at this moment..."))
+		return
+		*/
+	var/obj/item/underworld/coin/toll = new(get_turf(src))
+	if(!GLOB.underworld_coinpull_locs.len)
+		if(fool.put_in_hands(toll))
+			to_chat(fool,span_notice("\The [src] puts \the [toll] in your hand..."))
+		else
+			to_chat(fool,span_notice("\The [src] drops \the [toll]..."))
+			toll.forceMove(get_turf(fool))
+		set_coin_taken()
+		return
+	var/turf/moveloc = pick(GLOB.underworld_coinpull_locs)
+	fool.forceMove(moveloc)
+	if(fool.put_in_hands(toll))
+		to_chat(fool, span_alertwarning("\The [src] swiftly drags you under; but leaves you with \the [toll]!"))
+	else
+		to_chat(fool, span_alertwarning("\The [src] swiftly drags you under; but leaves \the [toll] at your feet!"))
+	set_coin_taken()
+
+/obj/structure/underworld/coinspawner/proc/set_coin_taken()
+	has_coin = FALSE
+	icon_state = "the_hand"
+	desc = "A hand?"
+
+/obj/structure/underworld/coinspawner/proc/regenerate_coin()
+	has_coin = TRUE
+	icon_state = "the_hand_c"
+	desc = "A coin?"
 
 /obj/item/underworld/coin
 	name = "The Toll"
 	desc = "This is more than just a coin."
 	icon = 'icons/roguetown/underworld/enigma_husks.dmi'
 	icon_state = "soultoken_floor"
-
-/obj/item/underworld/coin/Initialize()
-	. = ..()
-	GLOB.underworldcoins += src
-
-/obj/item/underworld/coin/Destroy()
-	GLOB.underworldcoins -= src
-	return ..()
 
 /obj/item/underworld/coin/pickup(mob/user)
 	..()
@@ -192,6 +207,7 @@
 	..()
 	icon_state = "soultoken_floor"
 
+<<<<<<< HEAD
 // why not also some mob stuff too
 /mob/living/simple_animal/hostile/rogue/demon
 	name = "demon"
@@ -333,8 +349,10 @@
 				span_danger("\The [src] paralyzes me!"))
 		emote("laugh")
 
+=======
+>>>>>>> upstream/main
 /obj/effect/landmark/underworldsafe/Crossed(atom/movable/AM, oldloc)
-	if(istype(AM, /mob/living/simple_animal/hostile/rogue/demon))
+	if(istype(AM, /mob/living/simple_animal/hostile/dragger))
 		for(var/mob/living/carbon/human/A in view(4))
 			to_chat(A, "The monster's form dematerializes as it nears the Carriage.")
 		qdel(AM)

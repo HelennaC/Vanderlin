@@ -16,8 +16,16 @@
 	if (!(target_key in controller.blackboard))
 		return
 
+<<<<<<< HEAD
 	var/obj/effect/proc_holder/spell/using_action = controller.blackboard[ability_key]
 	if (!using_action?.recharging)
+=======
+	var/datum/action/cooldown/using_action = controller.blackboard[ability_key]
+	if(QDELETED(using_action))
+		controller.clear_blackboard_key(ability_key)
+		return
+	if(!using_action.IsAvailable())
+>>>>>>> upstream/main
 		return
 
 	controller.queue_behavior(use_ability_behaviour, ability_key, target_key)

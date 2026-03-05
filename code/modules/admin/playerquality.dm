@@ -43,7 +43,6 @@
 	if(json[key])
 		curpq = json[key]
 	curpq += amt
-	curpq = CLAMP(curpq, -100, 100)
 	json[key] = curpq
 	fdel(json_file)
 	WRITE_FILE(json_file, json_encode(json))
@@ -83,7 +82,7 @@
 			msg += " - RSN: [reason]"
 
 /client/proc/check_pq()
-	set category = "GameMaster"
+	set category = "GameMaster.Triumphs"
 	set name = "CheckPQ"
 	if(!holder)
 		return
@@ -132,7 +131,7 @@
 	popup_window_data += "Commends: <a href='?_src_=holder;[HrefToken()];readcommends=[ckey]'>[get_commends(ckey)]</a></div></td>"
 	popup_window_data += "<td width=34%><center>ESL Points: [get_eslpoints(ckey)]</center></td>"
 	popup_window_data += "<td width=33%><div style='text-align:right'>Rounds Survived: [get_roundsplayed(ckey)]</div></td></tr></table>"
-	var/list/listy = world.file2list("data/player_saves/[copytext(ckey,1,2)]/[ckey]/playerquality.txt")
+	var/list/listy = file2list("data/player_saves/[copytext(ckey,1,2)]/[ckey]/playerquality.txt")
 	if(!listy.len)
 		popup_window_data += "<span class='info'>No data on record. Create some.</span>"
 	else
@@ -144,8 +143,16 @@
 	popup.set_content(popup_window_data)
 	popup.open()
 
+/client/proc/stop_restart()
+	set category = "Server.Round Control"
+	set name = "Stop Restart"
+	if(!holder)
+		return
+	SSticker.reboot_anyway = null
+	message_admins("[usr] stopped the 15 minute reboot after a successful vote.")
+
 /client/proc/adjust_pq()
-	set category = "GameMaster"
+	set category = "GameMaster.Triumphs"
 	set name = "AdjustPQ"
 	if(!holder)
 		return
@@ -178,9 +185,11 @@
 		if(!selection)
 			return
 		theykey = selection
+	/*
 	if(theykey == ckey)
 		to_chat(src, "<span class='boldwarning'>That's you!</span>")
 		return
+	*/
 	if(!fexists("data/player_saves/[copytext(theykey,1,2)]/[theykey]/preferences.sav"))
 		to_chat(src, "<span class='boldwarning'>User does not exist.</span>")
 		return
@@ -230,7 +239,7 @@
 	if(!curcomm)
 		curcomm = 0
 	return curcomm
-	
+
 /proc/get_eslpoints(key)
 	if(!key)
 		return

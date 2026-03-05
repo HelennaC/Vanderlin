@@ -3,8 +3,7 @@
 /proc/TopicHandlers()
 	. = list()
 	var/list/all_handlers = subtypesof(/datum/world_topic)
-	for(var/I in all_handlers)
-		var/datum/world_topic/WT = I
+	for(var/datum/world_topic/WT as anything in all_handlers)
 		var/keyword = initial(WT.keyword)
 		if(!keyword)
 			warning("[WT] has no keyword! Ignoring...")
@@ -35,8 +34,13 @@
 	if(require_comms_key && !key_valid)
 		return "Bad Key"
 	input -= "key"
-	. = Run(input)
-	if(islist(.))
+	if (input["json"])
+		. = Run(input + json_decode(input["json"]))
+	else
+		. = Run(input)
+	if (input["format"] == "json")
+		. = json_encode(.)
+	else if(islist(.))
 		. = list2params(.)
 
 /datum/world_topic/proc/Run(list/input)
@@ -141,7 +145,7 @@
 	.["vote"] = CONFIG_GET(flag/allow_vote_mode)
 	.["ai"] = CONFIG_GET(flag/allow_ai)
 	.["host"] = world.host ? world.host : null
-	.["round_id"] = GLOB.round_id
+	.["round_id"] = GLOB.rogue_round_id
 	.["players"] = GLOB.clients.len
 	.["revision"] = GLOB.revdata.commit
 	.["revision_date"] = GLOB.revdata.date
@@ -157,8 +161,8 @@
 	if(key_valid)
 		.["active_players"] = get_active_player_count()
 		if(SSticker.HasRoundStarted())
-			.["real_mode"] = SSticker.mode.name
-			// Key-authed callers may know the truth behind the "secret"
+			.["real_mode"] = "Storytellers"
+			// Key-authed requesters may know the truth behind the "secret"
 
 	.["round_duration"] = SSticker ? round((world.time-SSticker.round_start_time)/10) : 0
 	// Amount of world's ticks in seconds, useful for calculating round duration
@@ -175,9 +179,6 @@
 	.["extreme_popcap"] = CONFIG_GET(number/extreme_popcap) || 0
 	.["popcap"] = max(CONFIG_GET(number/soft_popcap), CONFIG_GET(number/hard_popcap), CONFIG_GET(number/extreme_popcap)) //generalized field for this concept for use across ss13 codebases
 
-	if(SSshuttle && SSshuttle.emergency)
-		.["shuttle_mode"] = SSshuttle.emergency.mode
-		// Shuttle status, see /__DEFINES/stat.dm
-		.["shuttle_timer"] = SSshuttle.emergency.timeLeft()
-		// Shuttle timer, in seconds
-
+	//round state
+	.["timeofday"] = GLOB.tod
+	.["dayspassed"] = GLOB.dayspassed

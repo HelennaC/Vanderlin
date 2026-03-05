@@ -87,9 +87,7 @@
 		/datum/mob_descriptor/body/broadshoulder,
 		/datum/mob_descriptor/body/burly,
 		/datum/mob_descriptor/body/bulky,
-		/datum/mob_descriptor/body/bottomheavy,
 		/datum/mob_descriptor/body/bowleg,
-		/datum/mob_descriptor/body/curvy,
 		/datum/mob_descriptor/body/decrepit,
 		/datum/mob_descriptor/body/dainty,
 		/datum/mob_descriptor/body/gaunt,
@@ -109,7 +107,6 @@
 		/datum/mob_descriptor/body/lean,
 		/datum/mob_descriptor/body/muscular,
 		/datum/mob_descriptor/body/twiggy,
-		/datum/mob_descriptor/body/topheavy,
 		/datum/mob_descriptor/body/thin,
 		/datum/mob_descriptor/body/willowy,
 		/datum/mob_descriptor/body/wiry,
@@ -212,13 +209,13 @@
 		/datum/mob_descriptor/height/tiny,
 		/datum/mob_descriptor/height/shortly,
 		/datum/mob_descriptor/height/tallish,
-		/datum/mob_descriptor/height/average,	
+		/datum/mob_descriptor/height/average,
 		/datum/mob_descriptor/height/lowslung,
 		/datum/mob_descriptor/height/statuesque,
 		/datum/mob_descriptor/height/longshanked,
 	)
 
-
+// I'm keeping prominent_bottom for the 'Clap of my ass-cheeks alerting the guards,' jokes. -Aberra
 #define PROMINENT_DESCRIPTORS \
 	/datum/mob_descriptor/prominent/hunched_over,\
 	/datum/mob_descriptor/prominent/drooling,\
@@ -235,8 +232,6 @@
 	/datum/mob_descriptor/prominent/extensive_scars,\
 	/datum/mob_descriptor/prominent/move_strange,\
 	/datum/mob_descriptor/prominent/ghoulish_appearance,\
-	/datum/mob_descriptor/prominent/prominent_chest,\
-	/datum/mob_descriptor/prominent/prominent_thighs,\
 	/datum/mob_descriptor/prominent/prominent_shoulders,\
 	/datum/mob_descriptor/prominent/prominent_jawline,\
 	/datum/mob_descriptor/prominent/prominent_bottom,\
@@ -261,7 +256,6 @@
 	/datum/mob_descriptor/prominent/untrustworthy,\
 	/datum/mob_descriptor/prominent/ratty_hair,\
 	/datum/mob_descriptor/prominent/predatory_look,\
-	/datum/mob_descriptor/prominent/chaste_mannerism,\
 	/datum/mob_descriptor/prominent/whimsy,\
 	/datum/mob_descriptor/prominent/dim_look,\
 	/datum/mob_descriptor/prominent/keen_look,\

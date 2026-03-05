@@ -7,8 +7,8 @@
 	dat +={"
 			<B>General Secrets</B><BR>
 			<BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=admin_log'>Admin Log</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=show_admins'>Show Admin List</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=admin_log'>Admin Log</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=show_admins'>Show Admin List</A><BR>
 			<BR>
 			"}
 
@@ -16,59 +16,48 @@
 		dat += {"
 			<B>Admin Secrets</B><BR>
 			<BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=clear_virus'>Cure all diseases currently in existence</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=list_bombers'>Bombing List</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=list_signalers'>Show last [length(GLOB.lastsignalers)] signalers</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=list_lawchanges'>Show last [length(GLOB.lawchanges)] law changes</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=showailaws'>Show AI Laws</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=showgm'>Show Game Mode</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=manifest'>Show Crew Manifest</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=DNA'>List DNA (Blood)</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=fingerprints'>List Fingerprints</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=ctfbutton'>Enable/Disable CTF</A><BR><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=tdomereset'>Reset Thunderdome to default state</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=set_name'>Rename Station Name</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=reset_name'>Reset Station Name</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=night_shift_set'>Set Night Shift Mode</A><BR>
-			<BR>
-			<B>Shuttles</B><BR>
-			<BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=moveferry'>Move Ferry</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=togglearrivals'>Toggle Arrivals Ferry</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=moveminingshuttle'>Move Mining Shuttle</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=movelaborshuttle'>Move Labor Shuttle</A><BR>
-			<BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=clear_virus'>Cure all diseases currently in existence</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=list_bombers'>Bombing List</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=list_signalers'>Show last [length(GLOB.lastsignalers)] signalers</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=list_lawchanges'>Show last [length(GLOB.lawchanges)] law changes</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=showailaws'>Show AI Laws</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=showgm'>Show Game Mode</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=manifest'>Show Crew Manifest</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=DNA'>List DNA (Blood)</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=fingerprints'>List Fingerprints</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=ctfbutton'>Enable/Disable CTF</A><BR><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=tdomereset'>Reset Thunderdome to default state</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=night_shift_set'>Set Night Shift Mode</A><BR>
 			"}
 
 	if(check_rights(R_FUN,0))
 		dat += {"
 			<B>Fun Secrets</B><BR>
 			<BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=virus'>Trigger a Virus Outbreak</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=monkey'>Turn all humans into monkeys</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=anime'>Chinese Cartoons</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=allspecies'>Change the species of all humans</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=power'>Make all areas powered</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=unpower'>Make all areas unpowered</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=quickpower'>Power all SMES</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=tripleAI'>Triple AI mode (needs to be used in the lobby)</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=traitor_all'>Everyone is the traitor</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=guns'>Summon Guns</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=magic'>Summon Magic</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=events'>Summon Events (Toggle)</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=onlyone'>There can only be one!</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=delayed_onlyone'>There can only be one! (40-second delay)</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=retardify'>Make all players retarded</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=eagles'>Egalitarian Station Mode</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=ancap'>Anarcho-Capitalist Station Mode</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=blackout'>Break all lights</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=whiteout'>Fix all lights</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=floorlava'>The floor is lava! (DANGEROUS: extremely lame)</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=customportal'>Spawn a custom portal storm</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=monkey'>Turn all humans into monkeys</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=anime'>Chinese Cartoons</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=allspecies'>Change the species of all humans</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=power'>Make all areas powered</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=unpower'>Make all areas unpowered</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=quickpower'>Power all SMES</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=tripleAI'>Triple AI mode (needs to be used in the lobby)</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=traitor_all'>Everyone is the traitor</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=guns'>Summon Guns</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=magic'>Summon Magic</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=events'>Summon Events (Toggle)</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=onlyone'>There can only be one!</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=delayed_onlyone'>There can only be one! (40-second delay)</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=stupidify'>Give all players brain damage</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=eagles'>Egalitarian Station Mode</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=ancap'>Anarcho-Capitalist Station Mode</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=blackout'>Break all lights</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=whiteout'>Fix all lights</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=floorlava'>The floor is lava! (DANGEROUS: extremely lame)</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=customportal'>Spawn a custom portal storm</A><BR>
 			<BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=changebombcap'>Change bomb cap</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=masspurrbation'>Mass Purrbation</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=massremovepurrbation'>Mass Remove Purrbation</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=changebombcap'>Change bomb cap</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=masspurrbation'>Mass Purrbation</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=massremovepurrbation'>Mass Remove Purrbation</A><BR>
 			"}
 
 	dat += "<BR>"
@@ -77,9 +66,9 @@
 		dat += {"
 			<B>Security Level Elevated</B><BR>
 			<BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=maint_access_engiebrig'>Change all maintenance doors to engie/brig access only</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=maint_access_brig'>Change all maintenance doors to brig access only</A><BR>
-			<A href='?src=[REF(src)];[HrefToken()];secrets=infinite_sec'>Remove cap on security officers</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=maint_access_engiebrig'>Change all maintenance doors to engie/brig access only</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=maint_access_brig'>Change all maintenance doors to brig access only</A><BR>
+			<A href='byond://?src=[REF(src)];[HrefToken()];secrets=infinite_sec'>Remove cap on security officers</A><BR>
 			<BR>
 			"}
 
@@ -109,6 +98,7 @@
 					var/datum/admins/D = GLOB.admin_datums[ckey]
 					dat += "[ckey] - [D.rank.name]<br>"
 				usr << browse(dat, "window=showadmins;size=600x500")
+<<<<<<< HEAD
 		if("clear_virus")
 
 			var/choice = input("Are you sure you want to cure all disease?") in list("Yes", "Cancel")
@@ -127,6 +117,8 @@
 			log_admin("[key_name(usr)] renamed the station to \"[new_name]\".")
 			message_admins("<span class='adminnotice'>[key_name_admin(usr)] renamed the station to: [new_name].</span>")
 			priority_announce("[command_name()] has renamed the station to \"[new_name]\".")
+=======
+>>>>>>> upstream/main
 		if("night_shift_set")
 			if(!check_rights(R_ADMIN))
 				return
@@ -144,15 +136,6 @@
 				if("Off")
 					SSnightshift.can_fire = FALSE
 					SSnightshift.update_nightshift(FALSE, TRUE)
-
-		if("reset_name")
-			if(!check_rights(R_ADMIN))
-				return
-			var/new_name = new_station_name()
-			set_station_name(new_name)
-			log_admin("[key_name(usr)] reset the station name.")
-			message_admins("<span class='adminnotice'>[key_name_admin(usr)] reset the station name.</span>")
-			priority_announce("[command_name()] has renamed the station to \"[new_name]\".")
 
 		if("list_bombers")
 			if(!check_rights(R_ADMIN))
@@ -177,6 +160,7 @@
 			for(var/sig in GLOB.lawchanges)
 				dat += "[sig]<BR>"
 			usr << browse(dat, "window=lawchanges;size=800x500")
+<<<<<<< HEAD
 
 		if("moveminingshuttle")
 			if(!check_rights(R_ADMIN))
@@ -214,14 +198,15 @@
 				log_admin("[key_name(usr)] [new_perma ? "stopped" : "started"] the arrivals shuttle")
 			else
 				to_chat(usr, "<span class='admin'>There is no arrivals shuttle.</span>")
+=======
+>>>>>>> upstream/main
 		if("showgm")
 			if(!check_rights(R_ADMIN))
 				return
 			if(!SSticker.HasRoundStarted())
 				alert("The game hasn't started yet!")
-			else if (SSticker.mode)
-				alert("The game mode is [SSticker.mode.name]")
-			else alert("For some reason there's a SSticker, but not a game mode")
+			else
+				alert("The game mode is Storytellers")
 		if("manifest")
 			if(!check_rights(R_ADMIN))
 				return
@@ -236,10 +221,9 @@
 				return
 			var/dat = "<B>Showing DNA from blood.</B><HR>"
 			dat += "<table cellspacing=5><tr><th>Name</th><th>DNA</th><th>Blood Type</th></tr>"
-			for(var/i in GLOB.human_list)
-				var/mob/living/carbon/human/H = i
+			for(var/mob/living/carbon/human/H as anything in GLOB.human_list)
 				if(H.ckey)
-					dat += "<tr><td>[H]</td><td>[H.dna.unique_enzymes]</td><td>[H.dna.blood_type]</td></tr>"
+					dat += "<tr><td>[H]</td><td>[H.dna.unique_enzymes]</td><td>[H.dna.human_blood_type]</td></tr>"
 			dat += "</table>"
 			usr << browse(dat, "window=DNA;size=440x410")
 		if("fingerprints")
@@ -247,10 +231,9 @@
 				return
 			var/dat = "<B>Showing Fingerprints.</B><HR>"
 			dat += "<table cellspacing=5><tr><th>Name</th><th>Fingerprints</th></tr>"
-			for(var/i in GLOB.human_list)
-				var/mob/living/carbon/human/H = i
+			for(var/mob/living/carbon/human/H as anything in GLOB.human_list)
 				if(H.ckey)
-					dat += "<tr><td>[H]</td><td>[md5(H.dna.uni_identity)]</td></tr>"
+					dat += "<tr><td>[H]</td><td>[md5(H.dna.unique_identity)]</td></tr>"
 			dat += "</table>"
 			usr << browse(dat, "window=fingerprints;size=440x410")
 
@@ -258,8 +241,7 @@
 			if(!check_rights(R_FUN))
 				return
 			SSblackbox.record_feedback("nested tally", "admin_secrets_fun_used", 1, list("Monkeyize All Humans"))
-			for(var/i in GLOB.human_list)
-				var/mob/living/carbon/human/H = i
+			for(var/mob/living/carbon/human/H as anything in GLOB.human_list)
 				INVOKE_ASYNC(H, TYPE_PROC_REF(/mob/living/carbon, monkeyize))
 			ok = 1
 
@@ -272,9 +254,9 @@
 				log_admin("[key_name(usr)] turned all humans into [result]", 1)
 				message_admins("\blue [key_name_admin(usr)] turned all humans into [result]")
 				var/newtype = GLOB.species_list[result]
-				for(var/i in GLOB.human_list)
-					var/mob/living/carbon/human/H = i
+				for(var/mob/living/carbon/human/H as anything in GLOB.human_list)
 					H.set_species(newtype)
+<<<<<<< HEAD
 
 		if("traitor_all")
 			if(!check_rights(R_FUN))
@@ -303,6 +285,8 @@
 			message_admins("<span class='adminnotice'>[key_name_admin(usr)] used everyone is a traitor secret. Objective is [objective]</span>")
 			log_admin("[key_name(usr)] used everyone is a traitor secret. Objective is [objective]")
 
+=======
+>>>>>>> upstream/main
 		if("changebombcap")
 			if(!check_rights(R_FUN))
 				return
@@ -326,21 +310,12 @@
 		if("anime")
 			if(!check_rights(R_FUN))
 				return
-			var/animetype = alert("Would you like to have the clothes be changed?",,"Yes","No","Cancel")
-
-			var/droptype
-			if(animetype =="Yes")
-				droptype = alert("Make the uniforms Nodrop?",,"Yes","No","Cancel")
-
-			if(animetype == "Cancel" || droptype == "Cancel")
-				return
-			SSblackbox.record_feedback("nested tally", "admin_secrets_fun_used", 1, list("Chinese Cartoons"))
-			message_admins("[key_name_admin(usr)] made everything kawaii.")
-			for(var/i in GLOB.human_list)
-				var/mob/living/carbon/human/H = i
+			SSblackbox.record_feedback("nested tally", "admin_secrets_fun_used", 1, list("Pawsitively Purrfect"))
+			message_admins("[key_name_admin(usr)] made everyone purrfect.")
+			for(var/mob/living/carbon/human/H as anything in GLOB.human_list)
 				SEND_SOUND(H, sound('sound/blank.ogg'))
 
-				if(H.dna.species.id == "human")
+				if(H.dna.species.id == SPEC_ID_HUMEN)
 					if(H.dna.features["tail_human"] == "None" || H.dna.features["ears"] == "None")
 						var/obj/item/organ/ears/cat/ears = new
 						var/obj/item/organ/tail/cat/tail = new
@@ -351,18 +326,8 @@
 					var/forename = names.len > 1 ? names[2] : names[1]
 					var/newname = "[forename]-[pick(honorifics["[H.gender]"])]"
 					H.fully_replace_character_name(H.real_name,newname)
-					H.update_mutant_bodyparts()
-					if(animetype == "Yes")
-						var/seifuku = pick(typesof(/obj/item/clothing/under/costume/schoolgirl))
-						var/obj/item/clothing/under/costume/schoolgirl/I = new seifuku
-						var/olduniform = H.wear_pants
-						H.temporarilyRemoveItemFromInventory(H.wear_pants, TRUE, FALSE)
-						H.equip_to_slot_or_del(I, SLOT_PANTS)
-						qdel(olduniform)
-						if(droptype == "Yes")
-							ADD_TRAIT(I, TRAIT_NODROP, ADMIN_TRAIT)
 				else
-					to_chat(H, "<span class='warning'>You're not kawaii enough for this!</span>")
+					to_chat(H, "<span class='warning'>You're not purrfect enough for this!</span>")
 
 		if("whiteout")
 			if(!check_rights(R_FUN))
@@ -372,6 +337,7 @@
 			for(var/obj/machinery/light/L in GLOB.machines)
 				L.fix()
 
+<<<<<<< HEAD
 		if("virus")
 			if(!check_rights(R_FUN))
 				return
@@ -390,13 +356,20 @@
 					E = DO
 
 		if("retardify")
+=======
+		if("stupidify")
+>>>>>>> upstream/main
 			if(!check_rights(R_FUN))
 				return
 			SSblackbox.record_feedback("nested tally", "admin_secrets_fun_used", 1, list("Mass Braindamage"))
 			for(var/mob/living/carbon/human/H in GLOB.player_list)
 				to_chat(H, "<span class='boldannounce'>I suddenly feel stupid.</span>")
 				H.adjustOrganLoss(ORGAN_SLOT_BRAIN, 60, 80)
+<<<<<<< HEAD
 			message_admins("[key_name_admin(usr)] made everybody retarded")
+=======
+			message_admins("[key_name_admin(usr)] made everybody stupid (Mass Braindamage)")
+>>>>>>> upstream/main
 
 		if("ancap")
 			if(!check_rights(R_FUN))
@@ -409,6 +382,7 @@
 			else
 				priority_announce("The NAP has been revoked.", null, 'sound/blank.ogg')
 
+<<<<<<< HEAD
 
 
 
@@ -551,6 +525,8 @@
 					else if (prefs["playersonly"]["value"] != "Yes")
 						addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(doPortalSpawn), get_random_station_turf(), pathToSpawn, prefs["amount"]["value"], storm, null, outfit), i*prefs["delay"]["value"])
 
+=======
+>>>>>>> upstream/main
 	if(E)
 		E.processing = FALSE
 		if(E.announceWhen>0)
@@ -584,7 +560,7 @@
 		if (length(players))
 			var/mob/chosen = players[1]
 			if (chosen.client)
-				chosen.client.prefs.copy_to(spawnedMob)
+				chosen.client.prefs.safe_transfer_prefs_to(spawnedMob)
 				spawnedMob.key = chosen.key
 			players -= chosen
 		if (ishuman(spawnedMob) && ispath(humanoutfit, /datum/outfit))

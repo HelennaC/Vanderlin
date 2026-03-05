@@ -114,6 +114,8 @@ CREATE TABLE `connection_log` (
   `ckey` varchar(45) DEFAULT NULL,
   `ip` int(10) unsigned NOT NULL,
   `computerid` varchar(45) DEFAULT NULL,
+  `byond_version` varchar(8) DEFAULT NULL,
+  `byond_build` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -290,7 +292,7 @@ DROP TABLE IF EXISTS `role_time_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 
-CREATE TABLE IF NOT EXISTS `role_time_log` (
+CREATE TABLE `role_time_log` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `ckey` varchar(32) NOT NULL,
   `job` varchar(128) NOT NULL,
@@ -323,6 +325,10 @@ CREATE TABLE `player` (
   `accountjoindate` DATE DEFAULT NULL,
   `flags` smallint(5) unsigned DEFAULT '0' NOT NULL,
   `discord_id` BIGINT(20) NULL DEFAULT NULL,
+  `twitch_rank` VARCHAR(32) NOT NULL DEFAULT '',
+  `twitch_user` VARCHAR(32) NOT NULL DEFAULT '',
+  `patreon_key` VARCHAR(32) NOT NULL DEFAULT 'None',
+  `patreon_rank` VARCHAR(32) NOT NULL DEFAULT 'None',
   PRIMARY KEY (`ckey`),
   KEY `idx_player_cid_ckey` (`computerid`,`ckey`),
   KEY `idx_player_ip_ckey` (`ip`,`ckey`)
@@ -446,6 +452,7 @@ CREATE TABLE `round` (
   `shuttle_name` VARCHAR(64) NULL,
   `map_name` VARCHAR(32) NULL,
   `station_name` VARCHAR(80) NULL,
+  `log_directory` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -461,43 +468,6 @@ CREATE TABLE `schema_revision` (
   `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`major`, `minor`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Table structure for table `stickyban`
---
-DROP TABLE IF EXISTS `stickyban`;
-CREATE TABLE `stickyban` (
-	`ckey` VARCHAR(32) NOT NULL,
-	`reason` VARCHAR(2048) NOT NULL,
-	`banning_admin` VARCHAR(32) NOT NULL,
-	`datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	PRIMARY KEY (`ckey`)
-) ENGINE=InnoDB;
-
---
--- Table structure for table `stickyban_matched_ckey`
---
-DROP TABLE IF EXISTS `stickyban_matched_ckey`;
-CREATE TABLE `stickyban_matched_ckey` (
-	`stickyban` VARCHAR(32) NOT NULL,
-	`matched_ckey` VARCHAR(32) NOT NULL,
-	`first_matched` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	`last_matched` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	`exempt` TINYINT(1) NOT NULL DEFAULT '0',
-	PRIMARY KEY (`stickyban`, `matched_ckey`)
-) ENGINE=InnoDB;
-
---
--- Table structure for table `stickyban_matched_ip`
---
-DROP TABLE IF EXISTS `stickyban_matched_ip`;
-CREATE TABLE `stickyban_matched_ip` (
-	`stickyban` VARCHAR(32) NOT NULL,
-	`matched_ip` INT UNSIGNED NOT NULL,
-	`first_matched` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	`last_matched` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	PRIMARY KEY (`stickyban`, `matched_ip`)
-) ENGINE=InnoDB;
 
 --
 -- Table structure for table `stickyban_matched_cid`
@@ -531,6 +501,20 @@ CREATE TABLE `achievement_metadata` (
 	`achievement_name` VARCHAR(64) NULL DEFAULT NULL,
 	`achievement_description` VARCHAR(512) NULL DEFAULT NULL,
 	PRIMARY KEY (`achievement_key`)
+) ENGINE=InnoDB;
+
+--
+-- Table structure for table `discord_links`
+--
+DROP TABLE IF EXISTS `discord_links`;
+CREATE TABLE `discord_links` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`ckey` VARCHAR(32) NOT NULL,
+	`discord_id` BIGINT(20) DEFAULT NULL,
+	`timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`one_time_token` VARCHAR(100) NOT NULL,
+  `valid` BOOLEAN NOT NULL DEFAULT FALSE,
+	PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;
 
 --

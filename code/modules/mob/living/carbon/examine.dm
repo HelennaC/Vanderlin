@@ -1,11 +1,14 @@
 /mob/living/carbon/examine(mob/user)
+	var/aghost_privilege = IsAdminGhost(user)
+	var/datum/antagonist/maniac/maniac = user.mind?.has_antag_datum(/datum/antagonist/maniac)
+
 	var/t_He = p_they(TRUE)
 	var/t_his = p_their()
 	var/t_has = p_have()
 	var/t_is = p_are()
 
 	. = list("<span class='info'>ᛉ ------------ ᛉ\nThis is \a <EM>[src]</EM>!")
-	var/list/obscured = check_obscured_slots()
+	var/obscured = check_obscured_slots()
 
 	var/m1 = "[t_He] [t_is]"
 	var/m2 = "[t_his]"
@@ -19,24 +22,22 @@
 		. += "<span class='warning'>[m1] tied up with \a [handcuffed]!</span>"
 	if (head)
 		. += "[m3] [head.get_examine_string(user)] on [m2] head. "
-	if(wear_mask && !(SLOT_WEAR_MASK in obscured))
+	if(wear_mask && !(obscured & ITEM_SLOT_MASK))
 		. += "[m3] [wear_mask.get_examine_string(user)] on [m2] face."
-	if(wear_neck && !(SLOT_NECK in obscured))
+	if(wear_neck && !(obscured & ITEM_SLOT_NECK))
 		. += "[m3] [wear_neck.get_examine_string(user)] around [m2] neck."
 
 	for(var/obj/item/I in held_items)
 		if(!(I.item_flags & ABSTRACT))
 			. += "[m1] holding [I.get_examine_string(user)] in [m2] [get_held_index_name(get_held_index_of_item(I))]."
 
-	if (back)
-		. += "[m3] [back.get_examine_string(user)] on [m2] back."
+	if (backr)
+		. += "[m3] [backr.get_examine_string(user)] on [m2] back."
+
+	if (backl)
+		. += "[m3] [backl.get_examine_string(user)] on [m2] back."
+
 	var/appears_dead = 0
-/*	if (stat == DEAD)
-		appears_dead = 1
-		if(getorgan(/obj/item/organ/brain))
-			. += "<span class='dead'>[t_He] [t_is] limp and unresponsive, with no signs of life.</span>"
-		else if(get_bodypart(BODY_ZONE_HEAD))
-			. += "<span class='dead'>It appears that [t_his] brain is missing...</span>"*/
 
 	var/list/missing = get_missing_limbs()
 	for(var/t in missing)
@@ -77,9 +78,17 @@
 	if(HAS_TRAIT(src, TRAIT_DUMB))
 		msg += "[t_He] seem[p_s()] to be clumsy and unable to think.\n"
 
-	if(fire_stacks > 0)
+	if(on_fire)
+		msg += "[t_He] [t_is] on fire!"
+		if(isliving(user))
+			var/mob/living/liver = user
+			if(liver.has_quirk(/datum/quirk.vice/pyromaniac))
+				msg += span_boldred(" IT'S BEAUTIFUL!")
+				liver.sate_addiction(/datum/quirk.vice/pyromaniac)
+		msg += "\n"
+	else if(fire_stacks + divine_fire_stacks > 0)
 		msg += "[t_He] [t_is] covered in something flammable.\n"
-	if(fire_stacks < 0)
+	if(fire_stacks < 0 && !on_fire)
 		msg += "[t_He] look[p_s()] a little soaked.\n"
 
 	if(pulledby && pulledby.grab_state)
@@ -109,19 +118,21 @@
 			else
 				. += "<span class='warning'><B>[t_He] look[p_s()] stronger than I.</B></span>"
 
-	var/datum/component/mood/mood = src.GetComponent(/datum/component/mood)
-	if(mood)
-		switch(mood.shown_mood)
-			if(-INFINITY to MOOD_LEVEL_SAD4)
-				. += "[t_He] look[p_s()] depressed."
-			if(MOOD_LEVEL_SAD4 to MOOD_LEVEL_SAD3)
-				. += "[t_He] look[p_s()] very sad."
-			if(MOOD_LEVEL_SAD3 to MOOD_LEVEL_SAD2)
-				. += "[t_He] look[p_s()] a bit down."
-			if(MOOD_LEVEL_HAPPY2 to MOOD_LEVEL_HAPPY3)
-				. += "[t_He] look[p_s()] quite happy."
-			if(MOOD_LEVEL_HAPPY3 to MOOD_LEVEL_HAPPY4)
-				. += "[t_He] look[p_s()] very happy."
-			if(MOOD_LEVEL_HAPPY4 to INFINITY)
-				. += "[t_He] look[p_s()] ecstatic."
+		if(maniac)
+			var/obj/item/organ/heart/heart = getorganslot(ORGAN_SLOT_HEART)
+			if(heart)
+				var/inscryption_key = LAZYACCESS(heart.inscryption_keys, maniac) // SPECIFICALLY the key that WE wrote
+				if(inscryption_key && (inscryption_key in maniac.key_nums))
+					. += span_danger("[t_He] know[p_s()] [inscryption_key], I AM SURE OF IT!")
+
+	if(aghost_privilege)
+		var/obj/item/organ/heart/heart = getorganslot(ORGAN_SLOT_HEART)
+		if(heart && heart.maniacs)
+			for(var/datum/antagonist/maniac/M in heart.maniacs)
+				var/K = LAZYACCESS(heart.inscryptions, M)
+				var/W = LAZYACCESS(heart.maniacs2wonder_ids, M)
+				var/N = M.owner?.name
+				. += span_notice("Inscryption[N ? " by [N]'s " : ""][W ? "Wonder #[W]" : ""]: [K ? K : ""]")
+
 	. += "ᛉ ------------ ᛉ</span>"
+	SEND_SIGNAL(src, COMSIG_PARENT_EXAMINE, user, .)

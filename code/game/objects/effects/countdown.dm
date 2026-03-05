@@ -7,7 +7,7 @@
 
 	invisibility = INVISIBILITY_OBSERVER
 	anchored = TRUE
-	layer = GHOST_LAYER
+	plane = GHOST_PLANE
 	color = "#ff0000" // text color
 	var/text_size = 3 // larger values clip when the displayed text is larger than 2 digits.
 	var/started = FALSE
@@ -51,7 +51,7 @@
 	displayed_text = new_val
 
 	if(displayed_text)
-		maptext = "<font size = [text_size]>[displayed_text]</font>"
+		maptext = MAPTEXT("<font size = [text_size]>[displayed_text]</font>")
 	else
 		maptext = null
 
@@ -63,6 +63,7 @@
 /obj/effect/countdown/ex_act(severity, target) //immune to explosions
 	return
 
+<<<<<<< HEAD
 /obj/effect/countdown/singularity_pull()
 	return
 
@@ -80,6 +81,8 @@
 		var/time_left = max(0, (A.death_time - world.time) / 10)
 		return round(time_left)
 
+=======
+>>>>>>> upstream/main
 /obj/effect/countdown/hourglass
 	name = "hourglass countdown"
 

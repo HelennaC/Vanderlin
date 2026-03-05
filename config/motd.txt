@@ -1,4 +1,9 @@
 <!-- Most valid html will work in here, excluding images. -->
+<<<<<<< HEAD
 <center>STONEKEEP Discord Server: <a href="https://discord.gg/stonekeep">discord.gg/stonekeep</a></center>
 <center>* Now with asian monster people! *</center>
+=======
+<center>Vanderlin/Monkestation Discord Server: <a href="https://discord.monkestation.com">https://discord.monkestation.com</a></center>
+<center>* TECHNICAL DISPLAY PLAYTEST *</center>
+>>>>>>> upstream/main
 <!-- We're no longer so unstable, also it's shit advertising. -->

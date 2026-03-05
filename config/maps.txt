@@ -13,16 +13,40 @@ Format:
 	votable (is this map votable)
 endmap
 
+<<<<<<< HEAD
 map dun_manor
+=======
+map vanderlin
+>>>>>>> upstream/main
 	default
 	votable
 endmap
 
+<<<<<<< HEAD
 map stonehamlet
 	disabled
 	votable
 endmap
 
 map roguetown
+=======
+map rosewood
+	minplayers 90
+	votable
+endmap
+
+map daftmarsh
+	maxplayers 75
+	votable
+endmap
+
+map whitepalacepass
+	maxplayers 0
+	votable
+endmap
+
+map voyager
+	maxplayers 0
+>>>>>>> upstream/main
 	votable
 endmap

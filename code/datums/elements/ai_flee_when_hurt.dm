@@ -2,6 +2,11 @@
  * Attached to a mob with an AI controller, simply sets a flag on whether or not to run away based on current health values.
  */
 /datum/element/ai_flee_while_injured
+<<<<<<< HEAD
+=======
+	element_flags = ELEMENT_BESPOKE
+	id_arg_index = 2
+>>>>>>> upstream/main
 	/// Health value to end fleeing if at or above
 	var/stop_fleeing_at
 	/// Health value to start fleeing if at or below
@@ -37,9 +42,27 @@
 		source.ai_controller.set_blackboard_key(BB_BASIC_MOB_FLEEING, FALSE)
 		return
 
+<<<<<<< HEAD
 	if (current_health_percentage > start_fleeing_below)
 		return
 	source.ai_controller.CancelActions()
 	source.ai_controller.set_blackboard_key(BB_BASIC_MOB_FLEEING, TRUE)
 	///we don't want ai's to run forever this makes us run for 10 seconds then fight until
 	addtimer(CALLBACK(source.ai_controller, TYPE_PROC_REF(/datum/ai_controller, set_blackboard_key), BB_BASIC_MOB_FLEEING, FALSE), 10 SECONDS, flags = TIMER_UNIQUE)
+=======
+	if(BB_BASIC_MOB_NEXT_FLEEING in source.ai_controller.blackboard)
+		if(source.ai_controller.blackboard[BB_BASIC_MOB_NEXT_FLEEING] > world.time)
+			return
+
+	if (current_health_percentage > start_fleeing_below)
+		return
+	source?.ai_controller.CancelActions()
+	source.ai_controller.set_blackboard_key(BB_BASIC_MOB_FLEEING, TRUE)
+	source.ai_controller.set_blackboard_key(BB_BASIC_MOB_NEXT_FLEEING, world.time + 60 SECONDS)
+
+	///we don't want ai's to run forever this makes us run for 10 seconds then fight until
+	addtimer(CALLBACK(src, PROC_REF(cancel_flee), source), 10 SECONDS, flags = TIMER_UNIQUE)
+
+/datum/element/ai_flee_while_injured/proc/cancel_flee(mob/living/source)
+	source?.ai_controller?.set_blackboard_key(BB_BASIC_MOB_FLEEING, FALSE)
+>>>>>>> upstream/main

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // The proc you should always use to set the light of this atom.
 // Nonesensical value for l_color default, so we can detect if it gets set to null.
 #define NONSENSICAL_VALUE -99999
@@ -44,6 +45,13 @@
 /atom/proc/update_light()
 	SHOULD_NOT_SLEEP(TRUE)
 
+=======
+/// Will update the light (duh).
+/// Creates or destroys it if needed, makes it update values, makes sure it's got the correct source turf...
+/atom/proc/update_light()
+	SHOULD_NOT_SLEEP(TRUE)
+
+>>>>>>> upstream/main
 	if(light_system != STATIC_LIGHT)
 		CRASH("update_light() for [src] with following light_system value: [light_system]")
 
@@ -55,11 +63,54 @@
 		else
 			. = loc
 
-		if (light) // Update the light or create it if it does not exist.
+		if (!QDELETED(light)) // Update the light or create it if it does not exist.
 			light.update(.)
 		else
 			light = new/datum/light_source(src, .)
 
+<<<<<<< HEAD
+=======
+// The proc you should always use to set the light of this atom.
+// Nonesensical value for l_color default, so we can detect if it gets set to null.
+#define NONSENSICAL_VALUE -99999
+/atom/proc/set_light(l_outer_range, l_inner_range, l_power, l_falloff_curve = LIGHTING_DEFAULT_FALLOFF_CURVE, l_color = NONSENSICAL_VALUE, l_on)
+	if(l_outer_range > 0 && l_outer_range < MINIMUM_USEFUL_LIGHT_RANGE)
+		l_outer_range = MINIMUM_USEFUL_LIGHT_RANGE //Brings the range up to 1.4, which is just barely brighter than the soft lighting that surrounds players.
+
+	if(SEND_SIGNAL(src, COMSIG_ATOM_SET_LIGHT, l_inner_range, l_outer_range, l_power, l_falloff_curve, l_color, l_on) & COMPONENT_BLOCK_LIGHT_UPDATE)
+		return
+
+	if(!isnull(l_power))
+		set_light_power(l_power)
+
+	if(!isnull(l_inner_range) || !isnull(l_outer_range))
+		if(l_inner_range >= l_outer_range)
+			l_inner_range = l_outer_range / 4
+		set_light_range(l_inner_range, l_outer_range)
+
+	if(l_falloff_curve != NONSENSICAL_VALUE)
+		if(!l_falloff_curve || l_falloff_curve <= 0)
+			l_falloff_curve = LIGHTING_DEFAULT_FALLOFF_CURVE
+		set_light_curve(l_falloff_curve)
+
+	if(l_color != NONSENSICAL_VALUE)
+		set_light_color(l_color)
+	if(!isnull(l_on))
+		set_light_on(l_on)
+	update_light()
+
+#undef NONSENSICAL_VALUE
+
+/// Setter for the light color of this atom.
+/atom/proc/set_light_color(new_color)
+	if(new_color == light_color)
+		return
+	if(SEND_SIGNAL(src, COMSIG_ATOM_SET_LIGHT_COLOR, new_color) & COMPONENT_BLOCK_LIGHT_UPDATE)
+		return
+	. = light_color
+	light_color = new_color
+	SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_LIGHT_COLOR, .)
+>>>>>>> upstream/main
 
 /atom/proc/set_light_range(new_inner_range, new_outer_range)
 	if(isnull(new_inner_range) && new_outer_range)
@@ -77,6 +128,10 @@
 	light_outer_range = new_outer_range
 	light_inner_range = new_inner_range
 	SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_LIGHT_RANGE, old_inner_range, old_outer_range)
+<<<<<<< HEAD
+=======
+	return TRUE
+>>>>>>> upstream/main
 
 /// Setter for this atom's light falloff curve.
 /atom/proc/set_light_curve(new_curve)
@@ -107,6 +162,7 @@
 	. = light_on
 	light_on = new_value
 	SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_LIGHT_ON, .)
+<<<<<<< HEAD
 
 // If we have opacity, make sure to tell (potentially) affected light sources.
 /atom/movable/Destroy()
@@ -117,6 +173,8 @@
 		T.recalc_atom_opacity()
 		if (old_has_opaque_atom != T.has_opaque_atom)
 			T.reconsider_lights()
+=======
+>>>>>>> upstream/main
 
 // Should always be used to change the opacity of an atom.
 // It notifies (potentially) affected light sources so they can update (if needed).
@@ -137,15 +195,6 @@
 		T.recalc_atom_opacity()
 		if (old_has_opaque_atom != T.has_opaque_atom)
 			T.reconsider_lights()
-
-
-/atom/movable/Moved(atom/OldLoc, Dir)
-	. = ..()
-	var/datum/light_source/L
-	var/thing
-	for (thing in light_sources) // Cycle through the light sources on this atom and tell them to update.
-		L = thing
-		L.source_atom.update_light()
 
 /atom/vv_edit_var(var_name, var_value)
 	switch (var_name)

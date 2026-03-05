@@ -16,7 +16,7 @@
 	from doing this unless you absolutely know what you are doing, and have defined a
 	conversion in savefile.dm
 */
-/proc/init_sprite_accessory_subtypes(prototype, list/L, list/male, list/female,roundstart = FALSE)//Roundstart argument builds a specific list for roundstart parts where some parts may be locked
+/proc/init_sprite_accessory_subtypes(prototype, list/L, list/male, list/female, roundstart = FALSE, female_same = FALSE)//Roundstart argument builds a specific list for roundstart parts where some parts may be locked
 	if(!istype(L))
 		L = list()
 	if(!istype(male))
@@ -24,47 +24,36 @@
 	if(!istype(female))
 		female = list()
 
-	for(var/path in subtypesof(prototype))
-		if(roundstart)
-			var/datum/sprite_accessory/P = path
-			if(initial(P.locked))
-				continue
-		var/datum/sprite_accessory/D = new path()
+	for(var/datum/sprite_accessory/accessory as anything in subtypesof(prototype))
+		if(IS_ABSTRACT(accessory))
+			continue
 
-		if(D.icon_state)
-			L[D.name] = D
+		accessory = new accessory()
+
+		if(roundstart && accessory.locked)
+			continue
+
+		L[accessory.name] = accessory
+
+		if(accessory.gender == MALE)
+			male[accessory.name] = accessory
+			if(female_same)
+				female[accessory.name] = accessory
+		else if(accessory.gender == FEMALE)
+			female[accessory.name] = accessory
 		else
-			L += D.name
-
-		switch(D.gender)
-			if(MALE)
-				male += D.name
-			if(FEMALE)
-				female += D.name
-			else
-				male += D.name
-				female += D.name
-	return L
+			male[accessory.name] = accessory
+			female[accessory.name] = accessory
 
 /datum/sprite_accessory
-	var/icon			//the icon file the accessory is located in
-	var/icon_state		//the icon_state of the accessory
-	var/name			//the preview name of the accessory. Even if they have different paths and say gender requirements the MUST BE UNIQUE or they wont show
-	var/gender = NEUTER	//Determines if the accessory will be skipped or included in random hair generations
-	var/gender_specific //Something that can be worn by either gender, but looks different on each
 	var/use_static		//determines if the accessory will be skipped by color preferences
-	var/color_src = MUTCOLORS	//Currently only used by mutantparts so don't worry about hair and stuff. This is the source that this accessory will get its color from. Default is MUTCOLOR, but can also be HAIR, FACEHAIR, EYECOLOR and 0 if none.
-	var/hasinner		//Decides if this sprite has an "inner" part, such as the fleshy parts on ears.
 	var/locked = FALSE		//Is this part locked from roundstart selection? Used for parts that apply effects
-	var/dimension_x = 32
-	var/dimension_y = 32
-	var/center = FALSE	//Should we center the sprite?
-	var/list/specuse = list("human") //what species can use dis
+	var/list/specuse = list(SPEC_ID_HUMEN) //what species can use dis
 	var/additional = FALSE //added hairbands/metal in hair/beards
-	var/offsetti = FALSE
 	var/roundstart = TRUE
 	var/under_layer = FALSE
 
+<<<<<<< HEAD
 //////////////////////
 // Hair Definitions //
 //////////////////////
@@ -1110,6 +1099,8 @@
 	icon_state = null
 
 
+=======
+>>>>>>> upstream/main
 //////////.//////////////////
 // MutantParts Definitions //
 /////////////////////////////
@@ -1124,75 +1115,14 @@
 /datum/sprite_accessory/body_markings/dtiger
 	name = "Dark Tiger Body"
 	icon_state = "dtiger"
-	gender_specific = 1
 
 /datum/sprite_accessory/body_markings/ltiger
 	name = "Light Tiger Body"
 	icon_state = "ltiger"
-	gender_specific = 1
 
 /datum/sprite_accessory/body_markings/lbelly
 	name = "Light Belly"
 	icon_state = "lbelly"
-	gender_specific = 1
-
-/datum/sprite_accessory/tails
-	icon = 'icons/mob/mutant_bodyparts.dmi'
-	gender = MALE
-	specuse = list()
-
-/datum/sprite_accessory/tails_animated
-	icon = 'icons/mob/mutant_bodyparts.dmi'
-
-/datum/sprite_accessory/tails/lizard/smooth
-	name = "Smooth"
-	icon_state = "smooth"
-
-/datum/sprite_accessory/tails_animated/lizard/smooth
-	name = "Smooth"
-	icon_state = "smooth"
-
-/datum/sprite_accessory/tails/lizard/dtiger
-	name = "Dark Tiger"
-	icon_state = "dtiger"
-
-/datum/sprite_accessory/tails_animated/lizard/dtiger
-	name = "Dark Tiger"
-	icon_state = "dtiger"
-
-/datum/sprite_accessory/tails/lizard/ltiger
-	name = "Light Tiger"
-	icon_state = "ltiger"
-
-/datum/sprite_accessory/tails_animated/lizard/ltiger
-	name = "Light Tiger"
-	icon_state = "ltiger"
-
-/datum/sprite_accessory/tails/lizard/spikes
-	name = "Spikes"
-	icon_state = "spikes"
-
-/datum/sprite_accessory/tails_animated/lizard/spikes
-	name = "Spikes"
-	icon_state = "spikes"
-
-/datum/sprite_accessory/tails/human/none
-	name = "None"
-	icon_state = "none"
-
-/datum/sprite_accessory/tails_animated/human/none
-	name = "None"
-	icon_state = "none"
-
-/datum/sprite_accessory/tails/human/cat
-	name = "Cat"
-	icon_state = "cat"
-	color_src = HAIR
-
-/datum/sprite_accessory/tails_animated/human/cat
-	name = "Cat"
-	icon_state = "cat"
-	color_src = HAIR
 
 /datum/sprite_accessory/snouts
 	icon = 'icons/mob/mutant_bodyparts.dmi'
@@ -1213,6 +1143,7 @@
 	name = "Round + Light"
 	icon_state = "roundlight"
 
+<<<<<<< HEAD
 /datum/sprite_accessory/horns
 	icon = 'icons/mob/mutant_bodyparts.dmi'
 	gender = MALE
@@ -1326,6 +1257,8 @@
 	center = TRUE
 	dimension_y = 32
 
+=======
+>>>>>>> upstream/main
 /datum/sprite_accessory/frills
 	icon = 'icons/mob/mutant_bodyparts.dmi'
 
@@ -1406,16 +1339,14 @@
 /datum/sprite_accessory/legs/none
 	name = "Normal Legs"
 
-/datum/sprite_accessory/legs/digitigrade_lizard
-	name = "Digitigrade Legs"
-
 /datum/sprite_accessory/caps
 	icon = 'icons/mob/mutant_bodyparts.dmi'
-	color_src = HAIR
+	color_key_defaults = list(KEY_HAIR_COLOR)
 
 /datum/sprite_accessory/caps/round
 	name = "Round"
 	icon_state = "round"
+<<<<<<< HEAD
 
 /datum/sprite_accessory/moth_wings
 	icon = 'icons/mob/moth_wings.dmi'
@@ -1766,3 +1697,5 @@
 	specuse = list("undine")
 	color_src = SKINCOLOR
 	offsetti = TRUE
+=======
+>>>>>>> upstream/main

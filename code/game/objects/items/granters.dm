@@ -12,7 +12,7 @@
 
 /obj/item/book/granter/proc/turn_page(mob/user)
 	playsound(user, pick('sound/blank.ogg'), 30, TRUE)
-	if(do_after(user,50, user))
+	if(do_after(user, 5 SECONDS))
 		if(remarks.len)
 			to_chat(user, "<span class='notice'>[pick(remarks)]</span>")
 		else
@@ -37,10 +37,16 @@
 /obj/item/book/granter/proc/onlearned(mob/user)
 	used = TRUE
 
+/obj/item/book/granter/dropped(mob/user, silent)
+	. = ..()
+	reading = FALSE
 
-/obj/item/book/granter/attack_self(mob/user)
+/obj/item/book/granter/attack_self(mob/user, list/modifiers)
+	if(user.mind?.has_studied == TRUE)
+		to_chat(user, span_notice("I struggle to study my arcane notes more. Perhaps a good rest would help."))
+		return FALSE
 	if(reading)
-		to_chat(user, "<span class='warning'>You're already reading this!</span>")
+		to_chat(user, span_notice("I am already reading this!"))
 		return FALSE
 	if(!user.can_read(src))
 		return FALSE
@@ -57,7 +63,7 @@
 			on_reading_stopped()
 			reading = FALSE
 			return
-	if(do_after(user,50, user))
+	if(do_after(user, 5 SECONDS))
 		on_reading_finished(user)
 		reading = FALSE
 	return TRUE
@@ -86,60 +92,43 @@
 	G.Grant(user)
 	onlearned(user)
 
-/obj/item/book/granter/action/origami
-	granted_action = /datum/action/innate/origami
-	name = "The Art of Origami"
-	desc = ""
-	icon_state = "origamibook"
-	actionname = "origami"
-	oneuse = TRUE
-	remarks = list("Dead-stick stability...", "Symmetry seems to play a rather large factor...", "Accounting for crosswinds... really?", "Drag coefficients of various paper types...", "Thrust to weight ratios?", "Positive dihedral angle?", "Center of gravity forward of the center of lift...")
+//Crafting Recipe books
 
-/datum/action/innate/origami
-	name = "Origami Folding"
-	desc = ""
-	button_icon_state = "origami_off"
-	check_flags = NONE
+/obj/item/book/granter/crafting_recipe
+	var/list/crafting_recipe_types = list()
 
-/datum/action/innate/origami/Activate()
-	to_chat(owner, "<span class='notice'>I will now fold origami planes.</span>")
-	button_icon_state = "origami_on"
-	active = TRUE
-	UpdateButtonIcon()
+/obj/item/book/granter/crafting_recipe/on_reading_finished(mob/user)
+	. = ..()
+	if(!user.mind)
+		return
+	for(var/datum/blueprint_recipe/R as anything in crafting_recipe_types)
+		user.mind.teach_crafting_recipe(R)
+		to_chat(user,"<span class='notice'>I learned how to make [initial(R.name)].</span>")
 
-/datum/action/innate/origami/Deactivate()
-	to_chat(owner, "<span class='notice'>I will no longer fold origami planes.</span>")
-	button_icon_state = "origami_off"
-	active = FALSE
-	UpdateButtonIcon()
-
-///SPELLS///
+//! --MAGICK SCROLLS-- !/
 
 /obj/item/book/granter/spell
-	var/spell
+	grid_width = 64
+	grid_height = 32
+
+	var/datum/action/cooldown/spell/spell
 	var/spellname = "conjure bugs"
 
-/obj/item/book/granter/spell/already_known(mob/user)
+/obj/item/book/granter/spell/already_known(mob/living/user)
 	if(!spell)
 		return TRUE
-	for(var/obj/effect/proc_holder/spell/knownspell in user.mind.spell_list)
-		if(knownspell.type == spell)
-			if(user.mind)
-				if(iswizard(user))
-					to_chat(user,"<span class='warning'>You're already far more versed in this spell than this flimsy how-to book can provide!</span>")
-				else
-					to_chat(user,"<span class='warning'>You've already read this one!</span>")
-			return TRUE
+	if(user.get_spell(spell))
+		to_chat(user,"<span class='warning'>You've already read this one!</span>")
+		return TRUE
 	return FALSE
 
 /obj/item/book/granter/spell/on_reading_start(mob/user)
 	to_chat(user, "<span class='notice'>I start reading about casting [spellname]...</span>")
 
-/obj/item/book/granter/spell/on_reading_finished(mob/user)
+/obj/item/book/granter/spell/on_reading_finished(mob/living/user)
 	to_chat(user, "<span class='notice'>I feel like you've experienced enough to cast [spellname]!</span>")
-	var/obj/effect/proc_holder/spell/S = new spell
-	user.mind.AddSpell(S)
-	user.log_message("learned the spell [spellname] ([S])", LOG_ATTACK, color="orange")
+	user.add_spell(spell)
+	user.log_message("learned the spell [spellname]", LOG_ATTACK, color="orange")
 	onlearned(user)
 
 /obj/item/book/granter/spell/recoil(mob/user)
@@ -150,6 +139,7 @@
 	if(oneuse)
 		user.visible_message("<span class='warning'>[src] glows dark for a second!</span>")
 
+<<<<<<< HEAD
 /obj/item/book/granter/spell/fireball
 	spell = /obj/effect/proc_holder/spell/aimed/fireball
 	spellname = "fireball"
@@ -415,6 +405,8 @@
 	remarks = list("So that is how icing is made!", "Placing fruit on top? How simple...", "Huh layering cake seems harder then this...", "This book smells like candy", "A clown must have made this page, or they forgot to spell check it before printing...", "Wait, a way to cook slime to be safe?")
 
 //! --MAGICK SCROLLS-- !/
+=======
+>>>>>>> upstream/main
 /obj/item/book/granter/spell/magick/
 	desc = "A scroll of potential known only to those that can decipher its secrets."
 	icon = 'icons/roguetown/items/misc.dmi'
@@ -432,42 +424,42 @@
 
 /obj/item/book/granter/spell/magick/fireball
 	name = "Scroll of Fireball"
-	spell = /obj/effect/proc_holder/spell/invoked/projectile/fireball
+	spell = /datum/action/cooldown/spell/projectile/fireball
 	spellname = "fireball"
 	icon_state = "scrollred"
 	remarks = list("Ignis et oleum..", "Flammam continere ad momentum..", "Flammam iactare..", "Sit flamma constructum..")
 
 /obj/item/book/granter/spell/magick/greaterfireball
 	name = "Scroll of Greater Fireball"
-	spell = /obj/effect/proc_holder/spell/invoked/projectile/fireball/greater
+	spell =  /datum/action/cooldown/spell/projectile/fireball/greater
 	spellname = "greater fireball"
 	icon_state = "scrolldarkred"
 	remarks = list("Ignis et oleum..", "Flammam continere ad momentum..", "Flammam iactare..", "Sit flamma constructum..")
 
 /obj/item/book/granter/spell/magick/lightning
 	name = "Scroll of Lightning"
-	spell = /obj/effect/proc_holder/spell/invoked/projectile/lightningbolt
+	spell =  /datum/action/cooldown/spell/projectile/lightning
 	spellname = "lightning"
 	icon_state = "scrollyellow"
 	remarks = list("Essentia fulgurum digitorum..", "Fulgur de nubibus desuper..", "Fulgur eiecit digitos..", "Praecipe intus aedificatur..")
 
 /obj/item/book/granter/spell/magick/fetch
 	name = "Scroll of Fetch"
-	spell = /obj/effect/proc_holder/spell/invoked/projectile/fetch
+	spell =  /datum/action/cooldown/spell/projectile/fetch
 	spellname = "fetch"
 	icon_state = "scrollpurple"
 	remarks = list("Returnus Revico..", "Manus de reverti..", "Menus de returnus..")
 
 /obj/item/book/granter/spell/magick/blindness
 	name = "Scroll of Blindness"
-	spell = /obj/effect/proc_holder/spell/invoked/blindness
+	spell = /datum/action/cooldown/spell/blindness
 	spellname = "blindness"
 	icon_state = "scrollpurple"
 	remarks = list("Occultare oculos..", "Vivus amoevtar..", "Visioner removan..")
 
 /obj/item/book/granter/spell/magick/invisibility
 	name = "Scroll of Invisibility"
-	spell = /obj/effect/proc_holder/spell/invoked/invisibility
+	spell = /datum/action/cooldown/spell/status/invisibility
 	spellname = "invisibility"
 	icon_state = "scrollpurple"
 	remarks = list("Pallium nihilum..", "Occultare veritatem..", "Veritatem removan menor..")
@@ -481,11 +473,11 @@
 	drop_sound = 'sound/foley/dropsound/paper_drop.ogg'
 	pickup_sound =  'sound/blank.ogg'
 
-/obj/item/book/granter/spell_points/on_reading_finished(mob/user)
-	var/arcaneskill = user.mind.get_skill_level(/datum/skill/magic/arcane)
+/obj/item/book/granter/spell_points/on_reading_finished(mob/living/user)
+	var/arcaneskill = user.get_skill_level(/datum/skill/magic/arcane)
 	if(arcaneskill >= SKILL_LEVEL_NOVICE) //Required arcane skill of NOVICE or higher to use the granter
 		to_chat(user, span_notice("I absorb the insights on the scroll, and feel more adept at spellcraft!"))
-		user.mind.adjust_spellpoints(1)
+		user.adjust_spell_points(1)
 		onlearned(user)
 	else
 		to_chat(user, span_notice("I don't know what to make of this."))

@@ -1,7 +1,11 @@
 /datum/ai_controller/mimic
 	movement_delay = 0.8 SECONDS
 
+<<<<<<< HEAD
 	ai_movement = /datum/ai_movement/basic_avoidance
+=======
+	ai_movement = /datum/ai_movement/hybrid_pathing
+>>>>>>> upstream/main
 
 	blackboard = list(
 		BB_TARGETTING_DATUM = new /datum/targetting_datum/basic/allow_items()

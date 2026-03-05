@@ -18,7 +18,7 @@
 		BODY_ZONE_PRECISE_MOUTH,
 		BODY_ZONE_PRECISE_STOMACH,
 		BODY_ZONE_PRECISE_GROIN,
-		BODY_ZONE_L_ARM, 
+		BODY_ZONE_L_ARM,
 		BODY_ZONE_R_ARM,
 	)
 	steps = list(
@@ -35,17 +35,19 @@
 	time = 6.4 SECONDS
 	accept_hand = TRUE
 	implements = list(
-		/obj/item/organ = 80, 
-		/obj/item/organ_storage = 80,
-		/obj/item/reagent_containers/food/snacks/organ = 0,
+		/obj/item/organ = 80,
+		/obj/item/reagent_containers/food/snacks/meat/organ = 0,
 	)
 	target_mobtypes = list(/mob/living/carbon/human, /mob/living/carbon/monkey)
 	surgery_flags = SURGERY_INCISED | SURGERY_RETRACTED
-	skill_min = SKILL_LEVEL_JOURNEYMAN
+	skill_min = SKILL_LEVEL_APPRENTICE
 	skill_median = SKILL_LEVEL_EXPERT
+	preop_sound = 'sound/surgery/organ2.ogg'
+	success_sound = 'sound/surgery/organ1.ogg'
 	/// Implements used to extract an organ - This really should be split into two different steps...
 	var/list/implements_extract = list(
 		TOOL_HEMOSTAT = 80,
+		TOOL_IMPROVISED_HEMOSTAT = 70,
 		TOOL_CROWBAR = 65,
 		TOOL_HAND = 60,
 	)
@@ -72,18 +74,9 @@
 	return ..()
 
 /datum/surgery_step/manipulate_organs/preop(mob/user, mob/living/target, target_zone, obj/item/tool, datum/intent/intent)
-	if(istype(tool, /obj/item/reagent_containers/food/snacks/organ))
+	if(istype(tool, /obj/item/reagent_containers/food/snacks/meat/organ))
 		to_chat(user, "<span class='warning'>[tool] was bitten by someone! It's too damaged to use!</span>")
 		return FALSE
-	
-	if(istype(tool, /obj/item/organ_storage))
-		if(!length(tool.contents))
-			to_chat(user, "<span class='warning'>There is nothing inside [tool]!</span>")
-			return FALSE
-		tool = tool.contents[1]
-		if(!isorgan(tool))
-			to_chat(user, "<span class='warning'>I cannot put [tool] inside [target]'s [parse_zone(target_zone)]!</span>")
-			return FALSE
 
 	var/obj/item/organ/organ_tool = tool
 	if(istype(organ_tool))
@@ -114,7 +107,7 @@
 		var/obj/item/organ/final_organ = organs[selected]
 		if(QDELETED(final_organ))
 			return FALSE
-		
+
 		user.select_organ_slot(final_organ.slot)
 		display_results(user, target, "<span class='notice'>I begin to extract [final_organ] from [target]'s [parse_zone(target_zone)]...</span>",
 			"<span class='notice'>[user] begins to extract [final_organ] from [target]'s [parse_zone(target_zone)].</span>",
@@ -123,14 +116,6 @@
 	return TRUE
 
 /datum/surgery_step/manipulate_organs/success(mob/user, mob/living/target, target_zone, obj/item/tool, datum/intent/intent)
-	if(istype(tool, /obj/item/organ_storage))
-		tool.icon_state = initial(tool.icon_state)
-		tool.desc = initial(tool.desc)
-		tool.cut_overlays()
-		tool = tool.contents[1]
-		if(!isorgan(tool))
-			return FALSE
-
 	var/obj/item/organ/organ_tool = tool
 	if(istype(organ_tool) && user.temporarilyRemoveItemFromInventory(organ_tool))
 		organ_tool.Insert(target)

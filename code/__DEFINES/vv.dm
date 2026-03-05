@@ -1,6 +1,7 @@
 #define VV_NUM "Number"
 #define VV_TEXT "Text"
 #define VV_MESSAGE "Mutiline Text"
+#define VV_COLOR "Color"
 #define VV_ICON "Icon"
 #define VV_ATOM_REFERENCE "Atom Reference"
 #define VV_DATUM_REFERENCE "Datum Reference"
@@ -79,7 +80,6 @@
 // /atom
 #define VV_HK_MODIFY_TRANSFORM "atom_transform"
 #define VV_HK_ADD_REAGENT "addreagent"
-#define VV_HK_TRIGGER_EMP "empulse"
 #define VV_HK_TRIGGER_EXPLOSION "explode"
 #define VV_HK_AUTO_RENAME "auto_rename"
 #define VV_HK_ADD_AI "add_ai"
@@ -93,33 +93,37 @@
 #define VV_HK_GIB "gib"
 #define VV_HK_GIVE_SPELL "give_spell"
 #define VV_HK_REMOVE_SPELL "remove_spell"
-#define VV_HK_GIVE_DISEASE "give_disease"
 #define VV_HK_GODMODE "godmode"
 #define VV_HK_DROP_ALL "dropall"
 #define VV_HK_REGEN_ICONS "regen_icons"
 #define VV_HK_PLAYER_PANEL "player_panel"
-#define VV_HK_BUILDMODE "buildmode"
 #define VV_HK_DIRECT_CONTROL "direct_control"
+#define VV_HK_GIVE_CONTROL_TO_PLAYER "Give Control To Player"
 #define VV_HK_OFFER_GHOSTS "offer_ghosts"
 
+// /mob/living
+#define VV_HK_MODIFY_STATS "modstats"
+
 // /mob/living/carbon
-#define VV_HK_MAKE_AI "aiify"
 #define VV_HK_MODIFY_BODYPART "mod_bodypart"
 #define VV_HK_MODIFY_ORGANS "organs_modify"
-#define VV_HK_HALLUCINATION "force_hallucinate"
 #define VV_HK_MARTIAL_ART "give_martial_art"
 #define VV_HK_GIVE_TRAUMA "give_trauma"
 #define VV_HK_CURE_TRAUMA "cure_trauma"
 
 // /mob/living/carbon/human
 #define VV_HK_COPY_OUTFIT "copy_outfit"
+<<<<<<< HEAD
 #define VV_HK_MOD_MUTATIONS "quirkmut"
 #define VV_HK_MOD_QUIRKS "quirkmod"
 #define VV_HK_MAKE_MONKEY "human_monkify"
 #define VV_HK_MAKE_CYBORG "human_cyborgify"
 #define VV_HK_MAKE_SLIME "human_slimeify"
+=======
+>>>>>>> upstream/main
 #define VV_HK_SET_SPECIES "setspecies"
-#define VV_HK_PURRBATION "purrbation"
+#define VV_HK_CORONATE "coronate"
+#define VV_HK_CHANGE_TITLE "change_title"
 
 // misc
 #define VV_HK_SPACEVINE_PURGE "spacevine_purge"

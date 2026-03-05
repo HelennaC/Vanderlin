@@ -1,12 +1,6 @@
 
-#define CURSE_MASTER_LIST list("brokedick")
-
-/proc/curse2trait(curse)
-	if(!curse)
-		return
-	switch(curse)
-		if("brokedick")
-			return TRAIT_LIMPDICK
+/proc/curse_to_path(path)
+	return text2path(path)
 
 /proc/has_player_curse(key,curse)
 	if(!key)

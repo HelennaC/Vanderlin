@@ -4,7 +4,7 @@
 		return FALSE
 	bruteloss = round(CLAMP(bruteloss + amount, 0, maxHealth),DAMAGE_PRECISION)
 	if(updating_health)
-		updatehealth()
+		updatehealth(amount)
 	return amount
 
 /mob/living/simple_animal/adjustBruteLoss(amount, updating_health = TRUE, forced = FALSE)
@@ -36,6 +36,3 @@
 		. = adjustHealth(amount * CONFIG_GET(number/damage_multiplier), updating_health, forced)
 	else if(damage_coeff[CLONE])
 		. = adjustHealth(amount * damage_coeff[CLONE] * CONFIG_GET(number/damage_multiplier), updating_health, forced)
-
-/mob/living/simple_animal/adjustStaminaLoss(amount, updating_health, forced = FALSE)
-	return

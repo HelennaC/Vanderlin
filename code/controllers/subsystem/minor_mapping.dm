@@ -7,10 +7,8 @@ SUBSYSTEM_DEF(minor_mapping)
 	//Minor mapping comes quite late in the init list so it should be safe to add here. We want this long after everything else is done
 	SSmapping.load_marks()
 
-//	trigger_migration(CONFIG_GET(number/mice_roundstart)) //christ why is this uncommented yikes
-//	place_sunlight()
-//	place_satchels()
 	return ..()
+<<<<<<< HEAD
 
 /datum/controller/subsystem/minor_mapping/proc/trigger_migration(num_mice=10)
 	var/list/exposed_wires = find_exposed_wires()
@@ -85,3 +83,5 @@ SUBSYSTEM_DEF(minor_mapping)
 					suitable += t
 
 	return shuffle(suitable)
+=======
+>>>>>>> upstream/main

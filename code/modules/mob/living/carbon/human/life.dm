@@ -19,12 +19,13 @@
 #define THERMAL_PROTECTION_HAND_RIGHT	0.025
 
 /mob/living/carbon/human
-	var/leprosy = 2
 	var/allmig_reward = 0
 
 /mob/living/carbon/human/Life()
 //	set invisibility = 0
-	if (notransform)
+	SEND_SIGNAL(src, COMSIG_HUMAN_LIFE)
+
+	if (HAS_TRAIT(src, TRAIT_NO_TRANSFORM))
 		return
 
 	. = ..()
@@ -32,82 +33,72 @@
 	if (QDELETED(src))
 		return 0
 
-	if(. && (mode != AI_OFF))
-		handle_ai()
-
 	if(advsetup)
 		Stun(50)
 
 	if(mind)
+		mind.sleep_adv.add_stress_cycle(get_stress_amount())
 		for(var/datum/antagonist/A in mind.antag_datums)
 			A.on_life(src)
 
-	if(!IS_IN_STASIS(src))
-		if(stat < 3) //not dead
-			for(var/datum/mutation/human/HM in dna.mutations) // Handle active genes
-				HM.on_life()
-
-		if(mode == AI_OFF)
-			if(stat)
-				if(health > 0)
-					if(has_status_effect(/datum/status_effect/debuff/sleepytime))
-						tiredness = 0
-						remove_status_effect(/datum/status_effect/debuff/sleepytime)
-						var/datum/game_mode/chaosmode/C = SSticker.mode
-						if(istype(C))
-							if(mind)
-								allmig_reward++
-								to_chat(src, "<span class='danger'>Nights Survived: \Roman[allmig_reward]</span>")
-								if(C.allmig)
-									if(allmig_reward > 3)
-										adjust_triumphs(1)
-					if(has_status_effect(/datum/status_effect/debuff/trainsleep))
-						remove_status_effect(/datum/status_effect/debuff/trainsleep)
-			if(leprosy == 1)
-				adjustToxLoss(2)
-			else if(leprosy == 2)
-				if(client)
-					if(check_blacklist(client.ckey))
-						ADD_TRAIT(src, TRAIT_NOPAIN, TRAIT_GENERIC)
-						leprosy = 1
-						var/obj/item/bodypart/B = get_bodypart(BODY_ZONE_HEAD)
-						if(B)
-							B.sellprice = rand(16, 33)
-					else
-						leprosy = 3
-			//heart attack stuff
-			handle_heart()
-			handle_liver()
-			update_rogfat()
-			update_rogstam()
-			if(charflaw && !charflaw.ephemeral)
-				charflaw.flaw_on_life(src)
-			if(health <= 0)
-				adjustOxyLoss(0.5)
-			else
-				if(stat < 3) //not dead
-					if(!(NOBLOOD in dna?.species?.species_traits))
-						if(blood_volume <= BLOOD_VOLUME_SURVIVE)
-							adjustOxyLoss(0.5)
-							if(blood_volume <= 40)
-								adjustOxyLoss(3)
-			if(!client && !HAS_TRAIT(src, TRAIT_NOSLEEP))
-				if(mob_timers["slo"])
-					if(world.time > mob_timers["slo"] + 90 SECONDS)
-						Sleeping(100)
-				else
-					mob_timers["slo"] = world.time
-			else
-				if(mob_timers["slo"])
-					mob_timers["slo"] = null
-
+	handle_vamp_dreams()
+	if(IsSleeping())
+		if(health > 0)
+			remove_status_effect(/datum/status_effect/debuff/trainsleep)
+			remove_status_effect(/datum/status_effect/debuff/sleepytime)
+			if(has_status_effect(/datum/status_effect/debuff/dreamytime))
+				remove_status_effect(/datum/status_effect/debuff/dreamytime)
+				if(mind)
+					mind.sleep_adv.advance_cycle()
+					if(!mind.antag_datums || !mind.antag_datums.len)
+						allmig_reward++
+						var/static/list/towner_jobs
+						towner_jobs = GLOB.serf_positions | GLOB.peasant_positions | GLOB.apprentices_positions | GLOB.youngfolk_positions | GLOB.company_positions
+						if(mind.assigned_role.title in towner_jobs) //If you play a towner-related role, you get triumphs.
+							adjust_triumphs(1)
+						to_chat(src, span_danger("Nights Survived: \Roman[allmig_reward]"))
+						if(allmig_reward > 0 && allmig_reward % 2 == 0)
+							adjust_triumphs(1)
+	if(!HAS_TRAIT(src, TRAIT_STASIS))
+		if(HAS_TRAIT(src, TRAIT_LEPROSY))
+			if(MOBTIMER_FINISHED(src, MT_LEPERBLEED, 12 MINUTES))
+				if(prob(5))
+					to_chat(src, span_warning("My skin opens up and bleeds..."))
+					MOBTIMER_SET(src, MT_LEPERBLEED)
+					var/obj/item/bodypart/part = pick(bodyparts)
+					if(part)
+						part.add_wound(/datum/wound/slash/small)
+					adjustToxLoss(10)
+		handle_heart()
+		handle_liver()
+		update_stamina()
+		update_energy()
+		handle_environment()
+		handle_hygiene()
 		if(dna?.species)
 			dna.species.spec_life(src) // for mutantraces
+
+	//heart attack stuff
+	handle_curses()
+
+	if(quirks && quirks.len)
+		for(var/datum/quirk/Q in quirks)
+			Q.on_life(src)
+
+	if(!client && !HAS_TRAIT(src, TRAIT_NOSLEEP) && !ai_controller)
+		if(MOBTIMER_EXISTS(src, MT_SLO))
+			if(MOBTIMER_FINISHED(src, MT_SLO, 90 SECONDS)) //?????
+				Sleeping(100)
+		else
+			MOBTIMER_SET(src, MT_SLO)
+	else
+		MOBTIMER_UNSET(src, MT_SLO)
 
 	if(!typing)
 		set_typing_indicator(FALSE)
 	//Update our name based on whether our face is obscured/disfigured
 	name = get_visible_name()
+	handle_gas_mask_sound()
 
 	if(sexcon)
 		sexcon.process_sexcon(1 SECONDS)
@@ -115,10 +106,31 @@
 	if(stat != DEAD)
 		return 1
 
+/mob/living/carbon/human/proc/handle_gas_mask_sound()
+	if(!istype(wear_mask, /obj/item/clothing/face/facemask/steel/confessor))
+		if(breathe_tick)
+			breathe_tick = 0
+		return
+	if(stat == DEAD)
+		return
+	if(HAS_TRAIT(src, TRAIT_NOBREATH))
+		return
+	breathe_tick++
+	var/mask_sound
+	if(istype(wear_mask, /obj/item/clothing/face/facemask/steel/confessor))
+		if(breathe_tick>=rand(3,5))
+			breathe_tick = 0
+			mask_sound = pick('sound/items/confessormask1.ogg', 'sound/items/confessormask2.ogg', 'sound/items/confessormask3.ogg',
+							'sound/items/confessormask4.ogg', 'sound/items/confessormask5.ogg', 'sound/items/confessormask6.ogg',
+							'sound/items/confessormask7.ogg', 'sound/items/confessormask8.ogg', 'sound/items/confessormask9.ogg',
+					 		'sound/items/confessormask10.ogg')
+			playsound(src, mask_sound, 90, FALSE, 4, 0)
+			return
+
 /mob/living/carbon/human/DeadLife()
 	set invisibility = 0
 
-	if(notransform)
+	if(HAS_TRAIT(src, TRAIT_NO_TRANSFORM))
 		return
 
 	if(mind)
@@ -135,63 +147,65 @@
 				if(gender == MALE)
 					if(prob(50))
 						has_stubble = TRUE
-						update_hair()
+						update_body()
 
-/mob/living/carbon/human/calculate_affecting_pressure(pressure)
-	if (wear_armor && head && istype(wear_armor, /obj/item/clothing) && istype(head, /obj/item/clothing))
-		var/obj/item/clothing/CS = wear_armor
-		var/obj/item/clothing/CH = head
-		if (CS.clothing_flags & CH.clothing_flags & STOPSPRESSUREDAMAGE)
-			return ONE_ATMOSPHERE
-	return pressure
+/mob/living/proc/handle_environment()
+	return
 
+/mob/living/carbon/human/handle_environment()
+	dna?.species.handle_environment(src)
 
-/mob/living/carbon/human/handle_traits()
-	if (getOrganLoss(ORGAN_SLOT_BRAIN) >= 60)
-		SEND_SIGNAL(src, COMSIG_ADD_MOOD_EVENT, "brain_damage", /datum/mood_event/brain_damage)
+/mob/living/carbon/human/proc/handle_hygiene()
+	if(stat == DEAD || HAS_TRAIT(src, TRAIT_NOHYGIENE))
+		return
+	if(HAS_TRAIT(src, TRAIT_ALWAYS_CLEAN))
+		set_hygiene(HYGIENE_LEVEL_CLEAN)
+
 	else
-		SEND_SIGNAL(src, COMSIG_CLEAR_MOOD_EVENT, "brain_damage")
-	return ..()
+		var/hygiene_adjustment = 0
 
-/mob/living/carbon/human/handle_mutations_and_radiation()
-	if(!dna || !dna.species.handle_mutations_and_radiation(src))
-		..()
+		//Are our clothes dirty?
+		var/obj/item/head = get_item_by_slot(ITEM_SLOT_HEAD)
+		if(head && HAS_BLOOD_DNA(head))
+			hygiene_adjustment -= 1 * HYGIENE_FACTOR
 
-/mob/living/carbon/human/breathe()
-	if(!dna.species.breathe(src))
-		..()
+		var/obj/item/neck = get_item_by_slot(ITEM_SLOT_NECK)
+		if(neck && HAS_BLOOD_DNA(neck))
+			hygiene_adjustment -= 1 * HYGIENE_FACTOR
 
-/mob/living/carbon/human/check_breath(datum/gas_mixture/breath)
+		var/obj/item/mask = get_item_by_slot(ITEM_SLOT_MASK)
+		if(mask && HAS_BLOOD_DNA(mask))
+			hygiene_adjustment -= 1 * HYGIENE_FACTOR
 
-	var/L = getorganslot(ORGAN_SLOT_LUNGS)
+		var/obj/item/shirt = get_item_by_slot(ITEM_SLOT_SHIRT)
+		if(shirt && HAS_BLOOD_DNA(shirt))
+			hygiene_adjustment -= 2 * HYGIENE_FACTOR
 
-	if(!L)
-		if(health >= crit_threshold)
-			adjustOxyLoss(HUMAN_MAX_OXYLOSS + 1)
-		else if(!HAS_TRAIT(src, TRAIT_NOCRITDAMAGE))
-			adjustOxyLoss(HUMAN_CRIT_MAX_OXYLOSS)
+		var/obj/item/cloak = get_item_by_slot(ITEM_SLOT_CLOAK)
+		if(cloak && HAS_BLOOD_DNA(cloak))
+			hygiene_adjustment -= 2 * HYGIENE_FACTOR
 
-		failed_last_breath = 1
+		var/obj/item/pants = get_item_by_slot(ITEM_SLOT_PANTS)
+		if(pants && HAS_BLOOD_DNA(pants))
+			hygiene_adjustment -= 3 * HYGIENE_FACTOR
 
-		var/datum/species/S = dna.species
+		var/obj/item/armor = get_item_by_slot(ITEM_SLOT_ARMOR)
+		if(armor && HAS_BLOOD_DNA(armor))
+			hygiene_adjustment -= 3 * HYGIENE_FACTOR
 
-		if(S.breathid == "o2")
-			throw_alert("not_enough_oxy", /atom/movable/screen/alert/not_enough_oxy)
-		else if(S.breathid == "tox")
-			throw_alert("not_enough_tox", /atom/movable/screen/alert/not_enough_tox)
-		else if(S.breathid == "co2")
-			throw_alert("not_enough_co2", /atom/movable/screen/alert/not_enough_co2)
-		else if(S.breathid == "n2")
-			throw_alert("not_enough_nitro", /atom/movable/screen/alert/not_enough_nitro)
+		var/obj/item/shoes = get_item_by_slot(ITEM_SLOT_SHOES)
+		if(shoes && HAS_BLOOD_DNA(shoes))
+			hygiene_adjustment -= 0.5 * HYGIENE_FACTOR
 
-		return FALSE
-	else
-		if(istype(L, /obj/item/organ/lungs))
-			var/obj/item/organ/lungs/lun = L
-			lun.check_breath(breath,src)
+		//Are we bathing?
+		var/current_turf = get_turf(src)
+		if(istype(current_turf, /turf/open/water))
+			var/turf/open/water/bathing_liquid = current_turf
+			hygiene_adjustment += bathing_liquid.cleanliness_factor
 
-/mob/living/carbon/human/handle_environment(datum/gas_mixture/environment)
-	dna.species.handle_environment(environment, src)
+
+		adjust_hygiene(hygiene_adjustment)
+	dna?.species.handle_hygiene(src)
 
 ///FIRE CODE
 /mob/living/carbon/human/handle_fire()
@@ -203,19 +217,19 @@
 		. = dna.species.handle_fire(src) //do special handling based on the mob's species. TRUE = they are immune to the effects of the fire.
 
 	if(!last_fire_update)
-		last_fire_update = fire_stacks
-	if((fire_stacks > 10 && last_fire_update <= 10) || (fire_stacks <= 10 && last_fire_update > 10))
-		last_fire_update = fire_stacks
+		last_fire_update = fire_stacks + divine_fire_stacks
+	if((fire_stacks + divine_fire_stacks > 10 && last_fire_update <= 10) || (fire_stacks + divine_fire_stacks <= 10 && last_fire_update > 10))
+		last_fire_update = fire_stacks + divine_fire_stacks
 		update_fire()
 
 
 /mob/living/carbon/human/proc/get_thermal_protection()
 	var/thermal_protection = 0 //Simple check to estimate how protected we are against multiple temperatures
 	if(wear_armor)
-		if(wear_armor.max_heat_protection_temperature >= FIRE_SUIT_MAX_TEMP_PROTECT)
+		if(wear_armor.max_heat_protection_temperature >= 30000)
 			thermal_protection += (wear_armor.max_heat_protection_temperature*0.7)
 	if(head)
-		if(head.max_heat_protection_temperature >= FIRE_HELM_MAX_TEMP_PROTECT)
+		if(head.max_heat_protection_temperature >= 30000)
 			thermal_protection += (head.max_heat_protection_temperature*THERMAL_PROTECTION_HEAD)
 	thermal_protection = round(thermal_protection)
 	return thermal_protection
@@ -225,7 +239,7 @@
 	//If firestacks are high enough
 	if(!dna || dna.species.CanIgniteMob(src))
 		if(!on_fire)
-			if(fire_stacks > 10)
+			if(fire_stacks + divine_fire_stacks > 10)
 				Immobilize(30)
 				emote("firescream", TRUE)
 			else
@@ -238,12 +252,10 @@
 		last_fire_update = null
 		..()
 
-/mob/living/carbon/human/SoakMob(locations)
-	. = ..()
+/mob/living/carbon/human/SoakMob(locations, dirty_water = FALSE, rain = FALSE)
 	var/coverhead
-//	var/coverfeet
 	//add belt slots to this for rusting
-	var/list/body_parts = list(head, wear_mask, wear_wrists, wear_shirt, wear_neck, cloak, wear_armor, wear_pants, backr, backl, gloves, shoes, belt, s_store, glasses, ears, wear_ring) //Everything but pockets. Pockets are l_store and r_store. (if pockets were allowed, putting something armored, gloves or hats for example, would double up on the armor)
+	var/list/body_parts = list(head, wear_mask, wear_wrists, wear_shirt, wear_neck, cloak, wear_armor, wear_pants, backr, backl, gloves, shoes, belt, wear_ring)
 	for(var/bp in body_parts)
 		if(!bp)
 			continue
@@ -251,18 +263,30 @@
 			var/obj/item/clothing/C = bp
 			if(zone2covered(BODY_ZONE_HEAD, C.body_parts_covered))
 				coverhead = TRUE
-//			if(zone2covered(BODY_ZONE_PRECISE_L_FOOT, C.body_parts_covered))
-//				coverfeet = TRUE
 	if(locations & HEAD)
 		if(!coverhead)
-			var/mob/living/carbon/V = src
-			V.add_stress(/datum/stressevent/coldhead)
-//	if(locations & FEET)
-//		if(!coverfeet)
-//			add_stress(/datum/stressevent/coldfeet)
+			add_stress(/datum/stress_event/coldhead)
 
-//END FIRE CODE
-
+	if(locations & CHEST)
+		if(!rain)
+			ExtinguishMob()
+		for(var/obj/item/clothing/C in get_equipped_items())
+			if(C.wetable)
+				C.wet.add_water(20, dirty_water)
+		if(locations & HEAD)
+			adjust_fire_stacks(-2)
+		else
+			adjust_fire_stacks(-1)
+	else
+		if(locations == FEET)
+			var/obj/item/clothing/C = shoes
+			if(C && C.wetable)
+				C.wet.add_water(20, dirty_water)
+		else
+			var/list/below_chest = list(wear_pants, shoes)
+			for(var/obj/item/clothing/C in below_chest)
+				if(C.wetable)
+					C.wet.add_water(20, dirty_water)
 
 //This proc returns a number made up of the flags for body parts which you are protected on. (such as HEAD, CHEST, GROIN, etc. See setup.dm for the full list)
 /mob/living/carbon/human/proc/get_heat_protection_flags(temperature) //Temperature is the temperature you're being exposed to.
@@ -270,22 +294,22 @@
 	//Handle normal clothing
 	if(head)
 		if(head.max_heat_protection_temperature && head.max_heat_protection_temperature >= temperature)
-			thermal_protection_flags |= head.heat_protection
+			thermal_protection_flags |= head.body_parts_covered
 	if(wear_armor)
 		if(wear_armor.max_heat_protection_temperature && wear_armor.max_heat_protection_temperature >= temperature)
-			thermal_protection_flags |= wear_armor.heat_protection
+			thermal_protection_flags |= wear_armor.body_parts_covered
 	if(wear_pants)
 		if(wear_pants.max_heat_protection_temperature && wear_pants.max_heat_protection_temperature >= temperature)
-			thermal_protection_flags |= wear_pants.heat_protection
+			thermal_protection_flags |= wear_pants.body_parts_covered
 	if(shoes)
 		if(shoes.max_heat_protection_temperature && shoes.max_heat_protection_temperature >= temperature)
-			thermal_protection_flags |= shoes.heat_protection
+			thermal_protection_flags |= shoes.body_parts_covered
 	if(gloves)
 		if(gloves.max_heat_protection_temperature && gloves.max_heat_protection_temperature >= temperature)
-			thermal_protection_flags |= gloves.heat_protection
+			thermal_protection_flags |= gloves.body_parts_covered
 	if(wear_mask)
 		if(wear_mask.max_heat_protection_temperature && wear_mask.max_heat_protection_temperature >= temperature)
-			thermal_protection_flags |= wear_mask.heat_protection
+			thermal_protection_flags |= wear_mask.body_parts_covered
 
 	return thermal_protection_flags
 
@@ -327,22 +351,22 @@
 
 	if(head)
 		if(head.min_cold_protection_temperature && head.min_cold_protection_temperature <= temperature)
-			thermal_protection_flags |= head.cold_protection
+			thermal_protection_flags |= head.body_parts_covered
 	if(wear_armor)
 		if(wear_armor.min_cold_protection_temperature && wear_armor.min_cold_protection_temperature <= temperature)
-			thermal_protection_flags |= wear_armor.cold_protection
+			thermal_protection_flags |= wear_armor.body_parts_covered
 	if(wear_pants)
 		if(wear_pants.min_cold_protection_temperature && wear_pants.min_cold_protection_temperature <= temperature)
-			thermal_protection_flags |= wear_pants.cold_protection
+			thermal_protection_flags |= wear_pants.body_parts_covered
 	if(shoes)
 		if(shoes.min_cold_protection_temperature && shoes.min_cold_protection_temperature <= temperature)
-			thermal_protection_flags |= shoes.cold_protection
+			thermal_protection_flags |= shoes.body_parts_covered
 	if(gloves)
 		if(gloves.min_cold_protection_temperature && gloves.min_cold_protection_temperature <= temperature)
-			thermal_protection_flags |= gloves.cold_protection
+			thermal_protection_flags |= gloves.body_parts_covered
 	if(wear_mask)
 		if(wear_mask.min_cold_protection_temperature && wear_mask.min_cold_protection_temperature <= temperature)
-			thermal_protection_flags |= wear_mask.cold_protection
+			thermal_protection_flags |= wear_mask.body_parts_covered
 
 	return thermal_protection_flags
 
@@ -382,15 +406,12 @@
 	//Puke if toxloss is too high
 	if(!stat)
 		if(prob(33) && getToxLoss() >= 75)
-			mob_timers["puke"] = world.time
+			MOBTIMER_SET(src, MT_PUKE)
 			vomit(1, blood = TRUE)
 
 /mob/living/carbon/human/has_smoke_protection()
 	if(wear_mask)
 		if(wear_mask.clothing_flags & BLOCK_GAS_SMOKE_EFFECT)
-			return TRUE
-	if(glasses)
-		if(glasses.clothing_flags & BLOCK_GAS_SMOKE_EFFECT)
 			return TRUE
 	if(head && istype(head, /obj/item/clothing))
 		var/obj/item/clothing/CH = head
@@ -409,6 +430,25 @@
 		Unconscious(80)
 	// Tissues die without blood circulation
 	adjustBruteLoss(2)
+
+/mob/living/carbon/human/proc/handle_vamp_dreams()
+	if(!HAS_TRAIT(src, TRAIT_VAMP_DREAMS))
+		return
+	if(!mind)
+		return
+	if(!has_status_effect(/datum/status_effect/debuff/vamp_dreams))
+		return
+	if(!eyesclosed)
+		return
+	if(body_position != LYING_DOWN)
+		return
+	if(!istype(loc, /obj/structure/closet/crate/coffin))
+		return
+	var/obj/structure/closet/crate/coffin/coffin = loc
+	if(coffin.opened)
+		return
+	remove_status_effect(/datum/status_effect/debuff/vamp_dreams)
+	mind.sleep_adv.advance_cycle()
 
 #undef THERMAL_PROTECTION_HEAD
 #undef THERMAL_PROTECTION_CHEST

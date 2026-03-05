@@ -10,12 +10,16 @@
 	w_class = WEIGHT_CLASS_SMALL
 	flags_1 = null
 	light_system = MOVABLE_LIGHT
+<<<<<<< HEAD
 	light_outer_range = 5
 	light_power = 1
 	slot_flags = ITEM_SLOT_BELT
+=======
+	light_outer_range = 4
+	light_power = 1
+	slot_flags = ITEM_SLOT_HIP
+>>>>>>> upstream/main
 	possible_item_intents = list(INTENT_GENERIC)
-	custom_materials = list(/datum/material/iron=50, /datum/material/glass=20)
-//	actions_types = list(/datum/action/item_action/toggle_light)
 	var/on = FALSE
 
 /obj/item/flashlight/Initialize()
@@ -31,24 +35,23 @@
 		icon_state = initial(icon_state)
 	set_light_on(on)
 
-/obj/item/flashlight/attack_self(mob/user)
+/obj/item/flashlight/attack_self(mob/user, list/modifiers)
 	on = !on
 	update_brightness(user)
-	for(var/X in actions)
-		var/datum/action/A = X
-		A.UpdateButtonIcon()
+	update_item_action_buttons()
 	return 1
 
 /obj/item/flashlight/suicide_act(mob/living/carbon/human/user)
-	if (user.eye_blind)
+	if (user.is_blind())
 		user.visible_message("<span class='suicide'>[user] is putting [src] close to [user.p_their()] eyes and turning it on... but [user.p_theyre()] blind!</span>")
 		return SHAME
 	user.visible_message("<span class='suicide'>[user] is putting [src] close to [user.p_their()] eyes and turning it on! It looks like [user.p_theyre()] trying to commit suicide!</span>")
 	return (FIRELOSS)
 
-/obj/item/flashlight/attack(mob/living/carbon/M, mob/living/carbon/human/user)
+/obj/item/flashlight/attack(mob/living/carbon/M, mob/living/carbon/human/user, list/modifiers)
 	add_fingerprint(user)
 	return ..()
+<<<<<<< HEAD
 /*	if(istype(M) && on && user.zone_selected in list(BODY_ZONE_PRECISE_R_EYE, BODY_ZONE_PRECISE_MOUTH))
 
 		if((HAS_TRAIT(user, TRAIT_CLUMSY) || HAS_TRAIT(user, TRAIT_DUMB)) && prob(50))	//too dumb to use flashlight properly
@@ -243,6 +246,8 @@
 	desc = ""
 	icon_state = "bananalamp"
 	item_state = "bananalamp"
+=======
+>>>>>>> upstream/main
 
 // FLARES
 
@@ -254,13 +259,13 @@
 	icon_state = "flare"
 	item_state = "flare"
 	actions_types = list()
+	heat = 1000
+	light_color = LIGHT_COLOR_FLARE
+
 	var/fuel = 12000
 	var/on_damage = 7
 	var/produce_heat = 1500
 	var/times_used = 0
-	heat = 1000
-	light_color = LIGHT_COLOR_FLARE
-	grind_results = list(/datum/reagent/sulfur = 15)
 
 /obj/item/flashlight/flare/process()
 	open_flame(heat)
@@ -295,7 +300,7 @@
 	else
 		item_state = "[initial(item_state)]"
 
-/obj/item/flashlight/flare/attack_self(mob/user)
+/obj/item/flashlight/flare/attack_self(mob/user, list/modifiers)
 
 	// Usual checks
 	if(!fuel)
@@ -320,24 +325,37 @@
 	name = "torch"
 	desc = ""
 	w_class = WEIGHT_CLASS_NORMAL
+<<<<<<< HEAD
 	light_outer_range = 6
+=======
+	light_outer_range = 5
+>>>>>>> upstream/main
 	force = 1
 	icon = 'icons/roguetown/items/lighting.dmi'
 	icon_state = "torch"
 	item_state = "torch"
 	lefthand_file = 'icons/mob/inhands/items_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/items_righthand.dmi'
+<<<<<<< HEAD
 	light_color = "#f19d30"
+=======
+	light_color = "#ffb773"
+>>>>>>> upstream/main
 	on_damage = 2
 	flags_1 = null
-	possible_item_intents = list(/datum/intent/hit, /datum/intent/use)
+	possible_item_intents = list(/datum/intent/use, /datum/intent/hit)
 	slot_flags = ITEM_SLOT_HIP
-	var/datum/looping_sound/torchloop/soundloop
 	var/should_self_destruct = TRUE //added for torch burnout
+	var/max_uses = 12
 	max_integrity = 40
 	fuel = 30 MINUTES
 	light_depth = 0
 	light_height = 0
+	metalizer_result = /obj/item/flashlight/flare/torch/lantern
+
+	grid_width = 32
+	grid_height = 32
+	var/extinguish_prob = 100
 
 /obj/item/flashlight/flare/torch/getonmobprop(tag)
 	. = ..()
@@ -348,10 +366,13 @@
 			if("onbelt")
 				return list("shrink" = 0.3,"sx" = -2,"sy" = -5,"nx" = 4,"ny" = -5,"wx" = 0,"wy" = -5,"ex" = 2,"ey" = -5,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0)
 
+<<<<<<< HEAD
 /obj/item/flashlight/flare/torch/Initialize()
 	. = ..()
 	soundloop = new(src, FALSE)
 
+=======
+>>>>>>> upstream/main
 /obj/item/flashlight/flare/torch/process()
 	open_flame(heat)
 	if(!fuel || !on)
@@ -360,7 +381,7 @@
 		if(!fuel)
 			icon_state = "torch-empty"
 		return
-	if(!istype(loc,/obj/machinery/light/rogue/torchholder))
+	if(!istype(loc,/obj/machinery/light/fueled/torchholder))
 		if(!ismob(loc))
 			if(prob(23))
 				turn_off()
@@ -375,7 +396,7 @@
 					return
 		fuel = max(fuel - 10, 0)
 
-/obj/item/flashlight/flare/torch/attack_self(mob/user)
+/obj/item/flashlight/flare/torch/attack_self(mob/user, list/modifiers)
 
 	// Usual checks
 	if(!fuel)
@@ -385,12 +406,11 @@
 		turn_off()
 
 /obj/item/flashlight/flare/torch/extinguish()
-	if(on)
+	if(on && prob(extinguish_prob))
 		turn_off()
 
 /obj/item/flashlight/flare/torch/turn_off()
-	playsound(src.loc, 'sound/items/firesnuff.ogg', 100)
-	soundloop.stop()
+	playsound(src, 'sound/items/firesnuff.ogg', 50)
 	STOP_PROCESSING(SSobj, src)
 	..()
 	if(ismob(loc))
@@ -400,21 +420,21 @@
 	damtype = BRUTE
 
 /obj/item/flashlight/flare/torch/fire_act(added, maxstacks)
+	. = ..()
 	if(fuel)
 		if(!on)
-			playsound(src.loc, 'sound/items/firelight.ogg', 100)
+			playsound(src, 'sound/items/firelight.ogg', 100)
 			on = TRUE
 			damtype = BURN
 			update_brightness()
 			force = on_damage
-			soundloop.start()
 			if(ismob(loc))
 				var/mob/M = loc
 				M.update_inv_hands()
 			START_PROCESSING(SSobj, src)
-	..()
+			return TRUE
 
-/obj/item/flashlight/flare/torch/afterattack(atom/movable/A, mob/user, proximity)
+/obj/item/flashlight/flare/torch/afterattack(atom/movable/A, mob/user, proximity, list/modifiers)
 	. = ..()
 	if (!proximity)
 		return
@@ -426,7 +446,7 @@
 
 		if (should_self_destruct)  // check if self-destruct
 			times_used += 1
-			if (times_used >= 8) //amount used before burning out
+			if (times_used >= max_uses) //amount used before burning out
 				user.visible_message("<span class='warning'>[src] has burnt out and falls apart!</span>")
 				qdel(src)
 
@@ -435,7 +455,7 @@
 
 /obj/item/flashlight/flare/torch/get_temperature()
 	if(on)
-		return FIRE_MINIMUM_TEMPERATURE_TO_SPREAD
+		return 150+T0C
 	return ..()
 
 /obj/item/flashlight/flare/torch/prelit/Initialize() //Prelit version, testing to see if it causes less issues with pre_equip dropping stuff in your hands
@@ -449,25 +469,17 @@
 	light_outer_range = 6
 	fuel = 120 MINUTES
 	should_self_destruct = TRUE
+	max_uses = 60
+	metalizer_result = null
+	melting_material = /datum/material/iron
+	melt_amount = 15
 
-/obj/item/flashlight/flare/torch/metal/afterattack(atom/movable/A, mob/user, proximity)
+/obj/item/flashlight/flare/torch/metal/prelit/Initialize()
 	. = ..()
-	if(!proximity)
-		return
-	if(on && (prob(50) || (user.used_intent.type == /datum/intent/use)))
-		if(ismob(A))
-			A.spark_act()
-		else
-			A.fire_act(3,3)
-
-		if (should_self_destruct)  // check if self-destruct
-			times_used += 1
-			if (times_used >= 13) //amount used before burning out
-				user.visible_message("<span class='warning'>[src] has burnt out and falls apart!</span>")
-				qdel(src)
+	spark_act()
 
 /obj/item/flashlight/flare/torch/lantern
-	name = "lamptern"
+	name = "iron lamptern"
 	icon_state = "lamp"
 	desc = "A light to guide the way."
 	light_outer_range = 7
@@ -478,8 +490,12 @@
 	on_damage = 5
 	fuel = 120 MINUTES
 	should_self_destruct = FALSE
+	metalizer_result = null
+	extinguish_prob = 10
+	melting_material = /datum/material/iron
+	melt_amount = 75
 
-/obj/item/flashlight/flare/torch/lantern/afterattack(atom/movable/A, mob/user, proximity)
+/obj/item/flashlight/flare/torch/lantern/afterattack(atom/movable/A, mob/user, proximity, list/modifiers)
 	. = ..()
 	if(!proximity)
 		return
@@ -496,17 +512,27 @@
 		turn_off()
 		STOP_PROCESSING(SSobj, src)
 
-/obj/item/flashlight/flare/torch/lantern/extinguish()
-	return
-
 /obj/item/flashlight/flare/torch/lantern/getonmobprop(tag)
 	. = ..()
 	if(tag)
 		switch(tag)
 			if("gen")
-				return list("shrink" = 0.4,"sx" = -2,"sy" = -4,"nx" = 9,"ny" = -4,"wx" = -3,"wy" = -4,"ex" = 2,"ey" = -4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+				return list("shrink" = 0.4,"sx" = -6,"sy" = -4,"nx" = 6,"ny" = -4,"wx" = -2,"wy" = -4,"ex" = 1,"ey" = -4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 			if("onbelt")
 				return list("shrink" = 0.3,"sx" = -2,"sy" = -5,"nx" = 4,"ny" = -5,"wx" = 0,"wy" = -5,"ex" = 2,"ey" = -5,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0)
+
+/obj/item/flashlight/flare/torch/lantern/bronzelamptern
+	name = "bronze lamptern"
+	icon_state = "bronzelamp"
+	item_state = "bronzelamp"
+	desc = "A marvel of engineering that emits a strange green glow."
+	light_outer_range = 9
+	light_power = 2
+	light_color ="#3fff8f"
+	on = FALSE
+	extinguish_prob = 0
+	melting_material = /datum/material/bronze
+	melt_amount = 75
 
 /obj/item/flashlight/flare/torch/lantern/copper
 	name = "copper lamptern"
@@ -520,15 +546,19 @@
 	on_damage = 5
 	fuel = 120 MINUTES
 	should_self_destruct = FALSE
+	extinguish_prob = 15
+	melting_material = /datum/material/copper
+	melt_amount = 75
 
 /obj/item/flashlight/flare/torch/lantern/copper/getonmobprop(tag)
 	. = ..()
 	if(tag)
 		switch(tag)
 			if("gen")
-				return list("shrink" = 0.4,"sx" = -2,"sy" = -4,"nx" = 9,"ny" = -4,"wx" = -3,"wy" = -4,"ex" = 2,"ey" = -4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+				return list("shrink" = 0.4,"sx" = -6,"sy" = -4,"nx" = 6,"ny" = -4,"wx" = -2,"wy" = -4,"ex" = 1,"ey" = -4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 			if("onbelt")
 				return list("shrink" = 0.3,"sx" = -2,"sy" = -5,"nx" = 4,"ny" = -5,"wx" = 0,"wy" = -5,"ex" = 2,"ey" = -5,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0)
+<<<<<<< HEAD
 
 
 /obj/item/flashlight/lantern
@@ -741,3 +771,5 @@
 	anchored = TRUE
 	var/range = null
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF
+=======
+>>>>>>> upstream/main

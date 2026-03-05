@@ -1,16 +1,12 @@
 /atom/movable/lighting_object
-	name          = ""
-
-	anchored      = TRUE
-
-	icon             = LIGHTING_ICON
-	icon_state       = "transparent"
-	color            = null //we manually set color in init instead
-	plane            = LIGHTING_PLANE
+	name = ""
+	anchored = TRUE
+	icon = LIGHTING_ICON
+	icon_state = "lighting_transparent"
+	color = null //we manually set color in init instead
+	plane = LIGHTING_PLANE
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
-	layer            = LIGHTING_LAYER
-	invisibility     = INVISIBILITY_LIGHTING
-
+	invisibility = INVISIBILITY_LIGHTING
 	var/needs_update = FALSE
 	var/turf/myturf
 
@@ -26,9 +22,6 @@
 		qdel(myturf.lighting_object, force = TRUE)
 	myturf.lighting_object = src
 	myturf.luminosity = 0
-
-	for(var/turf/open/space/S in RANGE_TURFS(1, src)) //RANGE_TURFS is in code\__HELPERS\game.dm
-		S.update_starlight()
 
 	needs_update = TRUE
 	SSlighting.objects_queue += src
@@ -110,10 +103,10 @@
 
 	if((rr & gr & br & ar) && (rg + gg + bg + ag + rb + gb + bb + ab == 8))
 	//anything that passes the first case is very likely to pass the second, and addition is a little faster in this case
-		icon_state = "transparent"
+		icon_state = "lighting_transparent"
 		color = null
 	else if(!set_luminosity)
-		icon_state = "dark"
+		icon_state = "lighting_dark"
 		color = null
 	else
 		icon_state = null
@@ -140,15 +133,6 @@
 
 /atom/movable/lighting_object/ex_act(severity)
 	return 0
-
-/atom/movable/lighting_object/singularity_act()
-	return
-
-/atom/movable/lighting_object/singularity_pull()
-	return
-
-/atom/movable/lighting_object/blob_act()
-	return
 
 /atom/movable/lighting_object/onTransitZ()
 	return

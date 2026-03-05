@@ -1,46 +1,19 @@
-GLOBAL_LIST_EMPTY(cable_list)					    //Index for all cables, so that powernets don't have to look through the entire world all the time
 GLOBAL_LIST_EMPTY(portals)					        //list of all /obj/effect/portal
-GLOBAL_LIST_EMPTY(airlocks)					        //list of all airlocks
-GLOBAL_LIST_EMPTY(mechas_list)				        //list of all mechs. Used by hostile mobs target tracking.
-GLOBAL_LIST_EMPTY(shuttle_caller_list)  		    //list of all communication consoles and AIs, for automatic shuttle calls when there are none.
 GLOBAL_LIST_EMPTY(machines)					        //NOTE: this is a list of ALL machines now. The processing machines list is SSmachine.processing !
-GLOBAL_LIST_EMPTY(navigation_computers)				//list of all /obj/machinery/computer/camera_advanced/shuttle_docker
-GLOBAL_LIST_EMPTY(syndicate_shuttle_boards)	        //important to keep track of for managing nukeops war declarations.
-GLOBAL_LIST_EMPTY(navbeacons)					    //list of all bot nagivation beacons, used for patrolling.
-GLOBAL_LIST_EMPTY(teleportbeacons)			        //list of all tracking beacons used by teleporters
-GLOBAL_LIST_EMPTY(deliverybeacons)			        //list of all MULEbot delivery beacons.
-GLOBAL_LIST_EMPTY(deliverybeacontags)			    //list of all tags associated with delivery beacons.
-GLOBAL_LIST_EMPTY(nuke_list)
-GLOBAL_LIST_EMPTY(alarmdisplay)				        //list of all machines or programs that can display station alerts
-GLOBAL_LIST_EMPTY(singularities)				    //list of all singularities on the station (actually technically all engines)
 
 GLOBAL_LIST(chemical_reactions_list)				//list of all /datum/chemical_reaction datums. Used during chemical reactions
 GLOBAL_LIST(chemical_reagents_list)				//list of all /datum/reagent datums indexed by reagent id. Used by chemistry stuff
-GLOBAL_LIST_EMPTY(materials_list)				//list of all /datum/material datums indexed by material id.
-GLOBAL_LIST_EMPTY(tech_list)					//list of all /datum/tech datums indexed by id.
-GLOBAL_LIST_EMPTY(crafting_recipes)				//list of all table craft recipes
-GLOBAL_LIST_EMPTY(anvil_recipes)				//list of all anvil crafted recipes
-GLOBAL_LIST_EMPTY(rcd_list)					//list of Rapid Construction Devices.
-GLOBAL_LIST_EMPTY(apcs_list)					//list of all Area Power Controller machines, separate from machines for powernet speeeeeeed.
-GLOBAL_LIST_EMPTY(tracked_implants)			//list of all current implants that are tracked to work out what sort of trek everyone is on. Sadly not on lavaworld not implemented...
-GLOBAL_LIST_EMPTY(tracked_chem_implants)			//list of implants the prisoner console can track and send inject commands too
+GLOBAL_LIST_INIT(chemical_reagents_color_list, build_chemical_reagent_color_list())		//list of random colors for reagents, initiated at roundstart or when a reagent is created
+
 GLOBAL_LIST_EMPTY(poi_list)					//list of points of interest for observe/follow
 GLOBAL_LIST_EMPTY(pinpointer_list)			//list of all pinpointers. Used to change stuff they are pointing to all at once.
 GLOBAL_LIST_EMPTY(zombie_infection_list) 		// A list of all zombie_infection organs, for any mass "animation"
-GLOBAL_LIST_EMPTY(meteor_list)				// List of all meteors.
-GLOBAL_LIST_EMPTY(active_jammers)             // List of active radio jammers
 GLOBAL_LIST_EMPTY(ladders)
 GLOBAL_LIST_EMPTY(trophy_cases)
-GLOBAL_LIST_EMPTY(bard_buffs)               // List of buffs by bard songs
-
-GLOBAL_LIST_EMPTY(wire_color_directory)
-GLOBAL_LIST_EMPTY(wire_name_directory)
-
-GLOBAL_LIST_EMPTY(ai_status_displays)
 
 GLOBAL_LIST_EMPTY(mob_spawners) 		    // All mob_spawn objects
-GLOBAL_LIST_EMPTY(alert_consoles)			// Station alert consoles, /obj/machinery/computer/station_alert
 
+<<<<<<< HEAD
 GLOBAL_LIST_INIT(rod_jobs, list(
 	"Garrison Guard",
 	"Captain",
@@ -67,4 +40,66 @@ GLOBAL_LIST_INIT(rod_jobs, list(
 	"Warden of the Terrorbog",
 	"Huntmaster of the Murderwoods",
 	"Hetman of Mount Decapitation",
+=======
+GLOBAL_LIST_INIT(anvil_recipes, init_subtypes(/datum/anvil_recipe, list()))
+GLOBAL_LIST_INIT(artificer_recipes, init_subtypes(/datum/artificer_recipe, list()))
+GLOBAL_LIST_INIT(alch_grind_recipes, init_subtypes(/datum/alch_grind_recipe, list()))
+GLOBAL_LIST_INIT(alch_cauldron_recipes, init_subtypes(/datum/alch_cauldron_recipe, list()))
+
+/* COLORS */
+GLOBAL_LIST_INIT(peasant_dyes, list(
+	"Linen" = CLOTHING_LINEN,
+	"Canvas" = CLOTHING_CANVAS,
+	"Soot Black" = CLOTHING_SOOT_BLACK,
+	"Winestain Red" = CLOTHING_WINESTAIN_RED,
+	"Peasant Brown" = CLOTHING_PEASANT_BROWN,
+	"Mud Brown" = CLOTHING_MUD_BROWN,
+	"Chestnut" = CLOTHING_CHESTNUT,
+	"Old Leather" = CLOTHING_OLD_LEATHER,
+	"Spring Green" = CLOTHING_SPRING_GREEN,
+	"Berry Blue" = CLOTHING_BERRY_BLUE,
+	"Taraxacum Yellow" = CLOTHING_TARAXACUM_YELLOW,
+))
+GLOBAL_PROTECT(peasant_dyes)
+
+GLOBAL_LIST_INIT(noble_dyes, list(
+	"Dark Ink" = CLOTHING_DARK_INK,
+	"Plum Purple" = CLOTHING_PLUM_PURPLE,
+	"Salmon" = CLOTHING_SALMON,
+	"Maroon" = CLOTHING_MAROON,
+	"Red Ochre" =  CLOTHING_RED_OCHRE,
+	"Forest Green" = CLOTHING_FOREST_GREEN,
+	"Sky Blue" = CLOTHING_SKY_BLUE,
+	"Mustard Yellow" = CLOTHING_MUSTARD_YELLOW,
+	"Yellow Ochre" = CLOTHING_YELLOW_OCHRE,
+	"Ash Grey" = CLOTHING_ASH_GREY,
+	"Russet" = CLOTHING_RUSSET,
+	"Blood Red" = CLOTHING_BLOOD_RED,
+	"Swampweed" = CLOTHING_SWAMPWEED,
+	"Ocean" = CLOTHING_OCEAN,
+))
+GLOBAL_PROTECT(noble_dyes)
+
+GLOBAL_LIST_INIT(royal_dyes, list(
+	"Royal Black" = CLOTHING_ROYAL_BLACK,
+	"Royal Red" = CLOTHING_ROYAL_RED,
+	"Royal Purple" = CLOTHING_ROYAL_PURPLE,
+	"Royal Majenta" = CLOTHING_ROYAL_MAJENTA,
+	"Royal Teal" = CLOTHING_ROYAL_TEAL,
+
+	"Bark Brown" = CLOTHING_BARK_BROWN,
+	"Bog Green" = CLOTHING_BOG_GREEN,
+	"Fyritius Orange" = CLOTHING_FYRITIUS_ORANGE,
+	"Pear Yellow" = CLOTHING_PEAR_YELLOW,
+	"Chalk White" = CLOTHING_CHALK_WHITE,
+))
+GLOBAL_PROTECT(royal_dyes)
+
+GLOBAL_LIST_INIT(steam_armor, list(
+	/obj/item/clothing/armor/steam,
+	/obj/item/clothing/gloves/plate/steam,
+	/obj/item/clothing/head/helmet/heavy/steam,
+	/obj/item/clothing/shoes/boots/armor/steam,
+	/obj/item/clothing/cloak/boiler,
+>>>>>>> upstream/main
 ))

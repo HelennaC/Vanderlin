@@ -30,7 +30,7 @@
 		return 0
 
 	if(myPath.len <= 0)
-		myPath = get_path_to(src, get_turf(target), /turf/proc/Distance, MAX_RANGE_FIND + 1, 250,1)
+		myPath = get_path_to(src, get_turf(target), TYPE_PROC_REF(/turf, Heuristic_cardinal_3d), MAX_RANGE_FIND + 1, 250,1)
 
 	if(myPath)
 		if(myPath.len > 0)
@@ -50,13 +50,11 @@
 
 // taken from /mob/living/carbon/human/interactive/
 /mob/living/carbon/monkey/proc/IsDeadOrIncap(checkDead = TRUE)
-	if(!(mobility_flags & MOBILITY_FLAGS_INTERACTION))
-		return 1
+	// if(!(mobility_flags & MOBILITY_FLAGS_INTERACTION))
+	// 	return 1
 	if(health <= 0 && checkDead)
 		return 1
-	if(IsUnconscious())
-		return 1
-	if(IsStun() || IsParalyzed())
+	if(HAS_TRAIT(src, TRAIT_INCAPACITATED))
 		return 1
 	if(stat)
 		return 1
@@ -105,7 +103,7 @@
 		monkeyDrop(get_item_by_slot(C)) // remove the existing item if worn
 		addtimer(CALLBACK(src, PROC_REF(equip_to_appropriate_slot), C), 5)
 
-/mob/living/carbon/monkey/resist_restraints()
+/mob/living/carbon/monkey/resist_restraints(instant = FALSE)
 	var/obj/item/I = null
 	if(handcuffed)
 		I = handcuffed
@@ -131,7 +129,7 @@
 
 /mob/living/carbon/monkey/proc/handle_combat()
 	if(pickupTarget)
-		if(IsDeadOrIncap() || restrained() || blacklistItems[pickupTarget] || HAS_TRAIT(pickupTarget, TRAIT_NODROP))
+		if(IsDeadOrIncap() || HAS_TRAIT(src, TRAIT_RESTRAINED) || blacklistItems[pickupTarget] || HAS_TRAIT(pickupTarget, TRAIT_NODROP))
 			pickupTarget = null
 		else
 			pickupTimer++
@@ -165,12 +163,6 @@
 							battle_screech()
 							retaliate(L)
 							return TRUE
-						else
-							bodyDisposal = locate(/obj/machinery/disposal/) in around
-							if(bodyDisposal)
-								target = L
-								mode = MONKEY_DISPOSE
-								return TRUE
 
 			// pickup any nearby objects
 			if(!pickupTarget)
@@ -267,7 +259,7 @@
 		if(MONKEY_DISPOSE)
 
 			// if can't dispose of body go back to idle
-			if(!target || !bodyDisposal || frustration >= MONKEY_DISPOSE_FRUSTRATION_LIMIT)
+			if(!target  || frustration >= MONKEY_DISPOSE_FRUSTRATION_LIMIT)
 				back_to_idle()
 				return TRUE
 
@@ -285,26 +277,12 @@
 					else
 						frustration = 0
 
-			else if(!disposing_body)
-				INVOKE_ASYNC(src, PROC_REF(walk2derpless), bodyDisposal.loc)
-
-				if(Adjacent(bodyDisposal))
-					disposing_body = TRUE
-					addtimer(CALLBACK(src, PROC_REF(stuff_mob_in)), 5)
-
-				else
-					var/turf/olddist = get_dist(src, bodyDisposal)
-					if((get_dist(src, bodyDisposal)) >= (olddist))
-						frustration++
-					else
-						frustration = 0
-
 			return TRUE
 
 	return IsStandingStill()
 
 /mob/living/carbon/monkey/proc/pickpocket(mob/M)
-	if(do_mob(src, M, MONKEY_ITEM_SNATCH_DELAY) && pickupTarget)
+	if(do_after(src, MONKEY_ITEM_SNATCH_DELAY, M) && pickupTarget)
 		for(var/obj/item/I in M.held_items)
 			if(I == pickupTarget)
 				M.visible_message("<span class='danger'>[src] snatches [pickupTarget] from [M].</span>", "<span class='danger'>[src] snatched [pickupTarget]!</span>")
@@ -316,12 +294,6 @@
 	pickpocketing = FALSE
 	pickupTarget = null
 	pickupTimer = 0
-
-/mob/living/carbon/monkey/proc/stuff_mob_in()
-	if(bodyDisposal && target && Adjacent(bodyDisposal))
-		bodyDisposal.stuff_mob_in(target, src)
-	disposing_body = FALSE
-	back_to_idle()
 
 /mob/living/carbon/monkey/proc/back_to_idle()
 
@@ -388,19 +360,19 @@
 		retaliate(L)
 	return ..()
 
-/mob/living/carbon/monkey/attackby(obj/item/W, mob/user, params)
+/mob/living/carbon/monkey/attackby(obj/item/W, mob/user, list/modifiers)
 	..()
 	if((W.force) && (!target) && (W.damtype != STAMINA) )
 		retaliate(user)
 
 /mob/living/carbon/monkey/bullet_act(obj/projectile/Proj)
-	if(istype(Proj , /obj/projectile/beam)||istype(Proj, /obj/projectile/bullet))
+	if(istype(Proj, /obj/projectile/bullet))
 		if((Proj.damage_type == BURN) || (Proj.damage_type == BRUTE))
 			if(!Proj.nodamage && Proj.damage < src.health && isliving(Proj.firer))
 				retaliate(Proj.firer)
 	. = ..()
 
-/mob/living/carbon/monkey/hitby(atom/movable/AM, skipcatch = FALSE, hitpush = TRUE, blocked = FALSE, datum/thrownthing/throwingdatum)
+/mob/living/carbon/monkey/hitby(atom/movable/AM, skipcatch = FALSE, hitpush = TRUE, blocked = FALSE, datum/thrownthing/throwingdatum, damage_type = "blunt")
 	if(istype(AM, /obj/item))
 		var/obj/item/I = AM
 		if(I.throwforce < src.health && I.thrownby && ishuman(I.thrownby))
@@ -422,7 +394,7 @@
 		dropItemToGround(A, TRUE)
 		update_icons()
 
-/mob/living/carbon/monkey/grabbedby(mob/living/carbon/user, supress_message = FALSE, item_override)
+/mob/living/carbon/monkey/grabbedby(mob/living/carbon/user, suppress_message = FALSE, item_override)
 	. = ..()
 	if(!IsDeadOrIncap() && pulledby && (mode != MONKEY_IDLE || prob(MONKEY_PULL_AGGRO_PROB))) // nuh uh you don't pull me!
 		if(Adjacent(pulledby))

@@ -1,6 +1,3 @@
-#define EMOTE_VISIBLE 1
-#define EMOTE_AUDIBLE 2
-
 /datum/emote
 	var/key = "" //What calls the emote
 	var/key_third_person = "" //This will also call the emote
@@ -9,8 +6,14 @@
 	var/message_monkey = "" //Message displayed if the user is a monkey
 	var/message_simple = "" //Message to display if the user is a simple_animal
 	var/message_param = "" //Message to display if a param was given
+	var/message_muffled = null //Message to display if the user is muffled
 	var/emote_type = EMOTE_VISIBLE //Whether the emote is visible or audible
-	var/restraint_check = FALSE //Checks if the mob is restrained before performing the emote
+	/// Checks if the mob is restrained before performing the emote
+	var/restraint_check = FALSE
+	/// Checks if the mob can use its hands before performing the emote.
+	var/hands_use_check = FALSE
+	/// Checks if the mob is not incapacitated before performing the emote.
+	var/incapacitated_check = FALSE
 	var/muzzle_ignore = FALSE //Will only work if the emote is EMOTE_AUDIBLE
 	var/list/mob_type_allowed_typecache = /mob //Types that are allowed to use that emote
 	var/list/mob_type_blacklist_typecache //Types that are NOT allowed to use that emote
@@ -25,8 +28,14 @@
 	var/snd_vol = 100
 	var/snd_range = -1
 	var/mute_time = 30//time after where someone can't do another emote
+	// Whether this should show on runechat
+	var/show_runechat = TRUE
+	// Explicitly defined runechat message, if it's not defined and `show_runechat` is TRUE then it will use `message` instaed
+	var/runechat_msg = null
 
 /datum/emote/New()
+	if(!runechat_msg)
+		runechat_msg = strip_punctuation(message)
 	if (ispath(mob_type_allowed_typecache))
 		switch (mob_type_allowed_typecache)
 			if (/mob)
@@ -52,16 +61,28 @@
 	if(targetted)
 		var/list/mobsadjacent = list()
 		var/mob/chosenmob
+<<<<<<< HEAD
 		for(var/mob/living/M in range(user, 2))
 			if(M != user)
 				mobsadjacent += M
 		if(mobsadjacent.len)
 			chosenmob = input("[key] who?") as null|anything in mobsadjacent
+=======
+		for(var/mob/living/target_mob in view(user, 2))
+			if(target_mob == user)
+				continue
+			if(target_mob.rogue_sneaking) // No detecting sneaky people.
+				continue
+			mobsadjacent += target_mob
+		if(length(mobsadjacent))
+			chosenmob = browser_input_list(user, "[key] who?", "XYLIX", mobsadjacent)
+>>>>>>> upstream/main
 		if(istype(chosenmob))
 			if(user.Adjacent(chosenmob))
 				params = chosenmob.name
 				adjacentaction(user, chosenmob)
-	var/msg = select_message_type(user, intentional)
+	var/raw_msg = select_message_type(user, intentional)
+	var/msg = raw_msg
 	if(params && message_param)
 		msg = select_param(user, params)
 
@@ -77,8 +98,6 @@
 	var/pitch = 1 //bespoke vary system so deep voice/high voiced humans
 	if(isliving(user))
 		var/mob/living/L = user
-		for(var/obj/item/implant/I in L.implants)
-			I.trigger(key, L)
 		pitch = L.get_emote_pitch()
 
 	var/sound/tmp_sound = get_sound(user)
@@ -86,6 +105,10 @@
 		tmp_sound = sound(get_sfx(tmp_sound))
 	tmp_sound.frequency = pitch
 	if(tmp_sound && (!only_forced_audio || !intentional))
+		if (ishuman(user))
+			var/mob/living/carbon/human/H = user
+			if(H.voice_type == VOICE_TYPE_ANDRO)
+				tmp_sound.frequency = pitch * 0.92
 		playsound(user, tmp_sound, snd_vol, FALSE, snd_range, soundping = soundping)
 	if(!nomsg)
 		for(var/mob/M in GLOB.dead_mob_list)
@@ -94,10 +117,13 @@
 			var/T = get_turf(user)
 			if(M.stat == DEAD && M.client && (M.client.prefs?.chat_toggles & CHAT_GHOSTSIGHT) && !(M in viewers(T, null)))
 				M.show_message(msg)
+		var/runechat_msg_to_use = null
+		if(show_runechat && emote_type != EMOTE_AUDIBLE)
+			runechat_msg_to_use = runechat_msg ? runechat_msg : raw_msg
 		if(emote_type == EMOTE_AUDIBLE)
-			user.audible_message(msg)
+			user.audible_message(msg, runechat_message = runechat_msg_to_use)
 		else
-			user.visible_message(msg)
+			user.visible_message(msg, runechat_message = runechat_msg_to_use)
 
 /mob/living/proc/get_emote_pitch()
 	return clamp(voice_pitch, 0.5, 2)
@@ -105,6 +131,8 @@
 /mob/living/carbon/human/get_emote_pitch()
 	var/final_pitch = ..()
 	var/pitch_modifier = 0
+	if(HAS_TRAIT(src, TRAIT_DECEIVING_MEEKNESS))
+		return final_pitch
 	if(STASTR > 10)
 		pitch_modifier -= (STASTR - 10) * 0.03
 	else if(STASTR < 10)
@@ -140,12 +168,21 @@
 			var/modifier
 			if(H.age == AGE_OLD)
 				modifier = "old"
-			if(!ignore_silent && (H.silent || !H.can_speak()))
+			if(!ignore_silent && !H.can_speak() || (!ignore_silent && HAS_TRAIT(H, TRAIT_MUTE)) || (!ignore_silent && HAS_TRAIT(H, TRAIT_BAGGED)))
 				modifier = "silenced"
 			if(user.gender == FEMALE && H.dna.species.soundpack_f)
 				possible_sounds = H.dna.species.soundpack_f.get_sound(key,modifier)
 			else if(H.dna.species.soundpack_m)
 				possible_sounds = H.dna.species.soundpack_m.get_sound(key,modifier)
+			if(H.voice_type)
+				switch (H.voice_type)
+					if (VOICE_TYPE_MASC)
+						possible_sounds = H.dna.species.soundpack_m.get_sound(key, modifier)
+					if (VOICE_TYPE_FEM, VOICE_TYPE_ANDRO)
+						if (H.dna.species.soundpack_f)
+							possible_sounds = H.dna.species.soundpack_f.get_sound(key, modifier)
+						else
+							possible_sounds = H.dna.species.soundpack_m.get_sound(key, modifier)
 			if(possible_sounds)
 				if(islist(possible_sounds))
 					var/list/PS = possible_sounds
@@ -176,7 +213,16 @@
 
 /datum/emote/proc/select_message_type(mob/user, intentional)
 	. = message
-	if(!muzzle_ignore && user.is_muzzled() && emote_type == EMOTE_AUDIBLE)
+	if(message_muffled && iscarbon(user))
+		var/mob/living/carbon/C = user
+		if(!C.can_speak_vocal())
+			. = message_muffled
+		if(!muzzle_ignore && C.mouth?.muteinmouth && emote_type == EMOTE_AUDIBLE)
+			. = message_muffled
+		if(!muzzle_ignore && emote_type == EMOTE_AUDIBLE && HAS_TRAIT(C, TRAIT_BAGGED))
+			. = message_muffled
+
+	if(!muzzle_ignore && HAS_TRAIT(user, TRAIT_MUTE) && emote_type == EMOTE_AUDIBLE)
 		return "makes a [pick("strong ", "weak ", "")]noise."
 	if(user.mind && user.mind.miming && message_mime)
 		. = message_mime
@@ -190,7 +236,6 @@
 
 /datum/emote/proc/can_run_emote(mob/user, status_check = TRUE, intentional = FALSE)
 	. = TRUE
-	message = initial(message)
 	if(!is_type_in_typecache(user, mob_type_allowed_typecache))
 		return FALSE
 	if(is_type_in_typecache(user, mob_type_blacklist_typecache))
@@ -207,18 +252,20 @@
 				if(DEAD)
 					to_chat(user, "<span class='warning'>I cannot [key] while dead!</span>")*/
 			return FALSE
-		if(restraint_check)
-			if(isliving(user))
-				var/mob/living/L = user
-				if(L.IsParalyzed() || L.IsStun())
-					if(!intentional)
-						return FALSE
-//					to_chat(user, "<span class='warning'>I cannot [key] while stunned!</span>")
-					return FALSE
-		if(restraint_check && user.restrained())
+		if(restraint_check && HAS_TRAIT(user, TRAIT_RESTRAINED))
 			if(!intentional)
 				return FALSE
-//			to_chat(user, "<span class='warning'>I cannot [key] while restrained!</span>")
+			to_chat(user, "<span class='warning'>I cannot [key] while restrained!</span>")
+			return FALSE
+		if(hands_use_check && HAS_TRAIT(user, TRAIT_HANDS_BLOCKED))
+			if(!intentional)
+				return FALSE
+			to_chat(user, "<span class='warning'>I cannot use my hands to [key] right now!</span>")
+			return FALSE
+		if(incapacitated_check && HAS_TRAIT(user, TRAIT_INCAPACITATED))
+			if(!intentional)
+				return FALSE
+			// to_chat(user, "<span class='warning'>You cannot use your hands to [key] right now!</span>")
 			return FALSE
 
 	if(isliving(user))

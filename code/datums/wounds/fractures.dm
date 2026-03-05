@@ -18,6 +18,19 @@
 	critical = TRUE
 	sleep_healing = 0 // no sleep healing that is dumb
 
+<<<<<<< HEAD
+=======
+	// Limbs hemorrhage but clot quickly
+	// Lose 164.3 blood over 19 ticks then clot
+	bleed_rate = 16.3
+	clotting_threshold = 0.6
+	clotting_rate = 0.85
+
+	var/set_bleed_rate = 0.5
+
+	ignore_bloody = TRUE
+
+>>>>>>> upstream/main
 	werewolf_infection_probability = 0
 	/// Whether or not we can be surgically set
 	var/can_set = TRUE
@@ -44,12 +57,15 @@
 /datum/wound/fracture/proc/set_bone()
 	if(!can_set)
 		return FALSE
+	bleed_rate = set_bleed_rate
 	sleep_healing = max(sleep_healing, 1)
 	passive_healing = max(passive_healing, 1)
+	heal_wound(initial(whp)/1.6) //heal a little more than of maximum fracture
+	can_set = FALSE
 	return TRUE
 
 /datum/wound/fracture/head
-	name = "cranial fracture"
+	name = "compound cranial fracture"
 	check_name = "<span class='bone'><B>SKULLCRACK</B></span>"
 	crit_message = list(
 		"The skull shatters in a gruesome way!",
@@ -59,34 +75,26 @@
 	)
 	sound_effect = "headcrush"
 	whp = 80
-	sleep_healing = 0
-	/// Most head fractures are serious enough to cause paralysis
-	var/paralysis = FALSE
-	/// Some head fractures are so serious they cause instant death
-	var/mortal = FALSE
-	/// Funny easter egg
-	var/dents_brain = TRUE
+	bleed_rate = 3.2
+	clotting_threshold = null
 
-/datum/wound/fracture/head/New()
-	. = ..()
-	if(dents_brain && prob(1))
-		name = "dentbrain"
-		check_name = "<span class='bone'><B>DENTBRAIN</B></span>"
+	mortal = TRUE
+	/// Brain case fractures (Depressed Cranium, Temporal) cause paralysis
+	var/paralysis = FALSE
+	var/knockout = 15 SECONDS
 
 /datum/wound/fracture/head/on_mob_gain(mob/living/affected)
 	. = ..()
+	if(knockout)
+		affected.Unconscious(knockout)
 	ADD_TRAIT(affected, TRAIT_DISFIGURED, "[type]")
 	if(paralysis)
 		ADD_TRAIT(affected, TRAIT_NO_BITE, "[type]")
 		ADD_TRAIT(affected, TRAIT_PARALYSIS, "[type]")
 		ADD_TRAIT(affected, TRAIT_GARGLE_SPEECH, "[type]")
 		ADD_TRAIT(affected, TRAIT_DEAF, "[type]")
-		affected.become_nearsighted()
-		if(iscarbon(affected))
-			var/mob/living/carbon/carbon_affected = affected
-			carbon_affected.update_disabled_bodyparts()
-	if(mortal && HAS_TRAIT(affected, TRAIT_CRITICAL_WEAKNESS))
-		affected.death()
+		ADD_TRAIT(affected, TRAIT_NOPAIN, "[type]")
+		affected.become_nearsighted("[type]")
 
 /datum/wound/fracture/head/on_mob_loss(mob/living/affected)
 	. = ..()
@@ -96,30 +104,37 @@
 		REMOVE_TRAIT(affected, TRAIT_PARALYSIS, "[type]")
 		REMOVE_TRAIT(affected, TRAIT_GARGLE_SPEECH, "[type]")
 		REMOVE_TRAIT(affected, TRAIT_DEAF, "[type]")
-		affected.cure_nearsighted()
-		if(iscarbon(affected))
-			var/mob/living/carbon/carbon_affected = affected
-			carbon_affected.update_disabled_bodyparts()
+		REMOVE_TRAIT(affected, TRAIT_NOPAIN, "[type]")
+		affected.cure_nearsighted("[type]")
 
 /datum/wound/fracture/head/on_life()
 	. = ..()
-	owner.stuttering = max(owner.stuttering, 5)
+	if(owner)
+		owner.stuttering = max(owner.stuttering, 5)
 
 /datum/wound/fracture/head/brain
 	name = "depressed cranial fracture"
+	severity = WOUND_SEVERITY_FATAL
 	crit_message = list(
 		"The cranium is fractured!",
 		"The cranium is cracked!",
-		"The cranium is torn!",
+		"The cranium is shattered!",
 	)
 	whp = 150
+	bleed_rate = 4.6
 	paralysis = TRUE
+<<<<<<< HEAD
 	mortal = TRUE
 	dents_brain = TRUE
+=======
+	knockout = 25 SECONDS
+>>>>>>> upstream/main
 
 /datum/wound/fracture/head/brain/on_life()
 	. = ..()
 	owner.adjustOxyLoss(2.5)
+	if(HAS_TRAIT(owner, TRAIT_ROTMAN)) // brain crit kills deadites
+		owner.death()
 
 /datum/wound/fracture/head/eyes
 	name = "orbital fracture"
@@ -127,19 +142,25 @@
 		"The orbital bone is fractured!",
 		"The orbital bone is cracked!",
 	)
-	paralysis = FALSE
-	mortal = TRUE
-	dents_brain = FALSE
+
+/datum/wound/fracture/head/eyes/on_mob_gain(mob/living/affected)
+	. = ..()
+	affected.adjust_temp_blindness(15 SECONDS)
+	affected.become_nearsighted("[type]")
+
+/datum/wound/fracture/head/eyes/on_mob_loss(mob/living/affected)
+	. = ..()
+	affected.cure_nearsighted("[type]")
 
 /datum/wound/fracture/head/ears
-	name = "temporal fracture"
+	name = "depressed temporal fracture"
+	severity = WOUND_SEVERITY_FATAL
 	crit_message = list(
 		"The temporal bone is fractured!",
 		"The temporal bone is cracked!",
 	)
-	paralysis = FALSE
-	mortal = TRUE
-	dents_brain = FALSE
+	paralysis = TRUE
+	knockout = 25 SECONDS
 
 /datum/wound/fracture/head/nose
 	name = "nasal fracture"
@@ -147,9 +168,16 @@
 		"The nasal bone is fractured!",
 		"The nasal bone is shattered!",
 	)
-	paralysis = FALSE
 	mortal = FALSE
-	dents_brain = FALSE
+	knockout = 10 SECONDS
+
+/datum/wound/fracture/head/nose/on_mob_gain(mob/living/affected)
+	. = ..()
+	ADD_TRAIT(affected, TRAIT_MISSING_NOSE, "[type]")
+
+/datum/wound/fracture/head/nose/on_mob_loss(mob/living/affected)
+	. = ..()
+	REMOVE_TRAIT(affected, TRAIT_MISSING_NOSE, "[type]")
 
 /datum/wound/fracture/mouth
 	name = "mandibular fracture"
@@ -161,7 +189,10 @@
 		"The jaw caves in!",
 	)
 	whp = 50
-	sleep_healing = 0
+
+	bleed_rate = 1.6
+	clotting_threshold = 0.4
+	clotting_rate = 0.04
 
 /datum/wound/fracture/mouth/on_mob_gain(mob/living/affected)
 	. = ..()
@@ -183,23 +214,28 @@
 		"The spine is broken!",
 	)
 	whp = 150
-	sleep_healing = 0
+	mortal = TRUE
+
+/datum/wound/fracture/neck/can_apply_to_mob(mob/living/affected)
+	if(QDELETED(affected) || istype(affected, /mob/living/carbon/human/species/skeleton/death_arena))
+		return FALSE
+	. = ..()
 
 /datum/wound/fracture/neck/on_mob_gain(mob/living/affected)
 	. = ..()
 	ADD_TRAIT(affected, TRAIT_PARALYSIS, "[type]")
-	if(iscarbon(affected))
-		var/mob/living/carbon/carbon_affected = affected
-		carbon_affected.update_disabled_bodyparts()
-	if(HAS_TRAIT(affected, TRAIT_CRITICAL_WEAKNESS))
-		affected.death()
+	ADD_TRAIT(affected, TRAIT_NOPAIN, "[type]")
 
 /datum/wound/fracture/neck/on_mob_loss(mob/living/affected)
 	. = ..()
 	REMOVE_TRAIT(affected, TRAIT_PARALYSIS, "[type]")
+<<<<<<< HEAD
 	if(iscarbon(affected))
 		var/mob/living/carbon/carbon_affected = affected
 		carbon_affected.update_disabled_bodyparts()
+=======
+	REMOVE_TRAIT(affected, TRAIT_NOPAIN, "[type]")
+>>>>>>> upstream/main
 
 /datum/wound/fracture/neck/on_life()
 	. = ..()
@@ -215,10 +251,14 @@
 		"The ribcage caves in!",
 	)
 	whp = 50
+	// Lose 224.6 blood over 18 ticks then clot
+	bleed_rate = 23.1
+	clotting_threshold = 0.8
+	clotting_rate = 1.25
 
 /datum/wound/fracture/chest/on_mob_gain(mob/living/affected)
 	. = ..()
-	affected.Stun(20)
+	affected.Immobilize(15)
 
 /datum/wound/fracture/groin
 	name = "pelvic fracture"
@@ -231,7 +271,11 @@
 	)
 	whp = 50
 	gain_emote = "groin"
+	bleed_rate = 3.1
+	clotting_threshold = 1.2
+	clotting_rate = 0.04
 
+<<<<<<< HEAD
 /datum/wound/fracture/groin/New()
 	. = ..()
 	if(prob(1))
@@ -239,19 +283,15 @@
 		check_name = "<span class='bone'>BUCKBROKEN</span>"
 		crit_message = "The buck is broken expertly!"
 
+=======
+>>>>>>> upstream/main
 /datum/wound/fracture/groin/on_mob_gain(mob/living/affected)
 	. = ..()
-	affected.Stun(20)
+	affected.Immobilize(15)
 	ADD_TRAIT(affected, TRAIT_PARALYSIS_R_LEG, "[type]")
 	ADD_TRAIT(affected, TRAIT_PARALYSIS_L_LEG, "[type]")
-	if(iscarbon(affected))
-		var/mob/living/carbon/carbon_affected = affected
-		carbon_affected.update_disabled_bodyparts()
 
 /datum/wound/fracture/groin/on_mob_loss(mob/living/affected)
 	. = ..()
 	REMOVE_TRAIT(affected, TRAIT_PARALYSIS_R_LEG, "[type]")
 	REMOVE_TRAIT(affected, TRAIT_PARALYSIS_L_LEG, "[type]")
-	if(iscarbon(affected))
-		var/mob/living/carbon/carbon_affected = affected
-		carbon_affected.update_disabled_bodyparts()

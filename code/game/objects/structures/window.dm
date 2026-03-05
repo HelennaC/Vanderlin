@@ -1,46 +1,43 @@
+
 /obj/structure/window
 	name = "window"
-	desc = ""
-	icon_state = "window"
+	desc = "A window of simple paned glass."
+	icon = 'icons/roguetown/misc/structure.dmi'
+	icon_state = "window-solid"
+	layer = TABLE_LAYER
 	density = TRUE
-	layer = ABOVE_OBJ_LAYER //Just above doors
-	pressure_resistance = 4*ONE_ATMOSPHERE
-	anchored = TRUE //initially is 0 for tile smoothing
-	flags_1 = ON_BORDER_1
-	max_integrity = 25
-	can_be_unanchored = TRUE
-	resistance_flags = ACID_PROOF
-	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 80, "acid" = 100)
+	anchored = TRUE
+	opacity = FALSE
+	pass_flags_self = PASSWINDOW|PASSSTRUCTURE
+	max_integrity = 100
+	integrity_failure = 0.1
+	blade_dulling = DULLING_BASHCHOP
 	CanAtmosPass = ATMOS_PASS_PROC
-	rad_insulation = RAD_VERY_LIGHT_INSULATION
-	rad_flags = RAD_PROTECT_CONTENTS
-	var/ini_dir = null
-	var/state = WINDOW_OUT_OF_FRAME
-	var/reinf = FALSE
-	var/heat_resistance = 800
-	var/decon_speed = 30
-	var/wtype = "glass"
-	var/fulltile = FALSE
-	var/glass_type = /obj/item/stack/sheet/glass
-	var/glass_amount = 1
-	var/mutable_appearance/crack_overlay
-	var/real_explosion_block	//ignore this, just use explosion_block
-	var/breaksound = "shatter"
-	var/hitsound = 'sound/blank.ogg'
+	climb_time = 20
+	climb_offset = 10
+	attacked_sound = 'sound/combat/hits/onglass/glasshit.ogg'
+	break_sound = "glassbreak"
+	destroy_sound = 'sound/combat/hits/onwood/destroywalldoor.ogg'
 
+	var/lockdir = 0
 
-/obj/structure/window/examine(mob/user)
+	// See repairable component in repairable.dm for what these variables do
+	var/list/repair_thresholds = list(/obj/item/natural/glass = 1)
+	var/obj/item/broken_repair = /obj/item/grown/log/tree/small
+	var/repair_skill = /datum/skill/craft/masonry
+
+/obj/structure/window/Initialize()
 	. = ..()
-	if(reinf)
-		if(anchored && state == WINDOW_SCREWED_TO_FRAME)
-			. += "<span class='notice'>The window is <b>screwed</b> to the frame.</span>"
-		else if(anchored && state == WINDOW_IN_FRAME)
-			. += "<span class='notice'>The window is <i>unscrewed</i> but <b>pried</b> into the frame.</span>"
-		else if(anchored && state == WINDOW_OUT_OF_FRAME)
-			. += "<span class='notice'>The window is out of the frame, but could be <i>pried</i> in. It is <b>screwed</b> to the floor.</span>"
-		else if(!anchored)
-			. += "<span class='notice'>The window is <i>unscrewed</i> from the floor, and could be deconstructed by <b>wrenching</b>.</span>"
+	update_appearance(UPDATE_ICON_STATE)
+
+	if(repair_thresholds || broken_repair)
+		AddComponent(/datum/component/repairable, repair_thresholds, broken_repair,  'sound/misc/wood_saw.ogg', repair_skill)
+
+/obj/structure/window/get_explosion_resistance()
+	if(!climbable)
+		return max_integrity
 	else
+<<<<<<< HEAD
 		if(anchored)
 			. += "<span class='notice'>The window is <b>screwed</b> to the floor.</span>"
 		else
@@ -263,135 +260,184 @@
 	. = ..()
 	setDir(ini_dir)
 	move_update_air(T)
+=======
+		return 0
+>>>>>>> upstream/main
 
 /obj/structure/window/CanAtmosPass(turf/T)
-	if(!anchored || !density)
-		return TRUE
-	return !(FULLTILE_WINDOW_DIR == dir || dir == get_dir(loc, T))
+	return climbable
 
-//This proc is used to update the icons of nearby windows.
-/obj/structure/window/proc/update_nearby_icons()
-	update_icon()
-	if(smooth)
-		queue_smooth_neighbors(src)
+/obj/structure/window/update_icon_state()
+	. = ..()
+	icon_state = "[initial(icon_state)][obj_broken ? "br" : ""]"
 
-//merges adjacent full-tile windows into one
-/obj/structure/window/update_icon()
-	if(!QDELETED(src))
-		if(!fulltile)
-			return
+/obj/structure/window/attack_ghost(mob/dead/observer/user)	// lets ghosts click on windows to transport across
+	density = FALSE
+	. = step(user,get_dir(user,src.loc))
+	density = TRUE
 
-		var/ratio = obj_integrity / max_integrity
-		ratio = CEILING(ratio*4, 1) * 25
+/obj/structure/window/solid
+	desc = "A window of simple paned glass."
+	icon_state = "window-solid"
+	integrity_failure = 0.5
 
-		if(smooth)
-			queue_smooth(src)
+/obj/structure/window/stained
+	icon_state = "stained-silver"
+	max_integrity = 100
+	integrity_failure = 0.75
+	repair_thresholds = list(/obj/item/natural/glass = 1)
+	broken_repair = /obj/item/natural/stone
 
-		cut_overlay(crack_overlay)
-		if(ratio > 75)
-			return
-		crack_overlay = mutable_appearance('icons/obj/structures.dmi', "damage[ratio]", -(layer+0.1))
-		add_overlay(crack_overlay)
+/obj/structure/window/stained/silver
+	desc = "A stained-glass window filigreed in silver."
+	icon_state = "stained-silver"
+	max_integrity = 100
+	integrity_failure = 0.75
 
-/obj/structure/window/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
+/obj/structure/window/stained/silver/alt
+	icon_state = "stained-silver1"
 
-	if(exposed_temperature > (T0C + heat_resistance))
-		take_damage(round(exposed_volume / 100), BURN, 0, 0)
-	..()
+/obj/structure/window/stained/zizo
+	desc = "A stained-glass window filigreed in deep crimson."
+	icon_state = "stained-zizo"
 
-/obj/structure/window/get_dumping_location(obj/item/storage/source,mob/user)
-	return null
+/obj/structure/window/stained/yellow
+	desc = "A stained-glass window filigreed in gold."
+	icon_state = "stained-yellow"
 
-/obj/structure/window/CanAStarPass(ID, to_dir)
-	if(!density)
-		return 1
-	if((dir == FULLTILE_WINDOW_DIR) || (dir == to_dir))
-		return 0
+/obj/structure/window/openclose
+	desc = "It opens and closes."
+	icon_state = MAP_SWITCH("woodwindow", "woodwindowdir")
+	max_integrity = 100
+	integrity_failure = 0.5
 
-	return 1
+/obj/structure/window/openclose/Initialize()
+	. = ..()
+	lockdir = dir
+	GLOB.TodUpdate += src
+	var/static/list/loc_connections = list(
+		COMSIG_ATOM_MAGICALLY_UNLOCKED = PROC_REF(on_magic_unlock),
+	)
+	AddElement(/datum/element/connect_loc, loc_connections)
 
-/obj/structure/window/GetExplosionBlock()
-	return reinf && fulltile ? real_explosion_block : 0
-
-/obj/structure/window/spawner/east
-	dir = EAST
-
-/obj/structure/window/spawner/west
-	dir = WEST
-
-/obj/structure/window/spawner/north
-	dir = NORTH
-
-/obj/structure/window/unanchored
-	anchored = FALSE
-
-/obj/structure/window/reinforced
-	name = "reinforced window"
-	desc = ""
-	icon_state = "rwindow"
-	reinf = TRUE
-	heat_resistance = 1600
-	armor = list("melee" = 80, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 25, "bio" = 100, "rad" = 100, "fire" = 80, "acid" = 100)
-	max_integrity = 75
-	explosion_block = 1
-	damage_deflection = 11
-	state = RWINDOW_SECURE
-	glass_type = /obj/item/stack/sheet/rglass
-	rad_insulation = RAD_HEAVY_INSULATION
-
-//this is shitcode but all of construction is shitcode and needs a refactor, it works for now
-//If you find this like 4 years later and construction still hasn't been refactored, I'm so sorry for this
-/obj/structure/window/reinforced/attackby(obj/item/I, mob/living/user, params)
-	switch(state)
-		if(RWINDOW_SECURE)
-			if(I.tool_behaviour == TOOL_WELDER && user.used_intent.type == INTENT_HARM)
-				user.visible_message("<span class='notice'>[user] holds \the [I] to the security screws on \the [src]...</span>",
-										"<span class='notice'>I begin heating the security screws on \the [src]...</span>")
-				if(I.use_tool(src, user, 150, volume = 100))
-					to_chat(user, "<span class='notice'>The security bolts are glowing white hot and look ready to be removed.</span>")
-					state = RWINDOW_BOLTS_HEATED
-					addtimer(CALLBACK(src, PROC_REF(cool_bolts)), 300)
-				return
-		if(RWINDOW_BOLTS_HEATED)
-			if(I.tool_behaviour == TOOL_SCREWDRIVER)
-				user.visible_message("<span class='notice'>[user] digs into the heated security screws and starts removing them...</span>",
-										"<span class='notice'>I dig into the heated screws hard and they start turning...</span>")
-				if(I.use_tool(src, user, 50, volume = 50))
-					state = RWINDOW_BOLTS_OUT
-					to_chat(user, "<span class='notice'>The screws come out, and a gap forms around the edge of the pane.</span>")
-				return
-		if(RWINDOW_BOLTS_OUT)
-			if(I.tool_behaviour == TOOL_CROWBAR)
-				user.visible_message("<span class='notice'>[user] wedges \the [I] into the gap in the frame and starts prying...</span>",
-										"<span class='notice'>I wedge \the [I] into the gap in the frame and start prying...</span>")
-				if(I.use_tool(src, user, 40, volume = 50))
-					state = RWINDOW_POPPED
-					to_chat(user, "<span class='notice'>The panel pops out of the frame, exposing some thin metal bars that looks like they can be cut.</span>")
-				return
-		if(RWINDOW_POPPED)
-			if(I.tool_behaviour == TOOL_WIRECUTTER)
-				user.visible_message("<span class='notice'>[user] starts cutting the exposed bars on \the [src]...</span>",
-										"<span class='notice'>I start cutting the exposed bars on \the [src]</span>")
-				if(I.use_tool(src, user, 20, volume = 50))
-					state = RWINDOW_BARS_CUT
-					to_chat(user, "<span class='notice'>The panels falls out of the way exposing the frame bolts.</span>")
-				return
-		if(RWINDOW_BARS_CUT)
-			if(I.tool_behaviour == TOOL_WRENCH)
-				user.visible_message("<span class='notice'>[user] starts unfastening \the [src] from the frame...</span>",
-					"<span class='notice'>I start unfastening the bolts from the frame...</span>")
-				if(I.use_tool(src, user, 40, volume = 50))
-					to_chat(user, "<span class='notice'>I unscrew the bolts from the frame and the window pops loose.</span>")
-					state = WINDOW_OUT_OF_FRAME
-					setAnchored(FALSE)
-				return
+/obj/structure/window/openclose/Destroy()
+	GLOB.TodUpdate -= src
 	return ..()
 
-/obj/structure/window/proc/cool_bolts()
-	if(state == RWINDOW_BOLTS_HEATED)
-		state = RWINDOW_SECURE
-		visible_message("<span class='notice'>The bolts on \the [src] look like they've cooled off...</span>")
+/obj/structure/window/openclose/proc/on_magic_unlock(datum/source, datum/action/cooldown/spell/aoe/knock, mob/living/caster)
+	SIGNAL_HANDLER
 
+	INVOKE_ASYNC(src, PROC_REF(open_up))
+
+/obj/structure/window/openclose/update_tod(todd)
+	update_appearance(UPDATE_ICON_STATE)
+
+/obj/structure/window/openclose/update_icon_state()
+	. = ..()
+	var/icon
+	if(GLOB.tod == "night")
+		icon += "w-"
+	icon += initial(icon_state)
+	if(obj_broken)
+		icon_state = "[icon]br"
+		return
+	if(climbable)
+		icon_state = "[icon]op"
+		return
+	icon_state = "[icon]"
+
+/obj/structure/window/openclose/attack_hand_secondary(mob/user, list/modifiers)
+	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
+	if(get_dir(src, user) == lockdir)
+		if(obj_broken)
+			to_chat(user, "<span class='warning'>It's broken, that would be foolish.</span>")
+			return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+		if(climbable)
+			close_up(user)
+		else
+			open_up(user)
+	else
+		to_chat(user, "<span class='warning'>The window doesn't close from this side.</span>")
+
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+
+/obj/structure/window/openclose/attackby(obj/item/attacking_item, mob/user, list/modifiers)
+	if(istype(attacking_item, /obj/item/weapon/knife/dagger) && !climbable && !user.cmode)
+		to_chat(user, span_notice("I start trying to pry the window open..."))
+		if(do_after(user, 6 SECONDS, src))
+			playsound(src, 'sound/foley/doors/windowup.ogg', 100, FALSE)
+			src.force_open()
+	else
+		return ..()
+
+/obj/structure/window/openclose/reinforced
+	desc = "A glass window. This one looks reinforced with a metal mesh."
+	icon_state = MAP_SWITCH("reinforcedwindow", "reinforcedwindowdir")
+	max_integrity = 800
+	integrity_failure = 0.1
+	metalizer_result = null
+	smeltresult = /obj/item/ingot/iron
+
+/obj/structure/window/proc/open_up(mob/user)
+	if(user)
+		visible_message("<span class='info'>[user] opens [src].</span>")
+	playsound(src, 'sound/foley/doors/windowup.ogg', 100, FALSE)
+	climbable = TRUE
+	update_appearance(UPDATE_ICON_STATE)
+	air_update_turf(TRUE)
+
+/obj/structure/window/proc/close_up(mob/user)
+	if(user)
+		visible_message("<span class='info'>[user] closes [src].</span>")
+	playsound(src, 'sound/foley/doors/windowdown.ogg', 100, FALSE)
+	climbable = FALSE
+	update_appearance(UPDATE_ICON_STATE)
+	air_update_turf(TRUE)
+
+/obj/structure/window/CanAllowThrough(atom/movable/mover, turf/target)
+	. = ..()
+	if(mover.throwing && !climbable)
+		if(isliving(mover))
+			if(iscarbon(mover))
+				var/mob/living/carbon/dude = mover
+				take_damage(20 * (dude.STASTR / 10))
+			else
+				take_damage(10)
+		else if(isitem(mover) && mover.throwforce > 10)
+			take_damage(mover.throwforce)
+
+	if(climbable && (mover.throwing || mover.movement_type & (FLYING|FLOATING)))
+		if(ishuman(mover))
+			var/mob/living/carbon/human/dude = mover
+			if(prob(100 - clamp((dude.get_skill_level(/datum/skill/misc/athletics, TRUE) + dude.get_skill_level(/datum/skill/misc/climbing, TRUE)) * 10 - (!dude.IsOffBalanced() * 30), 10, 100)))
+				var/obj/item/bodypart/head/head = dude.get_bodypart(BODY_ZONE_HEAD)
+				if(head)
+					head.receive_damage(20)
+				dude.Stun(5 SECONDS)
+				dude.Knockdown(5 SECONDS)
+				dude.add_stress(/datum/stress_event/hithead)
+				dude.visible_message(
+					span_warning("[dude] hits their head as they fly through the window!"),
+					span_danger("I hit my head on the window frame!"),
+				)
+
+		return TRUE
+
+/obj/structure/window/proc/force_open()
+	playsound(src, 'sound/foley/doors/windowup.ogg', 100, FALSE)
+	climbable = TRUE
+	opacity = FALSE
+	update_appearance(UPDATE_ICON_STATE)
+
+/obj/structure/window/attackby(obj/item/W, mob/user, list/modifiers)
+	return ..()
+
+/obj/structure/window/attack_paw(mob/living/user)
+	attack_hand(user)
+
+<<<<<<< HEAD
 /obj/structure/window/reinforced/examine(mob/user)
 	. = ..()
 	switch(state)
@@ -721,70 +767,34 @@
 		. += new /obj/item/paper/natural(location)
 
 /obj/structure/window/paperframe/attack_hand(mob/user)
+=======
+/obj/structure/window/attack_hand(mob/living/user)
+>>>>>>> upstream/main
 	. = ..()
 	if(.)
 		return
-	add_fingerprint(user)
-	if(user.used_intent.type != INTENT_HARM)
-		user.changeNext_move(CLICK_CD_MELEE)
-		user.visible_message("<span class='notice'>[user] knocks on [src].</span>")
-		playsound(src, "pageturn", 50, TRUE)
-	else
-		take_damage(4,BRUTE,"melee", 0)
-		playsound(src, hitsound, 50, TRUE)
-		if(!QDELETED(src))
-			user.visible_message("<span class='danger'>[user] tears a hole in [src].</span>")
-			update_icon()
-
-/obj/structure/window/paperframe/update_icon()
-	if(obj_integrity < max_integrity)
-		cut_overlay(paper)
-		add_overlay(torn)
-		set_opacity(FALSE)
-	else
-		cut_overlay(torn)
-		add_overlay(paper)
-		set_opacity(TRUE)
-	queue_smooth(src)
-
-
-/obj/structure/window/paperframe/attackby(obj/item/W, mob/user)
-	if(W.get_temperature())
-		fire_act(W.get_temperature())
+	if(obj_broken)
 		return
-	if(user.used_intent.type == INTENT_HARM)
-		return ..()
-	if(istype(W, /obj/item/paper) && obj_integrity < max_integrity)
-		user.visible_message("<span class='notice'>[user] starts to patch the holes in \the [src].</span>")
-		if(do_after(user, 20, target = src))
-			obj_integrity = min(obj_integrity+4,max_integrity)
-			qdel(W)
-			user.visible_message("<span class='notice'>[user] patches some of the holes in \the [src].</span>")
-			if(obj_integrity == max_integrity)
-				update_icon()
-			return
+	if( user.used_intent.type == /datum/intent/unarmed/claw )
+		to_chat(user, "<span class='warning'>[user] smashes the window!!</span>")
+		atom_break()
+		return
+	user.changeNext_move(CLICK_CD_MELEE)
+	src.visible_message("<span class='info'>[user] knocks on [src].</span>")
+	add_fingerprint(user)
+	playsound(src, 'sound/misc/glassknock.ogg', 100)
+
+/obj/structure/window/atom_break(damage_flag, silent)
+	if(!obj_broken)
+		attacked_sound = list('sound/combat/hits/onwood/woodimpact (1).ogg','sound/combat/hits/onwood/woodimpact (2).ogg')
+		new /obj/item/natural/glass/shard (get_turf(src))
+		climbable = TRUE
 	..()
-	update_icon()
+	update_appearance(UPDATE_ICON_STATE)
+	air_update_turf(TRUE)
 
-/obj/structure/window/bronze
-	name = "brass window"
-	desc = ""
-	icon = 'icons/obj/smooth_structures/clockwork_window.dmi'
-	icon_state = "clockwork_window_single"
-	glass_type = /obj/item/stack/tile/bronze
-
-/obj/structure/window/bronze/unanchored
-	anchored = FALSE
-
-/obj/structure/window/bronze/fulltile
-	icon_state = "clockwork_window"
-	smooth = SMOOTH_TRUE
-	canSmoothWith = null
-	fulltile = TRUE
-	flags_1 = PREVENT_CLICK_UNDER_1
-	dir = FULLTILE_WINDOW_DIR
-	max_integrity = 50
-	glass_amount = 2
-
-/obj/structure/window/bronze/fulltile/unanchored
-	anchored = FALSE
+/obj/structure/window/atom_fix()
+	. = ..()
+	climbable = initial(climbable)
+	update_appearance(UPDATE_ICON_STATE)
+	air_update_turf(TRUE)

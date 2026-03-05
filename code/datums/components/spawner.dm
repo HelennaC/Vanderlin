@@ -1,5 +1,5 @@
 /datum/component/spawner
-	var/mob_types = list(/mob/living/simple_animal/hostile/carp)
+	var/mob_types = list(/mob/living/simple_animal/hostile/werewolf)
 	var/spawn_time = 300 //30 seconds default
 	var/list/spawned_mobs = list()
 	var/spawn_delay = 0
@@ -9,8 +9,12 @@
 	/// The minimum distance to a client before we can start spawning mobs.
 	var/range = 10
 
+<<<<<<< HEAD
 
 /datum/component/spawner/Initialize(_mob_types, _spawn_time, _faction, _spawn_text, _range, _max_mobs)
+=======
+/datum/component/spawner/Initialize(_mob_types, _spawn_time, _faction, _spawn_text, _max_mobs)
+>>>>>>> upstream/main
 	if(_spawn_time)
 		spawn_time=_spawn_time
 	if(_mob_types)

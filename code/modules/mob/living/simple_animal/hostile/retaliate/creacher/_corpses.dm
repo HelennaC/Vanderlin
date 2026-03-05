@@ -1,0 +1,162 @@
+<<<<<<< HEAD:code/modules/mob/living/simple_animal/rogue/creacher/_corpses.dm
+/obj/effect/mob_spawn/human/orc/corpse
+	icon = 'icons/effects/blood.dmi'
+	icon_state = "remains"
+	color = "#aa9b00"
+	mob_type = /mob/living/carbon/human/species/orc
+=======
+
+>>>>>>> upstream/main:code/modules/mob/living/simple_animal/hostile/retaliate/creacher/_corpses.dm
+
+/obj/effect/mob_spawn/human/orc/corpse/savageorc
+	mob_name = "Savage Orc"
+	name = "Savage Orc"
+<<<<<<< HEAD:code/modules/mob/living/simple_animal/rogue/creacher/_corpses.dm
+	skin_tone = "#50715C"
+=======
+	skin_tone = SKIN_COLOR_GROONN
+>>>>>>> upstream/main:code/modules/mob/living/simple_animal/hostile/retaliate/creacher/_corpses.dm
+	hairstyle = "Bald"
+	facial_hairstyle = "Shaved"
+	outfit = /datum/outfit/savageorc
+
+/obj/effect/mob_spawn/human/orc/corpse/savageorc2
+	mob_name = "Savage Orc"
+	name = "Savage Orc"
+<<<<<<< HEAD:code/modules/mob/living/simple_animal/rogue/creacher/_corpses.dm
+	skin_tone = "#50715C"
+=======
+	skin_tone = SKIN_COLOR_GROONN
+>>>>>>> upstream/main:code/modules/mob/living/simple_animal/hostile/retaliate/creacher/_corpses.dm
+	hairstyle = "Bald"
+	facial_hairstyle = "Shaved"
+	outfit = /datum/outfit/savageorc2
+
+/datum/outfit/savageorc
+<<<<<<< HEAD:code/modules/mob/living/simple_animal/rogue/creacher/_corpses.dm
+//	shirt = /obj/item/clothing/suit/roguetown/shirt/tribalrag	Vanderlin clothing
+	pants =	/obj/item/clothing/under/roguetown/loincloth/brown
+	shoes = /obj/item/clothing/shoes/roguetown/boots/furlinedanklets
+
+/datum/outfit/savageorc2
+//	shirt = /obj/item/clothing/suit/roguetown/shirt/tribalrag
+	pants =	/obj/item/clothing/under/roguetown/loincloth/brown
+	shoes = /obj/item/clothing/shoes/roguetown/boots/furlinedanklets
+	head = /obj/item/clothing/head/roguetown/helmet/leather
+=======
+	shirt = /obj/item/clothing/shirt/tribalrag
+	pants =	/obj/item/clothing/pants/loincloth/colored/brown
+	shoes = /obj/item/clothing/shoes/boots/furlinedanklets
+
+/datum/outfit/savageorc2
+	shirt = /obj/item/clothing/shirt/tribalrag
+	pants =	/obj/item/clothing/pants/loincloth/colored/brown
+	shoes = /obj/item/clothing/shoes/boots/furlinedanklets
+	head = /obj/item/clothing/head/helmet/leather
+>>>>>>> upstream/main:code/modules/mob/living/simple_animal/hostile/retaliate/creacher/_corpses.dm
+
+/obj/effect/mob_spawn/human/orc/corpse/orcmarauder
+	mob_name = "Orc Marauder"
+	name = "Orc Marauder"
+<<<<<<< HEAD:code/modules/mob/living/simple_animal/rogue/creacher/_corpses.dm
+	skin_tone = "#50715C"
+	hairstyle = "Bald"
+	facial_hairstyle = "Shaved"
+//	outfit = /datum/outfit/orcmarauder  doesnt actually equip this TO DO
+	mob_type = /mob/living/carbon/human/species/orc/marauder
+/*
+/datum/outfit/orcmarauder
+	armor = /obj/item/clothing/suit/roguetown/armor/chainmail
+	pants =	/obj/item/clothing/under/roguetown/chainlegs
+	shoes = /obj/item/clothing/shoes/roguetown/boots/furlinedboots
+	head = /obj/item/clothing/head/roguetown/helmet/leather
+*/
+/obj/effect/mob_spawn/human/orc/corpse/orcravager
+	mob_name = "Orc Ravager"
+	name = "Orc Ravager"
+	skin_tone = "#50715C"
+=======
+	skin_tone = SKIN_COLOR_GROONN
+	hairstyle = "Bald"
+	facial_hairstyle = "Shaved"
+	outfit = /datum/outfit/orcmarauder
+
+/datum/outfit/orcmarauder
+	armor = /obj/item/clothing/armor/chainmail
+	pants =	/obj/item/clothing/pants/chainlegs
+	shoes = /obj/item/clothing/shoes/boots/furlinedboots
+	head = /obj/item/clothing/head/helmet/leather
+
+/obj/effect/mob_spawn/human/orc/corpse/orcravager
+	mob_name = "Orc Ravager"
+	name = "Orc Ravager"
+	skin_tone = SKIN_COLOR_GROONN
+>>>>>>> upstream/main:code/modules/mob/living/simple_animal/hostile/retaliate/creacher/_corpses.dm
+	hairstyle = "Bald"
+	facial_hairstyle = "Shaved"
+	outfit = /datum/outfit/orcravager
+
+/datum/outfit/orcravager
+<<<<<<< HEAD:code/modules/mob/living/simple_animal/rogue/creacher/_corpses.dm
+	armor = /obj/item/clothing/suit/roguetown/armor/chainmail
+	pants =	/obj/item/clothing/under/roguetown/chainlegs
+	shoes = /obj/item/clothing/shoes/roguetown/boots/armor
+	head = /obj/item/clothing/head/roguetown/helmet/skullcap
+	gloves = /obj/item/clothing/gloves/roguetown/chain
+	neck = /obj/item/clothing/neck/roguetown/chaincoif
+///	mask = /obj/item/clothing/mask/rogue/skullmask	Vanderlin clothing TO DO review it
+
+/obj/effect/mob_spawn/human/orc/corpse/dwarfinvasion
+	color = "#82aa00"
+	mob_type = /mob/living/carbon/human/species/orc/dwarfinvasion
+
+/mob/living/carbon/human/species/orc/dwarfinvasion/after_creation()
+	..()
+	equipOutfit(new /datum/outfit/job/roguetown/npc/orc/dead_invader)
+
+/datum/outfit/job/roguetown/npc/orc/dead_invader/pre_equip(mob/living/carbon/human/H)
+	..()
+	var/loadout = rand(1,5)
+	switch(loadout)
+		if(1)
+			armor = /obj/item/clothing/suit/roguetown/armor/leather/hide/orc
+		if(2)
+			armor = /obj/item/clothing/suit/roguetown/armor/leather/hide/orc
+			cloak = /obj/item/clothing/cloak/raincloak/brown
+		if(3)
+			cloak = /obj/item/clothing/cloak/raincloak/brown
+		if(4)
+			armor = /obj/item/clothing/suit/roguetown/armor/leather/hide/orc
+			cloak = /obj/item/clothing/cloak/raincloak/brown
+		if(5)
+			armor = /obj/item/clothing/suit/roguetown/armor/leather/hide/orc
+			cloak = /obj/item/clothing/cloak/raincloak/brown
+
+/*	..................   Dwarf Underdweller Corpse   ................... */
+/obj/effect/mob_spawn/human/corpse/damaged/underdweller
+	icon = 'icons/effects/blood.dmi'
+	icon_state = "remains"
+	color = "#aa9b00"
+	mob_type = /mob/living/carbon/human/species/dwarf/mountain
+	mob_name = "Dwarf Underdweller"
+	name = "Dwarf Underdweller"
+	hairstyle = "Miner"
+	facial_hairstyle = "Pick"
+	outfit = /datum/outfit/deadunderdweller
+
+/datum/outfit/deadunderdweller
+	armor = /obj/item/clothing/suit/roguetown/armor/cuirass/iron
+	shirt = /obj/item/clothing/suit/roguetown/shirt/undershirt/sailor/red
+	pants = /obj/item/clothing/under/roguetown/trou/leather
+	shoes = /obj/item/clothing/shoes/roguetown/simpleshoes/buckle
+	backl = /obj/item/storage/backpack/rogue/backpack
+	head = /obj/item/clothing/head/roguetown/helmet/leather/minershelm
+=======
+	armor = /obj/item/clothing/armor/chainmail
+	pants =	/obj/item/clothing/pants/chainlegs
+	shoes = /obj/item/clothing/shoes/boots/armor
+	head = /obj/item/clothing/head/helmet/skullcap
+	gloves = /obj/item/clothing/gloves/chain
+	neck = /obj/item/clothing/neck/chaincoif
+	mask = /obj/item/clothing/face/skullmask
+>>>>>>> upstream/main:code/modules/mob/living/simple_animal/hostile/retaliate/creacher/_corpses.dm

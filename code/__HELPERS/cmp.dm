@@ -13,6 +13,9 @@
 /proc/cmp_name_asc(atom/a, atom/b)
 	return sorttext(b.name, a.name)
 
+/proc/cmp_init_name_asc(atom/a, atom/b)
+	return sorttext(initial(b.name), initial(a.name))
+
 /proc/cmp_name_dsc(atom/a, atom/b)
 	return sorttext(a.name, b.name)
 
@@ -54,9 +57,6 @@ GLOBAL_VAR_INIT(cmp_field, "name")
 /proc/cmp_timer(datum/timedevent/a, datum/timedevent/b)
 	return a.timeToRun - b.timeToRun
 
-/proc/cmp_clientcolour_priority(datum/client_colour/A, datum/client_colour/B)
-	return B.priority - A.priority
-
 /proc/cmp_ruincost_priority(datum/map_template/ruin/A, datum/map_template/ruin/B)
 	return initial(A.cost) - initial(B.cost)
 
@@ -89,27 +89,6 @@ GLOBAL_VAR_INIT(cmp_field, "name")
 	else
 		return A.layer - B.layer
 
-/proc/cmp_advdisease_resistance_asc(datum/disease/advance/A, datum/disease/advance/B)
-	return A.totalResistance() - B.totalResistance()
-
-/proc/cmp_quirk_asc(datum/quirk/A, datum/quirk/B)
-	var/a_sign = num2sign(initial(A.value) * -1)
-	var/b_sign = num2sign(initial(B.value) * -1)
-
-	// Neutral traits go last.
-	if(a_sign == 0)
-		a_sign = 2
-	if(b_sign == 0)
-		b_sign = 2
-
-	var/a_name = initial(A.name)
-	var/b_name = initial(B.name)
-
-	if(a_sign != b_sign)
-		return a_sign - b_sign
-	else
-		return sorttext(b_name, a_name)
-
 /proc/cmp_job_display_asc(datum/job/A, datum/job/B)
 	return A.display_order - B.display_order
 
@@ -122,12 +101,12 @@ GLOBAL_VAR_INIT(cmp_field, "name")
 /proc/cmp_assignedrole_asc(mob/living/A, mob/living/B)
 	if(!GLOB.job_assignment_order)
 		GLOB.job_assignment_order = get_job_assignment_order()
-	return GLOB.job_assignment_order.Find(A.mind?.assigned_role) - GLOB.job_assignment_order.Find(B.mind?.assigned_role)
+	return GLOB.job_assignment_order.Find(A.mind?.assigned_role.title) - GLOB.job_assignment_order.Find(B.mind?.assigned_role.title)
 
 /proc/cmp_assignedrole_dsc(mob/living/A, mob/living/B)
 	if(!GLOB.job_assignment_order)
 		GLOB.job_assignment_order = get_job_assignment_order()
-	return GLOB.job_assignment_order.Find(B.mind?.assigned_role) - GLOB.job_assignment_order.Find(A.mind?.assigned_role)
+	return GLOB.job_assignment_order.Find(B.mind?.assigned_role.title) - GLOB.job_assignment_order.Find(A.mind?.assigned_role.title)
 
 /proc/cmp_wound_severity_asc(datum/wound/A, datum/wound/B)
 	return A.severity - B.severity

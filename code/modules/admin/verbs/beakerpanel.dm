@@ -1,16 +1,14 @@
 /proc/reagentsforbeakers()
 	. = list()
-	for(var/t in subtypesof(/datum/reagent))
-		var/datum/reagent/R = t
-		. += list(list("id" = t, "text" = initial(R.name)))
+	for(var/datum/reagent/R as anything in subtypesof(/datum/reagent))
+		. += list(list("id" = R, "text" = initial(R.name)))
 
 	. = json_encode(.)
 
 /proc/beakersforbeakers()
 	. = list()
-	for(var/t in subtypesof(/obj/item/reagent_containers))
-		var/obj/item/reagent_containers/C = t
-		. += list(list("id" = t, "text" = initial(C.name), "volume" = initial(C.volume)))
+	for(var/obj/item/reagent_containers/C as anything in subtypesof(/obj/item/reagent_containers))
+		. += list(list("id" = C, "text" = initial(C.name), "volume" = initial(C.volume)))
 
 	. = json_encode(.)
 
@@ -20,6 +18,7 @@
 			var/containerdata = json_decode(href_list["container"])
 			var/obj/item/reagent_containers/container = beaker_panel_create_container(containerdata, get_turf(usr))
 			log_game("[key_name(usr)] spawned a [container] containing [pretty_string_from_reagent_list(container.reagents.reagent_list)]")
+<<<<<<< HEAD
 
 /datum/admins/proc/beaker_panel_prep_assembly(obj/item/assembly/towrap, grenade)
 	var/obj/item/assembly/igniter/igniter = new
@@ -30,6 +29,8 @@
 	assholder.assemble(igniter, towrap, usr)
 	assholder.master = grenade
 	return assholder
+=======
+>>>>>>> upstream/main
 
 /datum/admins/proc/beaker_panel_create_container(list/containerdata, location)
 	var/containertype = text2path(containerdata["container"])
@@ -46,18 +47,21 @@
 	return container
 
 /datum/admins/proc/beaker_panel()
-	set category = "Debug"
+	set category = "Debug.Spawn"
 	set name = "Spawn reagent container"
 	if(!check_rights())
 		return
 
+	var/datum/asset/asset_datum = get_asset_datum(/datum/asset/simple/namespaced/common)
+	asset_datum.send()
+	//Could somebody tell me why this isn't using the browser datum, given that it copypastes all of browser datum's html
 	var/dat = {"
 		<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 		<html>
 			<head>
 				<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
 				<meta http-equiv='X-UA-Compatible' content='IE=edge'>
-				<link rel='stylesheet' type='text/css' href='common.css'>
+				<link rel='stylesheet' type='text/css' href='[SSassets.transport.get_asset_url("common.css")]'>
 				<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
 				<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/js/select2.full.min.js"></script>
 				<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/css/select2.min.css">
@@ -126,33 +130,6 @@
 					});
 
 					$('.remove-reagent').click(function() { $(this).parents('li').remove(); });
-
-					$('#spawn-grenade').click(function() {
-						var containers = $('div.container-control').map(function() {
-					  	  var type = $(this).children('select\[name=containertype\]').select2("data")\[0\].id;
-					      var reagents = $(this).find("li.reagent").map(function() {
-					        return { "reagent": $(this).data("type"), "volume": $(this).find('input').val()};
-					        }).get();
-					     return {"container": type, "reagents": reagents };
-					  }).get();
-						var grenadeType = $('#grenade-type').val()
-						var grenadeData = {};
-						$('.grenade-data.'+grenadeType).find(':input').each(function() {
-							var ret = {};
-							grenadeData\[$(this).attr('name')\] = $(this).val();
-						});
-					  $.ajax({
-					      url: '',
-					      data: {
-									"_src_": "holder",
-									"admin_token": "[RawHrefToken()]",
-									"beakerpanel": "spawngrenade",
-									"containers": JSON.stringify(containers),
-									"grenadetype": grenadeType,
-									"grenadedata": JSON.stringify(grenadeData)
-								}
-					    });
-					});
 
 					$('.spawn-container').click(function() {
 						var container = $(this).parents('div.container-control')\[0\];
@@ -243,16 +220,6 @@
 					<div class='uiTitleWrapper'><div class='uiTitle'><tt>Beaker panel</tt></div></div>
 					<div class='uiContent'>
 
-		<div class="width: 100%">
-		<button id="spawn-grenade">
-		<i class="fas fa-bomb"></i>&nbsp;Spawn grenade
-		</button>
-			<label for="grenade-type">Grenade type: </label>
-		<select id="grenade-type">
-			<option value="normal">Normal</option>
-		</select>
-		<div class="grenade-data normal">
-		</div>
 			<br />
 <small>note: beakers recommended, other containers may have issues</small>
 		</div>

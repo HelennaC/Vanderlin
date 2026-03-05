@@ -6,7 +6,11 @@
 	sound_effect = 'sound/combat/crit.ogg'
 	whp = 50
 	sewn_whp = 20
+<<<<<<< HEAD
 	bleed_rate = 20
+=======
+	bleed_rate = ARTERY_LIMB_BLEEDRATE
+>>>>>>> upstream/main
 	sewn_bleed_rate = 0.2
 	clotting_threshold = null
 	sewn_clotting_threshold = null
@@ -20,7 +24,16 @@
 	sleep_healing = 0
 	embed_chance = 0
 
+<<<<<<< HEAD
 	werewolf_infection_probability = 100
+=======
+	werewolf_infection_probability = 50
+
+/datum/wound/artery/can_apply_to_bodypart(obj/item/bodypart/affected)
+	. = ..()
+	if(affected.status == BODYPART_ROBOTIC)
+		return FALSE
+>>>>>>> upstream/main
 
 /datum/wound/artery/can_stack_with(datum/wound/other)
 	if(istype(other, /datum/wound/artery) && (type == other.type))
@@ -40,8 +53,8 @@
 /datum/wound/artery/neck
 	name = "torn carotid"
 	check_name = "<span class='artery'><B>CAROTID</B></span>"
-	severity = WOUND_SEVERITY_FATAL
 	crit_message = "Blood sprays from %VICTIM's throat!"
+	severity = WOUND_SEVERITY_FATAL
 	whp = 100
 	sewn_whp = 25
 	bleed_rate = 40
@@ -49,10 +62,13 @@
 	woundpain = 45
 	sewn_woundpain = 20
 	mob_overlay = "s1_throat"
+	mortal = TRUE
 
 /datum/wound/artery/neck/on_mob_gain(mob/living/affected)
 	. = ..()
 	ADD_TRAIT(affected, TRAIT_GARGLE_SPEECH, "[type]")
+	if(HAS_TRAIT(affected, TRAIT_CRITICAL_WEAKNESS))
+		affected.death()
 
 /datum/wound/artery/neck/on_mob_loss(mob/living/affected)
 	. = ..()
@@ -61,6 +77,7 @@
 /datum/wound/artery/chest
 	name = "aortic dissection"
 	check_name = "<span class='artery'><B>AORTA</B></span>"
+	crit_message = "A tide of blood gushes from %VICTIM's chest!"
 	severity = WOUND_SEVERITY_FATAL
 	whp = 100
 	sewn_whp = 35
@@ -68,6 +85,7 @@
 	sewn_bleed_rate = 0.8
 	woundpain = 80
 	sewn_woundpain = 50
+	mortal = TRUE
 
 /datum/wound/artery/chest/on_mob_gain(mob/living/affected)
 	. = ..()
@@ -81,12 +99,16 @@
 		"MY HEART IS TORN!",
 		"MY HEART IS BLEEDING!",
 	)
+<<<<<<< HEAD
 	to_chat(affected, span_userdanger("[pick(heartaches)]"))
 	if(HAS_TRAIT(affected, TRAIT_CRITICAL_WEAKNESS))
 		affected.death()
 	if(affected.mind?.has_antag_datum(/datum/antagonist/vampirelord/))
 		var/datum/antagonist/vampirelord/VL = affected.mind.has_antag_datum(/datum/antagonist/vampirelord)
 		VL.handle_vitae(-2000)
+=======
+	to_chat(affected, "<span class='userdanger'>[pick(heartaches)]</span>")
+>>>>>>> upstream/main
 
 /datum/wound/artery/chest/on_life()
 	. = ..()

@@ -22,10 +22,13 @@
 	desc = ""
 	layer = WALL_OBJ_LAYER
 	max_integrity = 100
+<<<<<<< HEAD
 	use_power = ACTIVE_POWER_USE
 	idle_power_usage = 2
 	active_power_usage = 20
 	power_channel = LIGHT //Lights are calc'd via area so they dont need to be in the machine list
+=======
+>>>>>>> upstream/main
 	var/on = FALSE					// 1 if on, 0 if off
 	var/on_gs = FALSE
 	var/static_power_used = 0
@@ -34,7 +37,10 @@
 	var/bulb_colour = "#FFFFFF"	// befault colour of the light.
 	var/status = LIGHT_OK		// LIGHT_OK, _EMPTY, _BURNED or _BROKEN
 	var/flickering = FALSE
+<<<<<<< HEAD
 	var/light_type = /obj/item/light/tube		// the type of light item
+=======
+>>>>>>> upstream/main
 	var/fitting = "tube"
 	var/switchcount = 0			// count of number of times switched on/off
 								// this is used to calc the probability the light burns out
@@ -67,6 +73,7 @@
 
 	var/fueluse = -1 // How much fuel the machinery starts with. At -1, it is never turned off with the passing of time.
 
+<<<<<<< HEAD
 /obj/machinery/light/broken
 	status = LIGHT_BROKEN
 	icon_state = "tube-broken"
@@ -84,12 +91,16 @@
 /obj/machinery/light/small/broken
 	status = LIGHT_BROKEN
 	icon_state = "bulb-broken"
+=======
+	var/obj/effect/fog_parter/fog_parter_effect = /obj/effect/fog_parter // set to null to remove fog parter
+>>>>>>> upstream/main
 
 /obj/machinery/light/Move()
 	if(status != LIGHT_BROKEN)
 		break_light_tube(1)
 	return ..()
 
+<<<<<<< HEAD
 /obj/machinery/light/built
 	icon_state = "tube-empty"
 	start_with_cell = FALSE
@@ -110,6 +121,8 @@
 
 
 
+=======
+>>>>>>> upstream/main
 // create a new lighting fixture
 /obj/machinery/light/Initialize(mapload)
 	. = ..()
@@ -120,11 +133,17 @@
 	addtimer(CALLBACK(src, PROC_REF(update), 0), 1)
 
 /obj/machinery/light/Destroy()
+<<<<<<< HEAD
+=======
+	if(istype(fog_parter_effect))
+		QDEL_NULL(fog_parter_effect)
+>>>>>>> upstream/main
 	var/area/A = get_area(src)
 	if(A)
 		on = FALSE
 	return ..()
 
+<<<<<<< HEAD
 /obj/machinery/light/update_icon()
 	cut_overlays()
 	switch(status)		// set icon_states
@@ -147,20 +166,51 @@
 		if(LIGHT_BROKEN)
 			icon_state = "[base_state]-broken"
 	return
+=======
+// /obj/machinery/light/update_icon()
+// 	cut_overlays()
+// 	switch(status)		// set icon_states
+// 		if(LIGHT_OK)
+// 			if(emergency_mode)
+// 				icon_state = "[base_state]_emergency"
+// 				icon_state = null
+// 			else
+// 				icon_state = "[base_state]"
+// 				icon_state = null
+// 				if(on)
+// 					var/mutable_appearance/glowybit = mutable_appearance(overlayicon, base_state, ABOVE_LIGHTING_LAYER, ABOVE_LIGHTING_PLANE)
+// 					glowybit.alpha = CLAMP(light_power*250, 30, 200)
+// 					add_overlay(glowybit)
+// 		if(LIGHT_EMPTY)
+// 			icon_state = "[base_state]-empty"
+// 		if(LIGHT_BURNED)
+// 			icon_state = "[base_state]-burned"
+// 		if(LIGHT_BROKEN)
+// 			icon_state = "[base_state]-broken"
+// 	return
+>>>>>>> upstream/main
 
 // update the icon_state and luminosity of the light depending on its state
 /obj/machinery/light/proc/update(trigger = TRUE)
 	emergency_mode = FALSE
+<<<<<<< HEAD
+=======
+	var/should_update_light = !isnull(set_light_on(on))
+>>>>>>> upstream/main
 	if(on)
 		var/BR = brightness
 		var/PO = bulb_power
 		var/CO = bulb_colour
 		if(color)
 			CO = color
+<<<<<<< HEAD
 		var/area/A = get_area(src)
 		if (A && A.fire)
 			CO = bulb_emergency_colour
 		else if (nightshift_enabled)
+=======
+		if(nightshift_enabled)
+>>>>>>> upstream/main
 			switch(nightshift_enabled)
 				if("night")
 					BR = nightshift_brightness
@@ -190,6 +240,7 @@
 				if(status == LIGHT_OK && trigger)
 					explode()
 			else
+<<<<<<< HEAD
 				use_power = ACTIVE_POWER_USE
 				set_light(BR, light_inner_range, PO, l_color = CO)
 	else if(!turned_off())
@@ -201,6 +252,15 @@
 		set_light(0)
 	update_icon()
 
+=======
+				set_light(BR, light_inner_range, PO, l_color = CO)
+	else
+		emergency_mode = TRUE
+		START_PROCESSING(SSmachines, src)
+	if(should_update_light)
+		update_light()
+	update_appearance(UPDATE_ICON_STATE)
+>>>>>>> upstream/main
 	broken_sparks(start_only=TRUE)
 
 /obj/machinery/light/update_atom_colour()
@@ -228,8 +288,13 @@
 /obj/machinery/light/proc/burn_out()
 	if(on)
 		on = FALSE
+<<<<<<< HEAD
 		set_light(0)
 		update_icon()
+=======
+		update()
+		update_appearance(UPDATE_ICON_STATE)
+>>>>>>> upstream/main
 
 // attempt to set the light's on/off status
 // will not switch on if broken/burned/empty
@@ -237,6 +302,7 @@
 	on = (s && status == LIGHT_OK)
 	update()
 
+<<<<<<< HEAD
 // attack with item - insert light (if right type), otherwise try to break the light
 
 /obj/machinery/light/attackby(obj/item/W, mob/living/user, params)
@@ -289,6 +355,8 @@
 	else
 		return ..()
 
+=======
+>>>>>>> upstream/main
 /obj/machinery/light/deconstruct(disassembled = TRUE)
 	qdel(src)
 
@@ -298,6 +366,7 @@
 		if(prob(damage_amount * 5))
 			break_light_tube()
 
+<<<<<<< HEAD
 
 
 
@@ -320,6 +389,8 @@
 	var/area/A = get_area(src)
 	return !A.lightswitch && A.power_light || flickering
 
+=======
+>>>>>>> upstream/main
 // returns whether this light has power
 // true if area has power and lightswitch is on
 /obj/machinery/light/proc/has_power()
@@ -351,6 +422,7 @@
 	user.changeNext_move(CLICK_CD_MELEE)
 	add_fingerprint(user)
 
+<<<<<<< HEAD
 
 /obj/machinery/light/proc/drop_light_tube(mob/user)
 	var/obj/item/light/L = new light_type()
@@ -384,6 +456,8 @@
 	L.attack_tk(user)
 
 
+=======
+>>>>>>> upstream/main
 // break the light and make sparks if was on
 
 /obj/machinery/light/proc/break_light_tube(skip_sound_and_sparks = 0)
@@ -392,7 +466,11 @@
 
 	if(!skip_sound_and_sparks)
 		if(status == LIGHT_OK || status == LIGHT_BURNED)
+<<<<<<< HEAD
 			playsound(src.loc, 'sound/blank.ogg', 75, TRUE)
+=======
+			playsound(src, 'sound/blank.ogg', 75, TRUE)
+>>>>>>> upstream/main
 		if(on)
 			do_sparks(3, TRUE, src)
 	status = LIGHT_BROKEN
@@ -406,6 +484,7 @@
 	on = TRUE
 	update()
 
+<<<<<<< HEAD
 /obj/machinery/light/tesla_act(power, tesla_flags)
 	if(tesla_flags & TESLA_MACHINE_EXPLOSIVE)
 		explosion(src,0,0,0,flame_range = 5, adminlog = 0)
@@ -416,6 +495,11 @@
 // called when on fire
 
 /obj/machinery/light/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
+=======
+// called when on fire
+
+/obj/machinery/light/temperature_expose(exposed_temperature, exposed_volume)
+>>>>>>> upstream/main
 	if(prob(max(0, exposed_temperature - 673)))   //0% at <400C, 100% at >500C
 		break_light_tube()
 
@@ -430,6 +514,7 @@
 	sleep(1)
 	qdel(src)
 
+<<<<<<< HEAD
 // the light item
 // can be tube or bulb subtypes
 // will fit into empty /obj/machinery/light of the corresponding type
@@ -559,3 +644,25 @@
 	layer = 2.5
 	light_type = /obj/item/light/bulb
 	fitting = "bulb"
+=======
+// FOG RELATED PROC OVERRIDES
+
+/obj/machinery/light/set_light_on(new_value)
+	. = ..()
+	if(isnull(fog_parter_effect))
+		return
+	if(on)
+		if(!istype(fog_parter_effect))
+			fog_parter_effect = new fog_parter_effect(get_turf(src), light_outer_range)
+	else
+		if(istype(fog_parter_effect)) // to check if its initialized instead of a path
+			qdel(fog_parter_effect)
+		fog_parter_effect = initial(fog_parter_effect)
+
+/obj/machinery/light/set_light_range(new_inner_range, new_outer_range)
+	. = ..()
+	if(isnull(.))
+		return
+	if(istype(fog_parter_effect))
+		fog_parter_effect.set_range(light_outer_range)
+>>>>>>> upstream/main

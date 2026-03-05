@@ -1,7 +1,6 @@
 /// Creates and sorts all the keybinding datums
 /proc/init_keybindings()
-	for(var/KB in subtypesof(/datum/keybinding))
-		var/datum/keybinding/keybinding = KB
+	for(var/datum/keybinding/keybinding as anything in subtypesof(/datum/keybinding))
 		if(!initial(keybinding.hotkey_keys))
 			continue
 		add_keybinding(new keybinding)
@@ -14,16 +13,15 @@
 	// Classic
 	if(LAZYLEN(instance.classic_keys))
 		for(var/bound_key in instance.classic_keys)
-			LAZYADD(GLOB.classic_keybinding_list_by_key[bound_key], list(instance.name))
+			LAZYOR(GLOB.classic_keybinding_list_by_key[bound_key], list(instance.name))
 
 	// Hotkey
 	if(LAZYLEN(instance.hotkey_keys))
 		for(var/bound_key in instance.hotkey_keys)
-			LAZYADD(GLOB.hotkey_keybinding_list_by_key[bound_key], list(instance.name))
+			LAZYOR(GLOB.hotkey_keybinding_list_by_key[bound_key], list(instance.name))
 
 /proc/init_emote_keybinds()
-	for(var/i in subtypesof(/datum/emote))
-		var/datum/emote/faketype = i
+	for(var/datum/emote/faketype in subtypesof(/datum/emote))
 		if(!initial(faketype.key))
 			continue
 		var/datum/keybinding/emote/emote_kb = new

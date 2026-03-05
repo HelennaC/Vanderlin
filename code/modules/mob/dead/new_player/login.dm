@@ -14,19 +14,10 @@
 
 	var/motd = global.config.motd
 	if(motd)
-		to_chat(src, "<div class=\"motd\">[motd]</div>", handle_whitespace=FALSE)
+		to_chat(src, "<div class=\"motd\">[motd]</div>")
 
 	if(GLOB.rogue_round_id)
 		to_chat(src, "<span class='info'>ROUND ID: [GLOB.rogue_round_id]</span>")
-
-	if(CONFIG_GET(flag/usewhitelist))
-		if(!client.whitelisted())
-			to_chat(src, "<span class='info'>You are not on the whitelist.</span>")
-		else
-			to_chat(src, "<span class='info'>You are on the whitelist.</span>")
-
-//	if(motd)
-//		to_chat(src, "<B>If this is your first time here,</B> <a href='byond://?src=[REF(src)];rpprompt=1'>read this lore primer.</a>", handle_whitespace=FALSE)
 
 	if(GLOB.admin_notice)
 		to_chat(src, "<span class='notice'><b>Admin Notice:</b>\n \t [GLOB.admin_notice]</span>")
@@ -37,9 +28,7 @@
 
 	sight |= SEE_TURFS
 
-	new_player_panel()
-	if(client)
-		client.playtitlemusic()
+	client?.playtitlemusic()
 	if(SSticker.current_state < GAME_STATE_SETTING_UP)
 		var/tl = SSticker.GetTimeLeft()
 		var/postfix
@@ -49,8 +38,10 @@
 			postfix = "soon"
 		to_chat(src, "The game will start [postfix].")
 		if(client)
-			var/usedkey = ckey(key)
-			if(usedkey in GLOB.anonymize)
-				usedkey = get_fake_key(usedkey)
-			var/list/thinz = list("takes a seat.", "settles in.", "joins the session", "joins the table.", "becomes a player.")
+			var/usedkey = get_display_ckey(ckey)
+			var/list/thinz = list("takes [client.p_their()] seat.", "settles in.", "joins the session", "joins the table.", "becomes a player.")
 			SEND_TEXT(world, "<span class='notice'>[usedkey] [pick(thinz)]</span>")
+
+	// client?.change_view(8)
+	// sleep(1 SECONDS)
+	client?.view_size?.resetToDefault()

@@ -1,14 +1,21 @@
-# OpenKeep
+# VANDERLIN
 
-[![BYOND Build](https://github.com/Darkrp-community/OpenKeep/actions/workflows/ci_suite.yml/badge.svg)](https://github.com/Darkrp-community/OpenKeep/actions/workflows/ci_suite.yml)
+[![BYOND Build](https://github.com/Monkestation/Vanderlin/actions/workflows/ci_suite.yml/badge.svg)](https://github.com/Monkestation/Vanderlin/actions/workflows/ci_suite.yml)
 
 | Website                   | Link                                           |
 |---------------------------|------------------------------------------------|
+<<<<<<< HEAD
 | Discord          | [https://discord.gg/stonekeep](https://discord.gg/stonekeep) |
 | Code                      | [https://github.com/Darkrp-community/OpenKeep](https://github.com/Darkrp-community/OpenKeep)    |
 | Wiki (Under Construction)                      | [https://wiki.stonekeep.xyz](https://wiki.stonekeep.xyz) |
+=======
+| Discord | [https://discord.monkestation.com](https://discord.monkestation.com) |
+| Code    | [https://github.com/Monkestation/Vanderlin](https://github.com/Monkestation/Vanderlin)    |
+| Wiki    | N/A |
+>>>>>>> upstream/main
 
 ## LICENSE
+Original Fork Originates from [commit c28b351807bad950d2b323ada048190844bbda32](https://github.com/tgstation/tgstation/commit/c28b351807bad950d2b323ada048190844bbda32).
 
 All code after [commit 333c566b88108de218d882840e61928a9b759d8f on 2014/31/12 at 4:38 PM PST](https://github.com/tgstation/tgstation/commit/333c566b88108de218d882840e61928a9b759d8f) is licensed under [GNU AGPL v3](https://www.gnu.org/licenses/agpl-3.0.html).
 

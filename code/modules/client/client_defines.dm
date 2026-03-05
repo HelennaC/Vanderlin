@@ -9,13 +9,17 @@
 		////////////////
 	///Contains admin info. Null if client is not an admin.
 	var/datum/admins/holder = null
-	///Needs to implement InterceptClickOn(user,params,atom) proc
+	///Needs to implement InterceptClickOn(user,list/modifiers,atom) proc
 	var/datum/click_intercept = null
+	///Time when the click was intercepted
+	var/click_intercept_time = 0
 	///Used for admin AI interaction
 	var/AI_Interact = FALSE
 
 	///Used to cache this client's bans to save on DB queries
 	var/ban_cache = null
+	///If we are currently building this client's ban cache, this var stores the timeofday we started at
+	var/ban_cache_start = 0
 	///Contains the last message sent by this client - used to protect against copy-paste spamming.
 	var/last_message = ""
 	///contins a number of how many times a message identical to last_message was sent.
@@ -36,6 +40,8 @@
 	var/last_turn = 0
 	///Move delay of controlled mob, related to input handling
 	var/move_delay = 0
+	///The visual delay to use for the current client.Move(), mostly used for making a client based move look like it came from some other slower source
+	var/visual_delay = 0
 	///Current area of the controlled mob
 	var/area = null
 
@@ -47,8 +53,6 @@
 	///Whether an ambience sound has been played and one shouldn't be played again, unset by a callback
 	var/list/played = list()
 	var/list/nextspooky = 0
-
-	var/patreonlevel = -1
 
 		////////////
 		//SECURITY//
@@ -80,9 +84,8 @@
 	var/mouse_up_icon = null
 	///used to make a special mouse cursor, this one for mouse up icon
 	var/mouse_down_icon = null
-
-	///Used for ip intel checking to identify evaders, disabled because of issues with traffic
-	var/ip_intel = "Disabled"
+	///used to override the mouse cursor so it doesnt get reset
+	var/mouse_override_icon = null
 
 	///datum that controls the displaying and hiding of tooltips
 	var/datum/tooltip/tooltips
@@ -105,16 +108,13 @@
 	///Used for limiting the rate of clicks sends by the client to avoid abuse
 	var/list/clicklimiter
 
-	///goonchat chatoutput of the client
-	var/datum/chatOutput/chatOutput
-
 	///lazy list of all credit object bound to this client
 	var/list/credits = list()
 
 	///these persist between logins/logouts during the same round.
 	var/datum/player_details/player_details
 
-	///Should only be a key-value list of north/south/east/west = atom/movable/screen.
+	///Should only be a key-value list of stringified (cardinal) dir, e.g. "[NORTH]" = new /atom/movable/screen/char_preview.
 	var/list/char_render_holders
 
 	///Amount of keydowns in the last keysend checking interval
@@ -126,111 +126,44 @@
 	///When set to true, user will be autokicked if they trip the keysends in a second limit again
 	var/keysend_tripped = FALSE
 
-	var/atom/movable/screen/movable/mouseover/mouseovertext
-	var/atom/movable/screen/movable/mouseover/mouseoverbox
 	///custom movement keys for this client
 	var/list/movement_keys = list()
 
 	/// Messages currently seen by this client
 	var/list/seen_messages
 
+	var/datum/view_data/view_size
+
 	var/list/current_weathers = list()
 	var/last_lighting_update = 0
 
-	var/list/open_popups = list()
-
 	var/loop_sound = FALSE
 	var/rain_sound = FALSE
-	var/last_droning_sound
-	var/sound/droning_sound
 
-/client/proc/update_weather(force)
-	if(!mob)
-		return
-	if(!isobserver(mob) && !isliving(mob))
-		return
-	if(!force)
-		if(last_lighting_update)
-			if(length(last_lighting_update & list(mob.x, mob.y, mob.z)) == 3)
-				return
-	last_lighting_update = list(mob.x, mob.y, mob.z)
-	var/area/A = get_area(mob)
-	var/obj/PMW = locate(/atom/movable/screen/plane_master/weather) in screen
-	if(PMW && A)
-		if(A.outdoors)
-			PMW.filters = list()
-		else
-			if(!PMW.filters || !islist(PMW.filters) || !PMW.filters.len)
-				PMW.filters = filter(type="alpha", render_source = "*rainzone", flags = MASK_INVERSE)
+	///Which ambient sound this client is currently being provided
+	var/current_ambient_sound
+	/// Cooldowns for Real like - For Mentor
+	var/list/real_like_cooldowns  = list()
+	/// Total Real likes received in a round - For Mentor
+	var/real_likes_received  = 0
 
-	for(var/W in current_weathers)
-		var/found = FALSE
-		for(var/datum/weather/WE in SSweather.curweathers)
-			if(WE.type == W)
-				if(WE.stage == MAIN_STAGE)
-					for(var/image/I in current_weathers[W])
-						if(!(I in images))
-							images += I
-					for(var/obj/O in current_weathers[W])
-						if(!(O in screen))
-							screen += O
-					found = TRUE
-		if(!found)
-			for(var/I in current_weathers[W])
-				current_weathers[W] -= I
-				fade_weather(I)
+	/// our current tab
+	var/stat_tab
 
-	for(var/datum/weather/WE in SSweather.curweathers)
-		if(WE.stage != MAIN_STAGE)
-			continue
-		if(!current_weathers[WE.type])
-			current_weathers[WE.type] = list()
-		for(var/image/P in current_weathers[WE.type]) //need to update position of particles
-			current_weathers[WE.type] -= P
-			fade_weather(P)
-		for(var/P in WE.particles)
-			if(ispath(P,/obj/emitters/weather))
-				var/obj/emitters/PE = new P
-				var/image/I = image(null,mob.loc)
-				I.plane = WEATHER_PLANE
-				I.vis_contents += PE
-				images += I
-				current_weathers[WE.type] += I
-			else
-				var/found = FALSE
-				for(var/atom/movable/screen/WO in current_weathers[WE.type])
-					if(istype(WO,P))
-						found = TRUE
-						break
-				if(found)
-					continue
-				var/atom/movable/screen/PE = new P()
-				screen += PE
-				current_weathers[WE.type] += PE
+	/// whether our browser is ready or not yet
+	var/statbrowser_ready = FALSE
 
-/client/proc/fade_weather(W)
-	if(!W)
-		return
-	var/image/P = W
-	if(istype(P))
-		animate(P,alpha = 0, time=20)
-		addtimer(CALLBACK(src,PROC_REF(kill_weather),P),20)
-	else //screen obj
-		var/atom/movable/screen/O = W
-		animate(O,alpha = 0, time=10)
-		addtimer(CALLBACK(src,PROC_REF(kill_weather),O),10)
+	/// list of all tabs
+	var/list/panel_tabs = list()
 
+	///A lazy list of atoms we've examined in the last EXAMINE_MORE_TIME (default 1.5) seconds, so that we will call [/atom/proc/examine_more] instead of [/atom/proc/examine] on them when examining
+	var/list/recent_examines
 
-/client/proc/kill_weather(P)
-	if(!P)
-		return
-	var/image/I = P
-	if(istype(I))
-		images -= I
-		for(var/obj/O in I.vis_contents)
-			I.vis_contents -= O
-			qdel(O)
-		qdel(I)
-	else
-		screen -= P
-		qdel(P)
+	var/list/sent_assets = list() // List of all asset filenames sent to this client by the asset cache, along with their assoicated md5s
+	var/list/completed_asset_jobs = list() /// List of all completed blocking send jobs awaiting acknowledgement by send_asset
+
+	var/last_asset_job = 0 /// Last asset send job id.
+	var/last_completed_asset_job = 0
+
+	/// Loot panel for the client
+	var/datum/lootpanel/loot_panel

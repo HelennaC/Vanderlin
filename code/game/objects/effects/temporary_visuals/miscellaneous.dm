@@ -7,12 +7,9 @@
 	plane = GAME_PLANE_FOV_HIDDEN
 	var/splatter_type = "splatter"
 
-/obj/effect/temp_visual/dir_setting/bloodsplatter/Initialize(mapload, set_dir)
-	icon_state = "[splatter_type][rand(1, 6)]"
-	. = ..()
-	animate(src, alpha = 0, time = duration)
-/*
-/obj/effect/temp_visual/dir_setting/bloodsplatter/Initialize(mapload, set_dir)
+/obj/effect/temp_visual/dir_setting/bloodsplatter/Initialize(mapload, set_dir, datum/blood_type/bloodtype)
+	if(bloodtype)
+		color = bloodtype.color
 	if(set_dir in GLOB.diagonals)
 		icon_state = "[splatter_type][pick(1, 2, 6)]"
 	else
@@ -45,7 +42,7 @@
 			target_pixel_y = -16
 			layer = ABOVE_MOB_LAYER
 	animate(src, pixel_x = target_pixel_x, pixel_y = target_pixel_y, alpha = 0, time = duration)
-*/
+
 /obj/effect/temp_visual/dir_setting/bloodsplatter/xenosplatter
 	splatter_type = "xsplatter"
 
@@ -65,15 +62,15 @@
 	switch(newdir)
 		if(NORTH)
 			layer = BELOW_MOB_LAYER
-			pixel_x = rand(-3,3)
-			pixel_y = rand(4,6)
+			pixel_x = base_pixel_x + rand(-3,3)
+			pixel_y = base_pixel_y + rand(4,6)
 		if(SOUTH)
-			pixel_x = rand(-3,3)
-			pixel_y = rand(-1,1)
+			pixel_x = base_pixel_x + rand(-3,3)
+			pixel_y = base_pixel_y + rand(-1,1)
 		else
-			pixel_x = rand(-1,1)
-			pixel_y = rand(-1,1)
-	..()
+			pixel_x = base_pixel_x + rand(-1,1)
+			pixel_y = base_pixel_y + rand(-1,1)
+	return ..()
 
 /obj/effect/temp_visual/dir_setting/firing_effect/energy
 	icon_state = "firing_effect_energy"
@@ -82,12 +79,6 @@
 /obj/effect/temp_visual/dir_setting/firing_effect/magic
 	icon_state = "shieldsparkles"
 	duration = 3
-
-/obj/effect/temp_visual/dir_setting/ninja
-	name = "ninja shadow"
-	icon = 'icons/mob/mob.dmi'
-	icon_state = "uncloak"
-	duration = 9
 
 /obj/effect/temp_visual/dir_setting/ninja/cloak
 	icon_state = "cloak"
@@ -131,9 +122,8 @@
 /obj/effect/temp_visual/dir_setting/curse/grasp_portal
 	icon = 'icons/effects/64x64.dmi'
 	layer = LARGE_MOB_LAYER
-	pixel_y = -16
-	pixel_x = -16
-	duration = 32
+	SET_BASE_PIXEL(-16, -16)
+	duration = 3.2 SECONDS
 	fades = FALSE
 
 /obj/effect/temp_visual/dir_setting/curse/grasp_portal/fading
@@ -142,30 +132,6 @@
 
 /obj/effect/temp_visual/dir_setting/curse/hand
 	icon_state = "cursehand"
-
-/obj/effect/temp_visual/dir_setting/curse/hand/Initialize(mapload, set_dir, handedness)
-	. = ..()
-	update_icon()
-
-/obj/effect/temp_visual/bsa_splash
-	name = "\improper Bluespace energy wave"
-	desc = ""
-	icon = 'icons/effects/beam_splash.dmi'
-	icon_state = "beam_splash_l"
-	layer = ABOVE_ALL_MOB_LAYER
-	pixel_y = -16
-	duration = 50
-
-/obj/effect/temp_visual/bsa_splash/Initialize(mapload, dir)
-	. = ..()
-	switch(dir)
-		if(WEST)
-			icon_state = "beam_splash_w"
-		if(EAST)
-			icon_state = "beam_splash_e"
-
-/obj/projectile/curse_hand/update_icon()
-	icon_state = "[icon_state][handedness]"
 
 /obj/effect/temp_visual/wizard
 	name = "water"
@@ -189,16 +155,6 @@
 	icon = 'icons/mob/mob.dmi'
 	icon_state = "blspell"
 	duration = 5
-
-/obj/effect/temp_visual/guardian
-	randomdir = 0
-
-/obj/effect/temp_visual/guardian/phase
-	duration = 5
-	icon_state = "phasein"
-
-/obj/effect/temp_visual/guardian/phase/out
-	icon_state = "phaseout"
 
 /obj/effect/temp_visual/decoy
 	desc = ""
@@ -228,10 +184,10 @@
 
 /obj/effect/temp_visual/small_smoke
 	icon_state = "smoke"
-	duration = 50
+	duration = 5 SECONDS
 
 /obj/effect/temp_visual/small_smoke/halfsecond
-	duration = 5
+	duration = 0.5 SECONDS
 
 /obj/effect/temp_visual/fire
 	icon = 'icons/effects/fire.dmi'
@@ -239,15 +195,6 @@
 	light_outer_range =  LIGHT_RANGE_FIRE
 	light_color = LIGHT_COLOR_FIRE
 	duration = 10
-
-/obj/effect/temp_visual/revenant
-	name = "spooky lights"
-	icon_state = "purplesparkles"
-
-/obj/effect/temp_visual/revenant/cracks
-	name = "glowing cracks"
-	icon_state = "purplecrack"
-	duration = 6
 
 /obj/effect/temp_visual/gravpush
 	name = "gravity wave"
@@ -307,8 +254,8 @@
 	if(set_color)
 		add_atom_colour(set_color, FIXED_COLOUR_PRIORITY)
 	. = ..()
-	pixel_x = rand(-12, 12)
-	pixel_y = rand(-9, 0)
+	pixel_x = base_pixel_x + rand(-12, 12)
+	pixel_y = base_pixel_y + rand(-9, 0)
 
 /obj/effect/temp_visual/kinetic_blast
 	name = "kinetic explosion"
@@ -321,9 +268,8 @@
 	name = "explosion"
 	icon = 'icons/effects/96x96.dmi'
 	icon_state = "explosion"
-	pixel_x = -32
-	pixel_y = -32
-	duration = 8
+	SET_BASE_PIXEL(-32, -32)
+	duration = 0.8 SECONDS
 
 /obj/effect/temp_visual/explosion/fast
 	icon_state = "explosionfast"
@@ -346,8 +292,8 @@
 	duration = 5
 
 /obj/effect/temp_visual/impact_effect/Initialize(mapload, x, y)
-	pixel_x = x
-	pixel_y = y
+	pixel_x = base_pixel_x + x
+	pixel_y = base_pixel_y + y
 	return ..()
 
 /obj/effect/temp_visual/impact_effect/red_laser
@@ -386,8 +332,8 @@
 
 /obj/effect/temp_visual/heart/Initialize(mapload)
 	. = ..()
-	pixel_x = rand(-4,4)
-	pixel_y = rand(-4,4)
+	pixel_x = base_pixel_x + rand(-4,4)
+	pixel_y = base_pixel_y + rand(-4,4)
 	animate(src, pixel_y = pixel_y + 32, alpha = 0, time = 25)
 
 /obj/effect/temp_visual/love_heart
@@ -398,8 +344,8 @@
 
 /obj/effect/temp_visual/love_heart/Initialize(mapload)
 	. = ..()
-	pixel_x = rand(-10,10)
-	pixel_y = rand(-10,10)
+	pixel_x = base_pixel_x + rand(-10,10)
+	pixel_y = base_pixel_y + rand(-10,10)
 	animate(src, pixel_y = pixel_y + 32, alpha = 0, time = duration)
 
 /obj/effect/temp_visual/love_heart/invisible
@@ -408,37 +354,10 @@
 /obj/effect/temp_visual/love_heart/invisible/Initialize(mapload, mob/seer)
 	. = ..()
 	var/image/I = image(icon = 'icons/effects/effects.dmi', icon_state = "heart", layer = ABOVE_MOB_LAYER, loc = src)
-	add_alt_appearance(/datum/atom_hud/alternate_appearance/basic/onePerson, "heart", I, seer)
+	add_alt_appearance(/datum/atom_hud/alternate_appearance/basic/People, "heart", I, seer)
 	I.alpha = 255
 	I.appearance_flags = RESET_ALPHA
 	animate(I, alpha = 0, time = duration)
-
-/obj/effect/temp_visual/bleed
-	name = "bleed"
-	icon = 'icons/effects/bleed.dmi'
-	icon_state = "bleed0"
-	duration = 10
-	var/shrink = TRUE
-
-/obj/effect/temp_visual/bleed/Initialize(mapload, atom/size_calc_target)
-	. = ..()
-	var/size_matrix = matrix()
-	if(size_calc_target)
-		layer = size_calc_target.layer + 0.01
-		var/icon/I = icon(size_calc_target.icon, size_calc_target.icon_state, size_calc_target.dir)
-		size_matrix = matrix() * (I.Height()/world.icon_size)
-		transform = size_matrix //scale the bleed overlay's size based on the target's icon size
-	var/matrix/M = transform
-	if(shrink)
-		M = size_matrix*0.1
-	else
-		M = size_matrix*2
-	animate(src, alpha = 20, transform = M, time = duration, flags = ANIMATION_PARALLEL)
-
-/obj/effect/temp_visual/bleed/explode
-	icon_state = "bleed10"
-	duration = 12
-	shrink = FALSE
 
 /obj/effect/temp_visual/warp_cube
 	duration = 5

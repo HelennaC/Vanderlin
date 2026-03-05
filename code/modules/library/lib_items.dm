@@ -21,9 +21,9 @@
 	opacity = 1
 	resistance_flags = FLAMMABLE
 	max_integrity = 200
-	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 50, "acid" = 0)
+	armor = list("blunt" = 0, "slash" = 0, "stab" = 0,  "piercing" = 0, "fire" = 50, "acid" = 0)
 	var/state = 0
-	var/list/allowed_books = list(/obj/item/book, /obj/item/spellbook, /obj/item/storage/book) //Things allowed in the bookcase
+	var/list/allowed_books = list(/obj/item/book, /obj/item/recipe_book) //Things allowed in the bookcase
 
 /obj/structure/bookcase/examine(mob/user)
 	. = ..()
@@ -49,73 +49,9 @@
 	for(var/obj/item/I in loc)
 		if(istype(I, /obj/item/book))
 			I.forceMove(src)
-	update_icon()
-
-/obj/structure/bookcase/attackby(obj/item/I, mob/user, params)
-	switch(state)
-		if(0)
-			if(I.tool_behaviour == TOOL_WRENCH)
-				if(I.use_tool(src, user, 20, volume=50))
-					to_chat(user, "<span class='notice'>I wrench the frame into place.</span>")
-					anchored = TRUE
-					state = 1
-			if(I.tool_behaviour == TOOL_CROWBAR)
-				if(I.use_tool(src, user, 20, volume=50))
-					to_chat(user, "<span class='notice'>I pry the frame apart.</span>")
-					deconstruct(TRUE)
-
-		if(1)
-			if(istype(I, /obj/item/stack/sheet/mineral/wood))
-				var/obj/item/stack/sheet/mineral/wood/W = I
-				if(W.get_amount() >= 2)
-					W.use(2)
-					to_chat(user, "<span class='notice'>I add a shelf.</span>")
-					state = 2
-					icon_state = "book-0"
-			if(I.tool_behaviour == TOOL_WRENCH)
-				I.play_tool_sound(src, 100)
-				to_chat(user, "<span class='notice'>I unwrench the frame.</span>")
-				anchored = FALSE
-				state = 0
-
-		if(2)
-			var/datum/component/storage/STR = I.GetComponent(/datum/component/storage)
-			if(is_type_in_list(I, allowed_books))
-				if(!(contents.len <= 15))
-					to_chat(user, "<span class='notice'>There are too many books on this shelf!</span>")
-					return
-				if(!user.transferItemToLoc(I, src))
-					return
-				update_icon()
-			else if(STR)
-				for(var/obj/item/T in I.contents)
-					if(istype(T, /obj/item/book) || istype(T, /obj/item/spellbook))
-						STR.remove_from_storage(T, src)
-				to_chat(user, "<span class='notice'>I empty \the [I] into \the [src].</span>")
-				update_icon()
-			else if(istype(I, /obj/item/pen))
-				if(!user.is_literate())
-					to_chat(user, "<span class='notice'>I scribble illegibly on the side of [src]!</span>")
-					return
-				var/newname = stripped_input(user, "What would you like to title this bookshelf?")
-				if(!user.canUseTopic(src, BE_CLOSE))
-					return
-				if(!newname)
-					return
-				else
-					name = "bookcase ([sanitize(newname)])"
-			else if(I.tool_behaviour == TOOL_CROWBAR)
-				if(contents.len)
-					to_chat(user, "<span class='warning'>I need to remove the books first!</span>")
-				else
-					I.play_tool_sound(src, 100)
-					to_chat(user, "<span class='notice'>I pry the shelf out.</span>")
-					new /obj/item/stack/sheet/mineral/wood(drop_location(), 2)
-					state = 1
-					icon_state = "bookempty"
-			else
-				return ..()
-
+		if(istype(I, /obj/item/recipe_book))
+			I.forceMove(src)
+	update_appearance(UPDATE_ICON_STATE)
 
 /obj/structure/bookcase/attack_hand(mob/living/user)
 	. = ..()
@@ -126,97 +62,51 @@
 	if(contents.len)
 		var/obj/item/book/choice = input(user, "Which book would you like to remove from the shelf?") as null|obj in contents.Copy()
 		if(choice)
-			if(!(user.mobility_flags & MOBILITY_USE) || user.stat || user.restrained() || !in_range(loc, user))
+			if(!(user.mobility_flags & MOBILITY_USE) || user.stat != CONSCIOUS || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED) || !in_range(loc, user))
 				return
 			if(ishuman(user))
 				if(!user.get_active_held_item())
 					user.put_in_hands(choice)
 			else
 				choice.forceMove(drop_location())
-			update_icon()
-
+			update_appearance(UPDATE_ICON_STATE)
 
 /obj/structure/bookcase/deconstruct(disassembled = TRUE)
-//	new /obj/item/stack/sheet/mineral/wood(loc, 4)
-	for(var/obj/item/book/B in contents)
+	for(var/obj/item/B in contents)
 		B.forceMove(get_turf(src))
 	qdel(src)
 
-
-/obj/structure/bookcase/update_icon()
-	if((contents.len >= 1) && (contents.len <= 15))
-		icon_state = "[based][contents.len]"
+/obj/structure/bookcase/update_icon_state()
+	if((length(contents) >= 1) && (length(contents) <= 15))
+		icon_state = "[based][length(contents)]"
 	else
 		icon_state = "bookcase"
+	return ..()
 
-
-/obj/structure/bookcase/manuals/medical
-	name = "medical manuals bookcase"
-
-/obj/structure/bookcase/manuals/medical/Initialize()
+/obj/structure/bookcase/attackby(obj/item/I, mob/user, list/modifiers)
 	. = ..()
-	new /obj/item/book/manual/wiki/medical_cloning(src)
-	update_icon()
+	if(!is_type_in_list(I, allowed_books))
+		return
+	if(length(contents) >= 15)
+		return
+	user.visible_message("[user] starts to put [I] into [src].", "You start to put [I] into [src].")
+	if(!do_after(user, 0.75 SECONDS, src))
+		return
+	I.forceMove(src)
+	update_appearance(UPDATE_ICON_STATE)
 
+/obj/structure/bookcase/random_recipes
+	var/random_books = 4
 
-/obj/structure/bookcase/manuals/engineering
-	name = "engineering manuals bookcase"
-
-/obj/structure/bookcase/manuals/engineering/Initialize()
+/obj/structure/bookcase/random_recipes/Initialize(mapload)
 	. = ..()
-	new /obj/item/book/manual/wiki/engineering_construction(src)
-	new /obj/item/book/manual/wiki/engineering_hacking(src)
-	new /obj/item/book/manual/wiki/engineering_guide(src)
-	new /obj/item/book/manual/wiki/engineering_singulo_tesla(src)
-	new /obj/item/book/manual/wiki/robotics_cyborgs(src)
-	update_icon()
+	var/list/books = subtypesof(/obj/item/recipe_book)
+	for(var/obj/item/recipe_book/listed_book as anything in books)
+		if(initial(listed_book.can_spawn))
+			continue
+		books -= listed_book
 
-
-/obj/structure/bookcase/manuals/research_and_development
-	name = "\improper R&D manuals bookcase"
-
-/obj/structure/bookcase/manuals/research_and_development/Initialize()
-	. = ..()
-	new /obj/item/book/manual/wiki/research_and_development(src)
-	update_icon()
-
-/*
- * Barcode Scanner
- */
-/*
-/obj/item/barcodescanner
-	name = "barcode scanner"
-	icon = 'icons/obj/library.dmi'
-	icon_state ="scanner"
-	desc = ""
-	throw_speed = 1
-	throw_range = 5
-	w_class = WEIGHT_CLASS_TINY
-	var/obj/machinery/computer/libraryconsole/bookmanagement/computer	//Associated computer - Modes 1 to 3 use this
-	var/obj/item/book/book			//Currently scanned book
-	var/mode = 0							//0 - Scan only, 1 - Scan and Set Buffer, 2 - Scan and Attempt to Check In, 3 - Scan and Attempt to Add to Inventory
-
-/obj/item/barcodescanner/attack_self(mob/user)
-	mode += 1
-	if(mode > 3)
-		mode = 0
-	to_chat(user, "[src] Status Display:")
-	var/modedesc
-	switch(mode)
-		if(0)
-			modedesc = ""
-		if(1)
-			modedesc = ""
-		if(2)
-			modedesc = ""
-		if(3)
-			modedesc = ""
-		else
-			modedesc = ""
-	to_chat(user, " - Mode [mode] : [modedesc]")
-	if(computer)
-		to_chat(user, "<font color=green>Computer has been associated with this unit.</font>")
-	else
-		to_chat(user, "<font color=red>No associated computer found. Only local scans will function properly.</font>")
-	to_chat(user, "\n")
-*/
+	for(var/i = 1 to random_books)
+		var/obj/item/recipe_book/book = pick_n_take(books)
+		new book(src)
+	update_appearance(UPDATE_ICON_STATE)

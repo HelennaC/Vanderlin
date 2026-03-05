@@ -4,13 +4,10 @@
 
 /obj/effect/baseturf_helper //Set the baseturfs of every turf in the /area/ it is placed.
 	name = "baseturf editor"
-	icon = 'icons/effects/mapping_helpers.dmi'
 	icon_state = ""
-
+	plane = POINT_PLANE
 	var/list/baseturf_to_replace
 	var/baseturf
-
-	layer = POINT_LAYER
 
 /obj/effect/baseturf_helper/Initialize()
 	. = ..()
@@ -18,7 +15,7 @@
 
 /obj/effect/baseturf_helper/LateInitialize()
 	if(!baseturf_to_replace)
-		baseturf_to_replace = typecacheof(list(/turf/open/space,/turf/baseturf_bottom))
+		baseturf_to_replace = typecacheof(list(/turf/baseturf_bottom))
 	else if(!length(baseturf_to_replace))
 		baseturf_to_replace = list(baseturf_to_replace = TRUE)
 	else if(baseturf_to_replace[baseturf_to_replace[1]] != TRUE) // It's not associative
@@ -34,11 +31,12 @@
 	qdel(src)
 
 /obj/effect/baseturf_helper/proc/replace_baseturf(turf/thing)
-	var/list/baseturf_cache = thing.baseturfs
-	if(length(baseturf_cache))
+	if(length(thing.baseturfs))
+		var/list/baseturf_cache = thing.baseturfs.Copy()
 		for(var/i in baseturf_cache)
 			if(baseturf_to_replace[i])
 				baseturf_cache -= i
+		thing.baseturfs = baseturfs_string_list(baseturf_cache, thing)
 		if(!baseturf_cache.len)
 			thing.assemble_baseturfs(baseturf)
 		else
@@ -47,45 +45,6 @@
 		thing.assemble_baseturfs(baseturf)
 	else
 		thing.PlaceOnBottom(null, baseturf)
-
-
-
-/obj/effect/baseturf_helper/space
-	name = "space baseturf editor"
-	baseturf = /turf/open/space
-
-/obj/effect/baseturf_helper/asteroid
-	name = "asteroid baseturf editor"
-	baseturf = /turf/open/floor/plating/asteroid
-
-/obj/effect/baseturf_helper/asteroid/airless
-	name = "asteroid airless baseturf editor"
-	baseturf = /turf/open/floor/plating/asteroid/airless
-
-/obj/effect/baseturf_helper/asteroid/basalt
-	name = "asteroid basalt baseturf editor"
-	baseturf = /turf/open/floor/plating/asteroid/basalt
-
-/obj/effect/baseturf_helper/asteroid/snow
-	name = "asteroid snow baseturf editor"
-	baseturf = /turf/open/floor/plating/asteroid/snow
-
-/obj/effect/baseturf_helper/beach/sand
-	name = "beach sand baseturf editor"
-	baseturf = /turf/open/floor/plating/beach/sand
-
-/obj/effect/baseturf_helper/beach/water
-	name = "water baseturf editor"
-	baseturf = /turf/open/floor/plating/beach/water
-
-/obj/effect/baseturf_helper/lava
-	name = "lava baseturf editor"
-	baseturf = /turf/open/lava/smooth
-
-/obj/effect/baseturf_helper/lava_land/surface
-	name = "lavaland baseturf editor"
-	baseturf = /turf/open/lava/smooth/lava_land_surface
-
 
 /obj/effect/mapping_helpers
 	icon = 'icons/effects/mapping_helpers.dmi'
@@ -129,24 +88,12 @@ INITIALIZE_IMMEDIATE(/obj/effect/mapping_helpers/no_lava)
 		if(target_type && !istype(A,target_type))
 			continue
 		var/cargs = build_args()
-		A.AddComponent(arglist(cargs))
+		A._AddComponent(cargs)
 		qdel(src)
 		return
 
 /obj/effect/mapping_helpers/component_injector/proc/build_args()
 	return list(component_type)
-
-/obj/effect/mapping_helpers/component_injector/infective
-	name = "Infective Injector"
-	icon_state = "component_infective"
-	component_type = /datum/component/infective
-	var/disease_type
-
-/obj/effect/mapping_helpers/component_injector/infective/build_args()
-	if(!ispath(disease_type,/datum/disease))
-		CRASH("Wrong disease type passed in.")
-	var/datum/disease/D = new disease_type()
-	return list(component_type,D)
 
 /obj/effect/mapping_helpers/dead_body_placer
 	name = "Dead Body placer"
@@ -155,17 +102,12 @@ INITIALIZE_IMMEDIATE(/obj/effect/mapping_helpers/no_lava)
 	var/bodycount = 2 //number of bodies to spawn
 
 /obj/effect/mapping_helpers/dead_body_placer/LateInitialize()
-	var/area/a = get_area(src)
 	var/list/trays = list()
-	for (var/i in a.contents)
-		if (istype(i, /obj/structure/bodycontainer/morgue))
-			trays += i
 	if(!trays.len)
-		log_mapping("[src] at [x],[y] could not find any morgues.")
+		log_mapping("[src] at [AREACOORD(src)] could not find any morgues.")
 		return
 	for (var/i = 1 to bodycount)
-		var/obj/structure/bodycontainer/morgue/j = pick(trays)
-		var/mob/living/carbon/human/h = new /mob/living/carbon/human(j, 1)
+		var/mob/living/carbon/human/h = new /mob/living/carbon/human(get_turf(src), 1)
 		h.death()
 		for (var/part in h.internal_organs) //randomly remove organs from each body, set those we keep to be in stasis
 			if (prob(40))
@@ -173,9 +115,9 @@ INITIALIZE_IMMEDIATE(/obj/effect/mapping_helpers/no_lava)
 			else
 				var/obj/item/organ/O = part
 				O.organ_flags |= ORGAN_FROZEN
-		j.update_icon()
 	qdel(src)
 
+<<<<<<< HEAD
 
 //On Ian's birthday, the hop's office is decorated.
 /obj/effect/mapping_helpers/ianbirthday
@@ -240,6 +182,8 @@ INITIALIZE_IMMEDIATE(/obj/effect/mapping_helpers/no_lava)
 	qdel(src)
 
 
+=======
+>>>>>>> upstream/main
 //This is our map object, which just gets placed anywhere on the map. A .dm file is linked to it to set the templates list.
 //If there's only one template in the list, it will only pick that (useful for editing parts of maps without editing the WHOLE map)
 /obj/effect/landmark/map_load_mark
@@ -248,4 +192,106 @@ INITIALIZE_IMMEDIATE(/obj/effect/mapping_helpers/no_lava)
 
 /obj/effect/landmark/map_load_mark/Initialize()
 	. = ..()
-	LAZYADD(SSmapping.map_load_marks,src)
+	LAZYADD(SSmapping.map_load_marks, src)
+
+/obj/effect/landmark/map_load_mark/Destroy()
+	LAZYREMOVE(SSmapping.map_load_marks, src)
+	return ..()
+
+/obj/effect/mapping_helpers/outfit_handler
+	name = "generic outfit equipper (SET PATH IN VARS)"
+	icon_state = "plate_alt"
+	icon = 'icons/roguetown/clothing/armor.dmi'
+	alpha = 155 //so its easier to tell apart
+	late = TRUE
+	var/datum/outfit/outfit_to_equip
+
+/obj/effect/mapping_helpers/outfit_handler/LateInitialize()
+	if(!outfit_to_equip)
+		qdel(src)
+		return
+	var/mob/living/carbon/human/located = locate(/mob/living/carbon/human) in get_turf(src)
+	if(!located)
+		qdel(src)
+		return
+	located.equipOutfit(outfit_to_equip)
+	qdel(src)
+
+/obj/effect/mapping_helpers/floor_clothing_equipper
+	name = "floor clothes equipper (PLACE ITEMS ON FLOOR)"
+	icon_state = "leather"
+	icon = 'icons/roguetown/clothing/armor.dmi'
+	alpha = 155 //so its easier to tell apart
+	late = TRUE
+
+
+/obj/effect/mapping_helpers/floor_clothing_equipper/LateInitialize()
+	var/mob/living/carbon/human/located = locate(/mob/living/carbon/human) in get_turf(src)
+	if(!located)
+		qdel(src)
+		return
+
+	for(var/obj/item/clothing/clothing in get_turf(src))
+		located.equip_to_appropriate_slot(clothing)
+
+	for(var/obj/item/weapon/weapon in get_turf(src))
+		located.put_in_hands(weapon)
+	qdel(src)
+
+/obj/effect/mapping_helpers/access
+	name = "access helper parent"
+	layer = DOOR_HELPER_LAYER
+	late = TRUE
+
+/obj/effect/mapping_helpers/access/LateInitialize()
+	var/static/list/valid = list(
+		/obj/structure/door, \
+		/obj/structure/closet, \
+		/obj/structure/fake_machine/vendor, \
+	)
+
+	// Get the first thing we find starting with doors and closets
+	for(var/thing as anything in valid)
+		var/obj/found = locate(thing) in loc
+		if(found)
+			payload(found)
+			qdel(src)
+			return
+
+	log_mapping("[src] failed to find a target at [AREACOORD(src)]")
+	qdel(src)
+
+/obj/effect/mapping_helpers/access/proc/payload(obj/payload)
+	return
+
+/obj/effect/mapping_helpers/access/locker
+	name = "access lock helper"
+	icon_state = "door_locker"
+
+/obj/effect/mapping_helpers/access/locker/payload(obj/payload)
+	if(!payload.lock_check())
+		log_mapping("[src] at [AREACOORD(src)] tried to lock [payload] but it hasn't got a lock!")
+		return
+	if(payload.locked())
+		log_mapping("[src] at [AREACOORD(src)] tried to lock [payload] but it's already locked!")
+		return
+	payload.lock()
+
+/obj/effect/mapping_helpers/structure
+	name = "structure helper"
+	layer = WALL_OBJ_LAYER
+	plane = GAME_PLANE_UPPER
+	late = TRUE
+
+/obj/effect/mapping_helpers/structure/LateInitialize()
+	var/list/valid = subtypesof(/obj/structure) - typesof(/obj/structure/flora)
+	for(var/obj/structure/S in loc)
+		if(is_type_in_list(S, valid))
+			payload(S)
+			qdel(src)
+			return
+	log_mapping("[src] failed to find target at [AREACOORD(src)]")
+	qdel(src)
+
+/obj/effect/mapping_helpers/structure/proc/payload(obj/payload)
+	return

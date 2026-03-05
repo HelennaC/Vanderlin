@@ -24,6 +24,8 @@
 
 
 /mob/Login()
+	if(QDELETED(src) || QDELETED(client))
+		return
 	GLOB.player_list |= src
 	lastKnownIP	= client.address
 	computer_id	= client.computer_id
@@ -41,6 +43,8 @@
 	next_move = 1
 
 	..()
+	SEND_SIGNAL(src, COMSIG_MOB_LOGIN)
+
 	if (client && key != client.key)
 		key = client.key
 	reset_perspective(loc)
@@ -64,21 +68,19 @@
 		var/datum/atom_hud/alternate_appearance/AA = v
 		AA.onNewMob(src)
 
-	client.genmouseobj()
-
 	update_client_colour()
 	update_mouse_pointer()
+	update_ambience_area(get_area(src))
+
+	if(!can_hear())
+		stop_sound_channel(CHANNEL_AMBIENCE)
+
 	if(client)
-		client.change_view(CONFIG_GET(string/default_view)) // Resets the client.view in case it was changed.
-
-		client.show_popup_menus = FALSE
-
 		if(client.player_details.player_actions.len)
 			for(var/datum/action/A in client.player_details.player_actions)
 				A.Grant(src)
 
-		for(var/foo in client.player_details.post_login_callbacks)
-			var/datum/callback/CB = foo
+		for(var/datum/callback/CB as anything in client.player_details.post_login_callbacks)
 			CB.Invoke()
 		log_played_names(client.ckey,name,real_name)
 		auto_deadmin_on_login()
@@ -88,7 +90,21 @@
 
 	SEND_SIGNAL(src, COMSIG_MOB_LOGIN)
 	log_message("Client [key_name(src)] has taken ownership of mob [src]([src.type])", LOG_OWNERSHIP)
+	enable_client_mobs_in_contents(client)
+
 	SEND_SIGNAL(src, COMSIG_MOB_CLIENT_LOGIN, client)
+
+	client.init_verbs()
+
+	addtimer(CALLBACK(src, PROC_REF(send_pref_messages)), 2 SECONDS)
+	resend_all_uis()
+	if(client)
+		client.preload_music()
+
+/mob/proc/send_pref_messages()
+	if(client?.prefs)
+		for(var/message in client.prefs.preference_message_list)
+			to_chat(src, message)
 
 /**
  * Checks if the attached client is an admin and may deadmin them

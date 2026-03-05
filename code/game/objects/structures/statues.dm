@@ -7,7 +7,7 @@
 	anchored = FALSE
 	max_integrity = 100
 	var/oreAmount = 5
-	var/material_drop_type = /obj/item/stack/sheet/metal
+	var/material_drop_type
 	var/impressiveness = 15
 	CanAtmosPass = ATMOS_PASS_DENSITY
 	var/art_type = /datum/component/art
@@ -15,25 +15,7 @@
 /obj/structure/statue/Initialize()
 	. = ..()
 	AddComponent(art_type, impressiveness)
-	addtimer(CALLBACK(src, TYPE_PROC_REF(/datum, AddComponent), /datum/component/beauty, impressiveness *  75), 0)
-
-/obj/structure/statue/attackby(obj/item/W, mob/living/user, params)
-	add_fingerprint(user)
-	if(!(flags_1 & NODECONSTRUCT_1))
-		if(default_unfasten_wrench(user, W))
-			return
-		if(W.tool_behaviour == TOOL_WELDER)
-			if(!W.tool_start_check(user, amount=0))
-				return FALSE
-
-			user.visible_message("<span class='notice'>[user] is slicing apart the [name].</span>", \
-								"<span class='notice'>I are slicing apart the [name]...</span>")
-			if(W.use_tool(src, user, 40, volume=50))
-				user.visible_message("<span class='notice'>[user] slices apart the [name].</span>", \
-									"<span class='notice'>I slice apart the [name]!</span>")
-				deconstruct(TRUE)
-			return
-	return ..()
+	addtimer(CALLBACK(src, TYPE_PROC_REF(/datum, _AddComponent), list(/datum/component/beauty, impressiveness *  75)), 0)
 
 /obj/structure/statue/deconstruct(disassembled = TRUE)
 	if(!(flags_1 & NODECONSTRUCT_1))
@@ -45,9 +27,15 @@
 				new material_drop_type(get_turf(src), drop_amt)
 	qdel(src)
 
-//////////////////////////////////////STATUES/////////////////////////////////////////////////////////////
-////////////////////////uranium///////////////////////////////////
+//******Decoration objects
+//***Bone statues and giant skeleton parts.
+/obj/structure/statue/bone
+	anchored = TRUE
+	max_integrity = 120
+	impressiveness = 18 // Carved from the bones of a massive creature, it's going to be a specticle to say the least
+	layer = ABOVE_ALL_MOB_LAYER
 
+<<<<<<< HEAD
 /obj/structure/statue/uranium
 	max_integrity = 300
 	light_outer_range =  2
@@ -270,34 +258,24 @@
 
 /obj/structure/statue/sandstone/venus //call me when we add marble i guess
 	name = "statue of a pure maiden"
+=======
+/obj/structure/statue/bone/rib
+	name = "collosal rib"
+>>>>>>> upstream/main
 	desc = ""
+	oreAmount = 4
 	icon = 'icons/obj/statuelarge.dmi'
-	icon_state = "venus"
+	icon_state = "rib"
 
-/////////////////////snow/////////////////////////////////////////
-
-/obj/structure/statue/snow
-	max_integrity = 50
-	material_drop_type = /obj/item/stack/sheet/mineral/snow
-
-/obj/structure/statue/snow/snowman
-	name = "snowman"
+/obj/structure/statue/bone/skull
+	name = "collosal skull"
 	desc = ""
-	icon_state = "snowman"
+	oreAmount = 12
+	icon = 'icons/obj/statuelarge.dmi'
+	icon_state = "skull"
 
-/obj/structure/statue/snow/snowlegion
-	name = "snowlegion"
+/obj/structure/statue/bone/skull/half
 	desc = ""
-	icon_state = "snowlegion"
-
-///////////////////////////////bronze///////////////////////////////////
-
-/obj/structure/statue/bronze
-	material_drop_type = /obj/item/stack/tile/bronze
-
-/obj/structure/statue/bronze/marx
-	name = "\improper Karl Marx bust"
-	desc = ""
-	icon_state = "marx"
-	art_type = /datum/component/art/rev
-
+	oreAmount = 6
+	icon = 'icons/obj/statuelarge.dmi'
+	icon_state = "skull-half"

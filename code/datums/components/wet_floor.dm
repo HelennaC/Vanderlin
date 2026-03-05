@@ -12,9 +12,9 @@
 	var/permanent = FALSE
 	var/last_process = 0
 
-/datum/component/wet_floor/InheritComponent(datum/newcomp, orig, argslist)
+/datum/component/wet_floor/InheritComponent(datum/newcomp, orig, strength, duration_minimum, duration_add, duration_maximum, _permanent)
 	if(!newcomp)	//We are getting passed the arguments of a would-be new component, but not a new component
-		add_wet(arglist(argslist))
+		add_wet(arglist(args.Copy(3)))
 	else			//We are being passed in a full blown component
 		var/datum/component/wet_floor/WF = newcomp			//Lets make an assumption
 		if(WF.gc())						//See if it's even valid, still. Also does LAZYLEN and stuff for us.
@@ -70,7 +70,7 @@
 
 /datum/component/wet_floor/proc/AfterSlip(mob/living/L)
 	if(highest_strength == TURF_WET_LUBE)
-		L.confused = max(L.confused, 8)
+		L.set_confusion_if_lower(0.8 SECONDS)
 
 /datum/component/wet_floor/proc/update_flags()
 	var/intensity
@@ -113,12 +113,12 @@
 	var/turf/open/T = parent
 	var/diff = world.time - last_process
 	var/decrease = 0
-	var/t = T.GetTemperature()
+	var/t = T.temperature
 	switch(t)
 		if(-INFINITY to T0C)
 			add_wet(TURF_WET_ICE, max_time_left())			//Water freezes into ice!
 		if(T0C to T0C + 100)
-			decrease = ((T.air.temperature - T0C) / SSwet_floors.temperature_coeff) * (diff / SSwet_floors.time_ratio)
+			decrease = ((T.temperature - T0C) / SSwet_floors.temperature_coeff) * (diff / SSwet_floors.time_ratio)
 		if(T0C + 100 to INFINITY)
 			decrease = INFINITY
 	decrease = max(0, decrease)
